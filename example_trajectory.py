@@ -38,9 +38,7 @@ with open('motor_out.csv') as csvfile:
         area_ratio_data.append(float(row[7]))      
 
 
-mass_data = {'dry mass' : 0, 'moments of inertia' : [[0,0,0],
-                                                     [0,0,0],
-                                                     [0,0,0]]}
+mass_data = {'dry_mass': 45.73, 'Izz':0.32, 'Ixx':86.8, 'Iyy':86.8}
     
 ###############################################################################
 #Initialising and running the simulations
