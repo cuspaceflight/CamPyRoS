@@ -1,6 +1,3 @@
-import numpy as np
-import matplot.pyplot as plt
-import csv
 import main
 from main import StandardAtmosphere
 ###############################################################################
@@ -46,15 +43,15 @@ mass_data = {'dry_mass': 45.73, 'Izz':0.32, 'Ixx':86.8, 'Iyy':86.8}
 #Initialising and running the simulations
 ###############################################################################
     
-pulsar = main.HybridMotor(motor_time_data, prop_mass_data, cham_pres_data, throat_data,
+pulsar = main.Motor(motor_time_data, prop_mass_data, cham_pres_data, throat_data,
                           gamma_data, nozzle_efficiency_data, exit_pres_data, area_ratio_data)
 
-launch_site = main.LaunchSite(10, 10, 0, 0, StandardAtmosphere)
+launch_site = main.LaunchSite(10, 1, 0 , 0, 0, 0)
 
-martlet4 = main.Rocket(45.73, 86.8, 86.8, 0.32, pulsar, drag_coefficient_data, launch_site)
+martlet4 = main.Rocket(45.73, 86.8, 86.8, 0.32, pulsar, drag_coefficient_data, launch_site, 0.001, False)
 
 
-simulation_output = main.run_simulation(martlet4)
+simulation_output = main.run_simulation(martlet4, 0.001)
 
 main.plot_altitude_time(simulation_output)
 
