@@ -6,7 +6,7 @@ Fully defined forces for thrust and aero forces with good explanation. Sets out 
 Can inform later on to include statistical simulation. Also includes parachute forces.
 ### Paper C: [Trajectory Prediction for a Typical Fin Stabilized Artillery Rocket](https://journals.ekb.eg/article_23742_f19c1da1a61e78c1f5bb7ce58a7b30dd.pdf)
 Covers the same ground as Paper A. Has a flow chart that we could consult if we get stuck. Possibly clearer defintions of some things. Also gives parameters for a vehicle we could use to verify. Includes wind forces.
-### Paper D: [Six degree-of-freedom (6-DOF) Flight Simulation Check-cases](https://nescacademy.nasa.gov/flightsim/)]
+### Paper D: [Six degree-of-freedom (6-DOF) Flight Simulation Check-cases](https://nescacademy.nasa.gov/flightsim/)
 Provides check cases and peformace comparison and some lessons learned (but seem to complex for our needs anyway).
 ### Paper E: [DAVE-ML](https://daveml.org/intro.html)
 DAVE-ML is a standard for data handeling in simulation software that we should probably try to adhere to, might be a pain though since they use XML instead of something designed in the last centuary.
@@ -22,3 +22,5 @@ We need to make sure to remove all the links to pirated books if we make the rep
 ## Notes on design choices
 ### Integration method
 RK4 chosen with the aid of [this](https://www.sciencedirect.com/science/article/pii/0045794981900675) paper.
+
+![Rough flowchart](img/euler.png)

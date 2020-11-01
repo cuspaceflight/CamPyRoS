@@ -61,8 +61,10 @@ a=[[0,               0,              0,               0,            0,          
 b=[35.0/384.0,  0,  500.0/1113.0, 125.0/192.0, -2187.0/6784.0,  11.0/84.0,  0]
 b_=[5179.0/57600.0,  0,  7571.0/16695.0,  393.0/640.0,  -92097.0/339200.0, 187.0/2100.0,  1.0/40.0]
 
-atol=np.array([[0.1,0.1,0.1],[0.1,0.1,0.1]]) #absolute error of each component of v and w
-rtol=np.array([[0.1,0.1,0.1],[0.1,0.1,0.1]]) #relative error of each component of v and w
+atol_v=np.array([[0.1,0.1,0.1],[0.1,0.1,0.1]]) #absolute error of each component of v and w
+rtol_v=np.array([[0.1,0.1,0.1],[0.1,0.1,0.1]]) #relative error of each component of v and w
+atol_r=np.array([[0.1,0.1,0.1],[0.1,0.1,0.1]]) #absolute error of each component of position and pointing
+rtol_r=np.array([[0.1,0.1,0.1],[0.1,0.1,0.1]]) #relative error of each component of position and pointing
 sf=0.98 #Safety factor for h scaling
 
 #Class to store the data on a hybrid motor
@@ -94,82 +96,92 @@ class LaunchSite:
     
 #Class to store all the import information on a rocket
 class Rocket:
-  def __init__(self, dry_mass, Ixx, Iyy, Izz, motor, aerodynamic_data, launch_site, h, variable):
-    '''
-    dry_mass - Mass without fuel
-    Ixx
-    Iyy
-    Izz - principal moments of inertia - rocket points in the xx direction
-    motor - some kind of Motor object - currently the only option is HybridMotor
-    aerodynamic_data - non-functional at the moment
-    launch_site - a LaunchSite object
-    '''
-      
-    self.launch_site = launch_site                  #LaunchSite object
-      
-    self.dry_mass = dry_mass                    #Dry mass kg
-    self.Ixx = Ixx                              #Principal moments of inertia kg m2
-    self.Iyy = Iyy
-    self.Izz = Izz
-    
-    self.motor = motor                              #Motor object containing motor data
-    self.aerodynamic_data = aerodynamic_data        #e.g. drag coefficients
+    def __init__(self, dry_mass, Ixx, Iyy, Izz, motor, aerodynamic_data, launch_site, h, variable):
+        '''
+        dry_mass - Mass without fuel
+        Ixx
+        Iyy
+        Izz - principal moments of inertia - rocket points in the xx direction
+        motor - some kind of Motor object - currently the only option is HybridMotor
+        aerodynamic_data - non-functional at the moment
+        launch_site - a LaunchSite object
+        '''
+        
+        self.launch_site = launch_site                  #LaunchSite object
+        
+        self.dry_mass = dry_mass                    #Dry mass kg
+        self.Ixx = Ixx                              #Principal moments of inertia kg m2
+        self.Iyy = Iyy
+        self.Izz = Izz
+        
+        self.motor = motor                              #Motor object containing motor data
+        self.aerodynamic_data = aerodynamic_data        #e.g. drag coefficients
 
 
-    self.time = 0               #Time since ignition s
-    self.h = h            #Time step size (can evolve)
-    self.variable_time = variable   #Vary timestep with error (option for ease of debugging)
-    self.m = 0                  #Instantaneous mass (will vary as fuel is used) kg
-    self.w = np.array([0,0,0])            #Angular velocity of the x,y,z coordinate system in the X,Y,Z coordinate system [X,Y,Z] rad/s
-    self.v_i = np.array([0,0,0])            #Velocity in intertial coordinates [x_i,y_i,z_i] m/s
-    self.pos_i = np.array([0,0,0])         #Position in inertial coordinates [x_i,y_i,z_i] m
-    self.v_b = np.array([0,0,0])             #Velocity in body coordinates [x_b,y_b,z_b] m/s
-    self.pos_b = np.array([0,0,0])          #Position in body coordinates [x_b,y_b,z_b] m
-    self.alt = launch_site.alt  #Altitude
+        self.time = 0               #Time since ignition s
+        self.h = h            #Time step size (can evolve)
+        self.variable_time = variable   #Vary timestep with error (option for ease of debugging)
+        self.m = 0                  #Instantaneous mass (will vary as fuel is used) kg
+        self.w = np.array([0,0,0])            #Angular velocity of the x,y,z coordinate system in the X,Y,Z coordinate system - the euler angles as given in the diagram in readme [alpha',beta',gamma'] with the body frame as the red rad/s
+        self.v = np.array([0,0,0])            #Velocity in intertial coordinates [x',y',z'] m/s
+        self.pos = np.array([0,0,0])         #Position in inertial coordinates [x,y,z] m
+        self.alt = launch_site.alt  #Altitude
+        self.point = np.array([0,0,0])    #Euler angles given by readme diagram with red as body frame [alpha,beta,gamma] rad
     
-    def body_to_intertial(vector):  #Convert a vector in x,y,z to X,Y,Z
+    def body_to_intertial(self,vector):  #Convert a vector in x,y,z to X,Y,Z
         pass
     
-    def surfacevelocity_to_inertial(vector):    #Converts a surface velocity to an inertial one
+    def surfacevelocity_to_inertial(self,vector):    #Converts a surface velocity to an inertial one
         print("surfacevelocity_to_inertial is not yet functional")
         return [0,0,0]                          #Doesn't work yet
     
-    def aero_forces():          #Returns aerodynamic forces and moments based on current pos and vel 
+    def aero_forces(self):          #Returns aerodynamic forces and moments based on current pos and vel 
         pass
         
-    def motor_forces():         #Returns thrust and moments generated by the motor, based on current conditions
+    def motor_forces(self):         #Returns thrust and moments generated by the motor, based on current conditions
         pass
     
-    def acceleration(pos,v_b,w,time,alt):     #Returns translational and rotational accelerations on the rocket, given the applied forces
-        trans,rot=np.array([0,0,0])                       #Some kind of implementation of the equations of motion
-        return np.stack((trans,rot))
-
-    def velocity():
+    def acceleration(self,pos,v_b,w,time,alt):     #Returns translational and rotational accelerations on the rocket, given the applied forces
+        #Some kind of implementation of the equations of motion
+        #Out put needs to be relative to the inertial frame (doesn't really mean anything for it to be accelerating in the body frame but makes sense for forces to be applied in body frame)
+        out = np.stack((np.array([0,0,0]),np.array([0,0,0])))
+        return out
+    
+    def position_velocity(self):
         #Implimenting a time step variable method based on Numerical recipes (link in readme)
         #Including possibility to update altitude incase it is decided that the altitude change between steps effects air pressure significantly but will keep constant for now 
-        k_1=self.h*Rocket.acceleration(self.pos_b,self.v_b,self.w,self.time,self.alt)
-        k_2=self.h*Rocket.acceleration(self.pos_b,self.v_b+a[1][0]*k_1,self.w,self.time+c[1]*h,self.alt)
-        k_3=self.h*Rocket.acceleration(self.pos_b,self.v_b+a[2][0]*k_1+a[2][1]*k_2,self.w,self.time+c[2]*h,self.alt)
-        k_4=self.h*Rocket.acceleration(self.pos_b,self.v_b+a[3][0]*k_1+a[3][1]*k_2+a[3][2]*k_3,self.w,self.time+c[3]*h,self.alt)
-        k_5=self.h*Rocket.acceleration(self.pos_b,self.v_b+a[4][0]*k_1+a[4][1]*k_2+a[4][2]*k_3+a[4][3]*k_4,self.w,self.time+c[4]*h,self.alt)
-        k_6=self.h*Rocket.acceleration(self.pos_b,self.v_b+a[5][0]*k_1+a[5][1]*k_2+a[5][2]*k_3+a[5][3]*k_4+a[5][4]*k_5,self.w,self.time+c[4]*h,self.alt)
+        k_1=self.h*self.acceleration(self.pos,self.v,self.w,self.time,self.alt)
+        k_2=self.h*self.acceleration(self.pos,self.v+a[1][0]*k_1,self.w,self.time+c[1]*self.h,self.alt)
+        k_3=self.h*self.acceleration(self.pos,self.v+a[2][0]*k_1+a[2][1]*k_2,self.w,self.time+c[2]*self.h,self.alt)
+        k_4=self.h*self.acceleration(self.pos,self.v+a[3][0]*k_1+a[3][1]*k_2+a[3][2]*k_3,self.w,self.time+c[3]*self.h,self.alt)
+        k_5=self.h*self.acceleration(self.pos,self.v+a[4][0]*k_1+a[4][1]*k_2+a[4][2]*k_3+a[4][3]*k_4,self.w,self.time+c[4]*self.h,self.alt)
+        k_6=self.h*self.acceleration(self.pos,self.v+a[5][0]*k_1+a[5][1]*k_2+a[5][2]*k_3+a[5][3]*k_4+a[5][4]*k_5,self.w,self.time+c[4]*self.h,self.alt)
         
-        v=np.stack((self.v_b,self.w))+b[0]*k_1+b[1]*k_2+b[2]*k_3+b[3]*k_4+b[4]*k_5+b[5]*k_6 #+O(h^6)
+        l_1=np.stack((self.v,self.w))
+        l_2=l_1+a[1][0]*k_1
+        l_3=l_1+a[2][0]*k_1+a[2][1]*k_2
+        l_4=l_1+a[3][0]*k_1+a[3][1]*k_2+a[3][2]*k_3
+        l_5=l_1+a[4][0]*k_1+a[4][1]*k_2+a[4][2]*k_3+a[4][3]*k_4
+        l_6=l_1+a[5][0]*k_1+a[5][1]*k_2+a[5][2]*k_3+a[5][3]*k_4+a[5][4]*k_5
+
+        v=np.stack((self.v,self.w))+b[0]*k_1+b[1]*k_2+b[2]*k_3+b[3]*k_4+b[4]*k_5+b[5]*k_6 #+O(h^6)
+        r=np.stack((self.pos,self.point))+b[0]*l_1+b[1]*l_2+b[2]*l_3+b[3]*l_4+b[4]*l_5+b[5]*l_6 #+O(h^6) This is movement of the body frame from wherever it is- needs to be transformed to inertial frame
 
         if(self.variable_time==True):
-            v_=np.stack((self.v_b,self.w))+b_[0]*k_1+b_[1]*k_2+b_[2]*k_3+b_[3]*k_4+b_[4]*k_5+b_[5]*k_6 #+O(h^5)
+            v_=np.stack((self.v,self.w))+b_[0]*k_1+b_[1]*k_2+b_[2]*k_3+b_[3]*k_4+b_[4]*k_5+b_[5]*k_6 #+O(h^5)
+            r_=np.stack((self.pos,self.point))+b_[0]*l_1+b_[1]*l_2+b_[2]*l_3+b_[3]*l_4+b_[4]*l_5+b_[5]*l_6 #+O(h^5)
 
-            scale=atol+rtol*abs(np.maximum.reduce([v,self.v_b]))
-            err=(v-v_)/scale
+            scale_v=atol_v+rtol_v*abs(np.maximum.reduce([v,self.v_b]))
+            scale_r=atol_r+rtol_r*abs(np.maximum.reduce([r,self.r_b]))
+            err_v=(v-v_)/scale_v
+            err_r=(v-v_)/scale_r
+            err=max(err_v,err_r)
             self.h=sf*self.h*pow(max(err),-1/5)
 
-        self.v_b=v[0]
+        self.v=v[0]
         self.w=v[1]
-        #Probably need to transform to and update other velocity things here
-    
-    def position():
-        #Same method as above but velocity doesn't depend on altitude, may need to change in the future if we have more granular atmosphere data that gives a significant impact on the momentum thust and drag
-        
+        self.pos=r[0]
+        self.point=r[1]
 
 
 def run_simulation(rocket):     #'rocket' can be a Rocket object

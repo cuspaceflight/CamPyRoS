@@ -1,4 +1,4 @@
-import main
+import main,csv
 from main import StandardAtmosphere
 ###############################################################################
 #Import data from CSV files
@@ -17,7 +17,7 @@ with open('drag_coefficient_data.csv') as csvfile:
 
 
 #Import motor data - copied from Joe Hunt's simulation
-with open('motor_out.csv') as csvfile:
+with open('Motor/motor_out.csv') as csvfile:
     motor_out = csv.reader(csvfile)
 
     (motor_time_data, prop_mass_data, cham_pres_data,
@@ -50,10 +50,11 @@ launch_site = main.LaunchSite(10, 1, 0 , 0, 0, 0)
 
 martlet4 = main.Rocket(45.73, 86.8, 86.8, 0.32, pulsar, drag_coefficient_data, launch_site, 0.001, False)
 
+martlet4.position_velocity()
 
-simulation_output = main.run_simulation(martlet4, 0.001)
+#simulation_output = main.run_simulation(martlet4)
 
-main.plot_altitude_time(simulation_output)
+#main.plot_altitude_time(simulation_output)
 
 
 
