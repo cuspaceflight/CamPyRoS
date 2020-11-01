@@ -2,6 +2,7 @@ import numpy as np
 import matplot.pyplot as plt
 import csv
 import main
+from main import StandardAtmosphere
 ###############################################################################
 #Import data from CSV files
 ###############################################################################
@@ -39,13 +40,19 @@ with open('motor_out.csv') as csvfile:
 
 
 mass_data = {'dry_mass': 45.73, 'Izz':0.32, 'Ixx':86.8, 'Iyy':86.8}
+
     
 ###############################################################################
 #Initialising and running the simulations
 ###############################################################################
     
-launch_site = main.LaunchSite(10, 10, 0, 0)
-martlet4 = main.Rocket(mass_data, motor_out, drag_coefficient_data, launch_site)
+pulsar = main.HybridMotor(motor_time_data, prop_mass_data, cham_pres_data, throat_data,
+                          gamma_data, nozzle_efficiency_data, exit_pres_data, area_ratio_data)
+
+launch_site = main.LaunchSite(10, 10, 0, 0, StandardAtmosphere)
+
+martlet4 = main.Rocket(45.73, 86.8, 86.8, 0.32, pulsar, drag_coefficient_data, launch_site)
+
 
 simulation_output = main.run_simulation(martlet4)
 
