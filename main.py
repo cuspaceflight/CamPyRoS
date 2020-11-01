@@ -83,12 +83,12 @@ class Motor:
 
 #Class to store data on your launch site
 class LaunchSite:
-  def __init__(self, rail_length, rail_azimuth, rail_polar ,alt, long, lat, wind=[0,0,0], atmosphere=StandardAtmosphere):
+  def __init__(self, rail_length, rail_azimuth, rail_polar ,alt, longi, lat, wind=[0,0,0], atmosphere=StandardAtmosphere):
     self.rail_length = rail_length
     self.rail_azimuth = rail_azimuth #Angle that rail points from straight up
     self.rail_polar = rail_polar    #Angle from north that rail inclination points in
     self.alt = alt                  #Altitude
-    self.long = long                #Longitude
+    self.longi = longi                #Longitude
     self.lat = lat                  #Latitude
     self.wind = wind                #Wind speed vector relative to the surface of the Earth, [x_] m/s
     self.atmosphere = atmosphere    #An Atmosphere object to get atmosphere data from
@@ -123,8 +123,8 @@ class Rocket:
         self.variable_time = variable   #Vary timestep with error (option for ease of debugging)
         self.m = 0                  #Instantaneous mass (will vary as fuel is used) kg
         self.w = np.array([0,0,0])            #Angular velocity of the x,y,z coordinate system in the X,Y,Z coordinate system - the euler angles as given in the diagram in readme [alpha',beta',gamma'] with the body frame as the red rad/s
-        self.v = np.array([0,0,0])            #Velocity in intertial coordinates [x',y',z'] m/s
-        self.pos = np.array([0,0,0])         #Position in inertial coordinates [x,y,z] m
+        self.v = vel_launch_to_inertial(np.array([0,0,0]),launch_site,0)           #Velocity in intertial coordinates [x',y',z'] m/s
+        self.pos = pos_launch_to_inertial(np.array([0,0,0]),launch_site,0)         #Position in inertial coordinates [x,y,z] m
         self.alt = launch_site.alt  #Altitude
         self.point = np.array([0,0,0])    #Euler angles given by readme diagram with red as body frame [alpha,beta,gamma] rad
     
@@ -147,7 +147,7 @@ class Rocket:
         out = np.stack((np.array([0,0,0]),np.array([0,0,0])))
         return out
     
-    def position_velocity(self):
+    def step(self):
         #Implimenting a time step variable method based on Numerical recipes (link in readme)
         #Including possibility to update altitude incase it is decided that the altitude change between steps effects air pressure significantly but will keep constant for now 
         k_1=self.h*self.acceleration(self.pos,self.v,self.w,self.time,self.alt)
@@ -183,10 +183,29 @@ class Rocket:
         self.pos=r[0]
         self.point=r[1]
 
+def pos_launch_to_inertial(position,launch_site,time)#takes position vector and launch site object
+    #Adapted from https://gist.github.com/mpkuse/d7e2f29952b507921e3da2d7a26d1d93 
+    phi = launch_site.lati / 180. * np.pi
+    lambada = (launch_site.longi+time*7.292115e-5) / 180. * np.pi
+    h = launch_site.alt
+
+    e = 0.081819191 #earth ecentricity
+    q = np.sin( phi )
+    N = 6378137.0 / np.sqrt( 1 - e*e * q*q )
+    X = (N + h) * np.cos( phi ) * np.cos( lambada )
+    Y = (N + h) * np.cos( phi ) * np.sin( lambada )
+    Z = (N*(1-e*e) + h) * np.sin( phi )
+    return np.array([X,Y,Z])
+
 
 def run_simulation(rocket):     #'rocket' can be a Rocket object
-    pass                        #Maybe returns a dictionary of data?
-
+    record={"position":[],"velocity":[],"orientation":[],"mass":[]}#all in inertial frame
+    while rocket.alt>0:
+        rocket.step()
+        record["position"].append(pos_inertial_to_launch(rocket.pos,rocket.launch_site,rocket.time))
+        record["velocity"].append(vel_inertial_to_launch(rocket.vel,rocket.launch_site,rocket.time))
+        record["orientation"].append(orient_inertial_to_launch(rocket.point,rocket.launch_site,rocket.time))
+        record["mass"].append(rocket.m)
 
 
 def plot_altitude_time(simulation_output):  #takes data from a simulation and plots nice graphs for you

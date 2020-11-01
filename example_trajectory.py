@@ -50,7 +50,7 @@ launch_site = main.LaunchSite(10, 1, 0 , 0, 0, 0)
 
 martlet4 = main.Rocket(45.73, 86.8, 86.8, 0.32, pulsar, drag_coefficient_data, launch_site, 0.001, False)
 
-martlet4.position_velocity()
+martlet4.step()
 
 #simulation_output = main.run_simulation(martlet4)
 
