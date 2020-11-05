@@ -7,17 +7,8 @@ from main import StandardAtmosphere
 #Import data from CSV files
 ###############################################################################
 
-#Import drag coefficients - copied from Joe Hunt's simulation - will need more data for the other drag coefficients
-#Maybe obtained from CFD, or OpenRocket/RASAero II if possible
-with open('drag_coefficient_data.csv') as csvfile:
-    drag_coefficient_data = csv.reader(csvfile)
-    machdat = []
-    cddat = []
-    next(drag_coefficient_data)
-    for row in drag_coefficient_data:
-        machdat.append(float(row[0]))
-        cddat.append(float(row[1]))
-
+#Import drag coefficients from RasAero II
+aerodynamic_coefficients = main.RasAeroData("Martlet4 RasAeroII.CSV")
 
 #Import motor data - copied from Joe Hunt's simulation
 with open('motor_out.csv') as csvfile:
@@ -39,7 +30,7 @@ with open('motor_out.csv') as csvfile:
         area_ratio_data.append(float(row[7]))      
 
 
-mass_data = {'dry_mass': 45.73, 'Izz':0.32, 'Ixx':86.8, 'Iyy':86.8}
+#mass_data = {'dry_mass': 45.73, 'Izz':0.32, 'Ixx':86.8, 'Iyy':86.8}
 
     
 ###############################################################################
@@ -51,7 +42,7 @@ pulsar = main.HybridMotor(motor_time_data, prop_mass_data, cham_pres_data, throa
 
 launch_site = main.LaunchSite(10, 10, 0, 0, StandardAtmosphere)
 
-martlet4 = main.Rocket(45.73, 86.8, 86.8, 0.32, pulsar, drag_coefficient_data, launch_site)
+martlet4 = main.Rocket(45.73, 86.8, 86.8, 0.32, pulsar, aerodynamic_coefficients, launch_site)
 
 
 simulation_output = main.run_simulation(martlet4)
