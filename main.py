@@ -128,7 +128,7 @@ class RasAeroData:
             #Generate grids of the data
             CA = np.array([CA_0, CA_2, CA_4])
             CN = np.array([CN_0, CN_2, CN_4])
-            COP = np.array([COP_0, COP_2, COP_4])
+            COP = 0.0254*np.array([COP_0, COP_2, COP_4])    #Convert inches to m
             alpha = [0,2,4]
                     
             #Generate functions (note these are funcitons, not variables) which return a coefficient given (Mach, alpha)
@@ -150,43 +150,43 @@ class LaunchSite:
     
 #Class to store all the import information on a rocket
 class Rocket:
-  def __init__(self, dry_mass, Ixx, Iyy, Izz, motor, aero, launch_site):
-    '''
-    dry_mass - Mass without fuel
-    Ixx
-    Iyy
-    Izz - principal moments of inertia - rocket points in the xx direction
-    motor - some kind of Motor object - currently the only option is HybridMotor
-    aero - Aerodynamic coefficients and stability derivatives
-    launch_site - a LaunchSite object
-    '''
-      
-    self.launch_site = launch_site                  #LaunchSite object
-      
-    self.dry_mass = dry_mass                    #Dry mass kg
-    self.Ixx = Ixx                              #Principal moments of inertia kg m2
-    self.Iyy = Iyy
-    self.Izz = Izz
+    def __init__(self, dry_mass, Ixx, Iyy, Izz, motor, aero, launch_site):
+        '''
+        dry_mass - Mass without fuel
+        Ixx
+        Iyy
+        Izz - principal moments of inertia - rocket points in the xx direction
+        motor - some kind of Motor object - currently the only option is HybridMotor
+        aero - Aerodynamic coefficients and stability derivatives
+        launch_site - a LaunchSite object
+        '''
+          
+        self.launch_site = launch_site                  #LaunchSite object
+          
+        self.dry_mass = dry_mass                    #Dry mass kg
+        self.Ixx = Ixx                              #Principal moments of inertia kg m2
+        self.Iyy = Iyy
+        self.Izz = Izz
+        
+        self.motor = motor                              #Motor object containing motor data
+        self.aero = aero        #e.g. drag coefficients
     
-    self.motor = motor                              #Motor object containing motor data
-    self.aero = aero        #e.g. drag coefficients
-
-
-    self.time = 0               #Time since ignition s
-    self.m = 0                  #Instantaneous mass (will vary as fuel is used) kg
-    self.w = [0,0,0]            #Angular velocity of the x,y,z coordinate system in the X,Y,Z coordinate system [X,Y,Z] rad/s
-    self.v = [0,0,0]            #Velocity in intertial coordinates [X, Y, Z] m/s
-    self.pos = [0,0,0]          #Position in inertial coordinates [X, Y, Z] m
-    self.alt = launch_site.alt  #Altitude
     
-    def body_to_intertial(vector):  #Convert a vector in x,y,z to X,Y,Z
+        self.time = 0               #Time since ignition s
+        self.m = 0                  #Instantaneous mass (will vary as fuel is used) kg
+        self.w = np.array([0,0,0])  #Angular velocity of the x,y,z coordinate system in the X,Y,Z coordinate system [X,Y,Z] rad/s
+        self.v = np.array([0,0,0])  #Velocity in intertial coordinates [X, Y, Z] m/s
+        self.pos = np.array([0,0,0])#Position in inertial coordinates [X, Y, Z] m
+        self.alt = launch_site.alt  #Altitude
+    
+    def body_to_intertial(self, vector):  #Convert a vector in x,y,z to X,Y,Z
         pass
     
-    def surfacevelocity_to_inertial(vector):    #Converts a surface velocity to an inertial one
+    def surfacevelocity_to_inertial(self, vector):    #Converts a surface velocity to an inertial one
         print("surfacevelocity_to_inertial is not yet functional")
         return [0,0,0]                          #Doesn't work yet
     
-    def aero_forces():
+    def aero_forces(self):
         '''
         Returns aerodynamic forces, and the point at which they act (i.e. the centre of pressure) 
         
@@ -194,7 +194,7 @@ class Rocket:
         '''
         
         #Velocities and Mach number
-        v_rel_wind = self.v - self.surfacevelocity_to_intertial(self.launch_site.wind)
+        v_rel_wind = self.v - self.surfacevelocity_to_inertial(self.launch_site.wind)
         v_a = np.linalg.norm(v_rel_wind)
         v_sound = np.interp(self.alt, self.launch_site.atmosphere.adat, self.launch_site.atmosphere.sdat)
         M = v_a/v_sound
@@ -218,20 +218,20 @@ class Rocket:
         Cy = self.aero.CN(M, beta) 
         
         #Forces
-        Fx = Cx*q*S
-        Fy = Cy*q*S
+        Fx = Cx*q*S                         #WARNING: I have not checked the directions on these forces yet
+        Fy = Cy*q*S                         #Only the magnitudes have been done
         Fz = Cz*q*S
         
         #Position where moments act:
-        COP = self.aero.COP(M, delta)
+        COP = self.aero.COP(M, delta)[0]
+
+        return np.array([Fx,Fy,Fz]), COP
         
-        return [Fx,Fy,Fz], COP
-        
-    def motor_forces():         #Returns thrust and moments generated by the motor, based on current conditions
+    def motor_forces(self):         #Returns thrust and moments generated by the motor, based on current conditions
         pass
     
     
-    def accelerations(forces, moments):     #Returns translational and rotational accelerations on the rocket, given the applied forces
+    def accelerations(self, forces, moments):     #Returns translational and rotational accelerations on the rocket, given the applied forces
         pass                                #Some kind of implementation of the equations of motion
 
 
