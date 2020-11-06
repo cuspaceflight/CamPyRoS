@@ -14,12 +14,14 @@ x_l, y_l, z_l = Launch site coordinate system (origin on launch site, rotates wi
 Would be useful to define directions, e.g. maybe
 - Body:
     x in direction the rocket points - y and z aligned with launch site coordinates at t=0
+    y points east and z north at take off (before rail alignment is accounted for)
 
 - Launch site:
     X' points East, Y' points North, Z' points upwards (towards space)
     
 - Inertial:
     Aligned with launch site coordinate system at t=0
+    I have been thinking about it as Z points to north from centre of earth, x aligned with launchsite at start and y orthogonal
 
 '''
 
@@ -68,6 +70,9 @@ atol_r=np.array([[0.1,0.1,0.1],[0.1,0.1,0.1]]) #absolute error of each component
 rtol_r=np.array([[0.1,0.1,0.1],[0.1,0.1,0.1]]) #relative error of each component of position and pointing
 sf=0.98 #Safety factor for h scaling
 
+r_earth = 6378137 #(earth's semimarjor axis in meters)
+#e_earth = 0.081819191 #earth ecentricity
+e_earth = 0 #for simplicity of other calculations for now - if changed need to update the launchsite orientation and velocity transforms
 #Class to store the data on a hybrid motor
 class Motor:
     def __init__(self, motor_time_data, prop_mass_data, cham_pres_data, throat_data,
@@ -84,10 +89,10 @@ class Motor:
 
 #Class to store data on your launch site
 class LaunchSite:
-  def __init__(self, rail_length, rail_azimuth, rail_polar ,alt, longi, lat, wind=[0,0,0], atmosphere=StandardAtmosphere):
+  def __init__(self, rail_length, rail_yaw, rail_pitch,alt, longi, lat, wind=[0,0,0], atmosphere=StandardAtmosphere):
     self.rail_length = rail_length
-    self.rail_azimuth = rail_azimuth #Angle that rail points from straight up
-    self.rail_polar = rail_polar    #Angle from north that rail inclination points in
+    self.rail_yaw = rail_yaw        #Angle of rotation about the z axis (north pointing)
+    self.rail_pitch = rail_pitch    #Angle of rotation about "East" pointing y axis - in order to simplify calculations below this needs to be measured in the yaw then pitch order
     self.alt = alt                  #Altitude
     self.longi = longi                #Longitude
     self.lat = lat                  #Latitude
@@ -123,10 +128,10 @@ class Rocket:
         self.h = h            #Time step size (can evolve)
         self.variable_time = variable   #Vary timestep with error (option for ease of debugging)
         self.m = 0                  #Instantaneous mass (will vary as fuel is used) kg
-        self.orientation = np.array([0,0,0]) #yaw pitch roll  of the body frame in the inertial frame rad
-        self.w = np.array([0,0,0])            #rate of change of yaw pitch roll rad/s
+        self.orientation = np.array([launch_site.rail_yaw*np.pi/180,(launch_site.lat+launch_site.rail_pitch)*np.pi/180,0]) #yaw pitch roll  of the body frame in the inertial frame rad
+        self.w = np.array([0,0,0])            #rate of change of yaw pitch roll rad/s - would this have an initial value? I don't think it should since after it is free of the rail (which should be negligable)
         self.pos = pos_launch_to_inertial(np.array([0,0,0]),launch_site,0)         #Position in inertial coordinates [x,y,z] m
-        self.v = np.array([0,0,0])#vel_launch_to_inertial(np.array([0,0,0]),launch_site,0)           #Velocity in intertial coordinates [x',y',z'] m/s
+        self.v = np.matmul(rot_matrix(self.orientation),np.array([0,7.292115e-5*(r_earth+launch_site.alt)*np.cos(launch_site.lat*np.pi/180),0]))#vel_launch_to_inertial(np.array([0,0,0]),launch_site,0)           #Velocity in intertial coordinates [x',y',z'] m/s
         self.alt = launch_site.alt  #Altitude
         self.on_rail=True
     
@@ -176,7 +181,7 @@ class Rocket:
             r_=np.stack((self.pos,self.orientation))+b_[0]*l_1+b_[1]*l_2+b_[2]*l_3+b_[3]*l_4+b_[4]*l_5+b_[5]*l_6 #+O(h^5)
 
             scale_v=atol_v+rtol_v*abs(np.maximum.reduce([v,np.stack((self.v,self.w))]))
-            scale_r=atol_r+rtol_r*abs(np.maximum.reduce([r,np.stack((self.pos,self.orientation))))
+            scale_r=atol_r+rtol_r*abs(np.maximum.reduce([r,np.stack((self.pos,self.orientation))]))
             err_v=(v-v_)/scale_v
             err_r=(r-r_)/scale_r
             err=max(err_v,err_r)
@@ -190,20 +195,57 @@ class Rocket:
 def pos_launch_to_inertial(position,launch_site,time):#takes position vector and launch site object
     #Adapted from https://gist.github.com/mpkuse/d7e2f29952b507921e3da2d7a26d1d93 
     phi = launch_site.lat / 180. * np.pi
-    lambada = (launch_site.longi+time*7.292115e-5) / 180. * np.pi
+    lambada = (launch_site.longi) / 180. * np.pi-time*7.292115e-5
     h = launch_site.alt
 
-    e = 0.081819191 #earth ecentricity
+    e=e_earth
     q = np.sin( phi )
-    N = 6378137.0 / np.sqrt( 1 - e*e * q*q )
+    N = r_earth / np.sqrt( 1 - e*e * q*q )
     X = (N + h) * np.cos( phi ) * np.cos( lambada )
     Y = (N + h) * np.cos( phi ) * np.sin( lambada )
     Z = (N*(1-e*e) + h) * np.sin( phi )
     return np.array([X,Y,Z])
 
-def vel_launch_to_inertial(launch_site):
-    #This assums spherical earth and as such will need updating if we go for a more complicated model
-    pass
+def pos_inertial_to_launch(position,launch_site,time):
+    #Adapted from https://gist.github.com/mpkuse/d7e2f29952b507921e3da2d7a26d1d93 
+    a = r_earth
+    e = e_earth
+    b = a * np.sqrt( 1.0 - e*e )
+    _X = position[0]
+    _Y = position[1]
+    _Z = position[2]
+
+    w_2 = _X**2 + _Y**2
+    l = e**2 / 2.0
+    m = w_2 / a**2
+    n = _Z**2 * (1.0 - e*e) / (a*a)
+    p = (m+n - 4*l*l)/6.0
+    G = m*n*l*l
+    H = 2*p**3 + G
+
+    C = np.cbrt( H+G+2*np.sqrt(H*G) ) / np.cbrt(2)
+    i = -(2.*l*l + m + n ) / 2.0
+    P = p*p
+    beta = i/3.0 - C -P/C
+    k = l*l * ( l*l - m - n )
+    t = np.sqrt( np.sqrt( beta**2 - k ) - (beta+i)/2.0 ) - np.sign( m-n ) * np.sqrt( np.abs(beta-i) / 2.0 )
+    F = t**4 + 2*i*t*t + 2.*l*(m-n)*t + k
+    dF_dt = 4*t**3 + 4*i*t + 2*l*(m-n)
+    delta_t = -F / dF_dt
+    u = t + delta_t + l
+    v = t + delta_t - l
+    w = np.sqrt( w_2 )
+    lat = (np.arctan2( _Z*u, w*v ))*180/np.pi
+    delta_w = w* (1.0-1.0/u )
+    delta_z = _Z*( 1- (1-e*e) / v )
+    alt = np.sign( u-1.0 ) * np.sqrt( delta_w**2 + delta_z**2 )
+    longi = (np.arctan2( _Y, _X )+time*7.292115e-5)*180/np.pi
+
+    return np.array([lat,longi,alt])
+
+def vel_inertial_to_launch(velocity,launch_site,time):
+    vel_launch=np.matmul(rot_matrix([0,0,time*7.292115e-5]),np.array([0,7.292115e-5*(r_earth+launch_site.alt)*np.cos(launch_site.lat*np.pi/180),0]))
+    return velocity-vel_launch
 
 def rot_matrix(orientation,inverse=False):#left hand multiply this (i.e. np.matmul(rotation_matrix(....),vec)) 
     #can be used on accelerations in the body frame for passing to the integrator, don't think the rate of angular velocity needs changing
@@ -230,10 +272,7 @@ def run_simulation(rocket):     #'rocket' can be a Rocket object
         rocket.step()
         record["position"].append(pos_inertial_to_launch(rocket.pos,rocket.launch_site,rocket.time))
         record["velocity"].append(vel_inertial_to_launch(rocket.vel,rocket.launch_site,rocket.time))
-        record["orientation"].append(orient_inertial_to_launch(rocket.point,rocket.launch_site,rocket.time))
         record["mass"].append(rocket.m)
-
-    return 0
 
 def plot_altitude_time(simulation_output):  #takes data from a simulation and plots nice graphs for you
     pass        
