@@ -6,17 +6,17 @@
 Nomenclature is the mostly same as used in https://apps.dtic.mil/sti/pdfs/AD0642855.pdf
 
 COORDINATE SYSTEM NOMENCLATURE
-x,y,z = Body coordinate system (origin on rocket, rotates with the rocket)
-X,Y,Z = Inertial coordinate system (does not rotate, fixed origin relative to centre of the Earth)
-X', Y', Z' = Launch site coordinate system (origin on launch site, rotates with the Earth)
+x_b,y_b,z_b = Body coordinate system (origin on rocket, rotates with the rocket)
+x_i,y_i,z_i = Inertial coordinate system (does not rotate, fixed origin relative to centre of the Earth)
+x_l, y_l, z_l = Launch site coordinate system (origin on launch site, rotates with the Earth)
 
 
 Would be useful to define directions, e.g. maybe
 - Body:
-    x in direction the rocket points - y and z aligned with launch site coordinates at t=0
+    x_b in direction the rocket points - y_b and z_b aligned with launch site coordinates at t=0
 
 - Launch site:
-    X' points East, Y' points North, Z' points upwards (towards space)
+    x_l points East, y_l points North, z_l points upwards (towards space)
     
 - Inertial:
     Aligned with launch site coordinate system at t=0
@@ -27,6 +27,7 @@ import csv
 import numpy as np
 import matplotlib.pyplot as plt
 import scipy.interpolate
+
 
 #Class to store atmospheric model data
 class Atmosphere:
@@ -49,9 +50,26 @@ with open('atmosphere_data.csv') as csvfile:
 
 StandardAtmosphere = Atmosphere(adat,ddat,sdat,padat)       #Built-in Standard Atmosphere data that you can use
 
+#RK4 parameters
+c=[0,1.0/5.0, 3.0/10.0, 4.0/5.0, 8.0/9.0,1.0,1.0]
+a=[[0,               0,              0,               0,            0,              0        ],
+[1.0/5.0,         0,              0,               0,            0,              0        ],
+[3.0/40.0,        9.0/40.0,       0,               0,            0,              0        ],
+[44.0/45.0,      -56.0/15.0,      32.0/9.0,        0,            0,              0        ],
+[19327.0/6561.0, -25360.0/2187.0, 64448.0/6561.0, -212.0/729.0,  0,              0        ],
+[9017.0/3168.0,  -355.0/33.0,     46732.0/5247.0,  49.0/176.0,  -5103.0/18656.0, 0        ],
+[35.0/384.0,      0,              500.0/1113.0,    125.0/192.0, -2187.0/6784.0,  11.0/84.0]]
+b=[35.0/384.0,  0,  500.0/1113.0, 125.0/192.0, -2187.0/6784.0,  11.0/84.0,  0]
+b_=[5179.0/57600.0,  0,  7571.0/16695.0,  393.0/640.0,  -92097.0/339200.0, 187.0/2100.0,  1.0/40.0]
+
+atol_v=np.array([[0.1,0.1,0.1],[0.1,0.1,0.1]]) #absolute error of each component of v and w
+rtol_v=np.array([[0.1,0.1,0.1],[0.1,0.1,0.1]]) #relative error of each component of v and w
+atol_r=np.array([[0.1,0.1,0.1],[0.1,0.1,0.1]]) #absolute error of each component of position and pointing
+rtol_r=np.array([[0.1,0.1,0.1],[0.1,0.1,0.1]]) #relative error of each component of position and pointing
+sf=0.98 #Safety factor for h scaling
 
 #Class to store the data on a hybrid motor
-class HybridMotor:
+class Motor:
     def __init__(self, motor_time_data, prop_mass_data, cham_pres_data, throat_data,
                  gamma_data, nozzle_efficiency_data, exit_pres_data, area_ratio_data): 
         self.motor_time_data = motor_time_data
@@ -139,18 +157,20 @@ class RasAeroData:
             
 #Class to store data on your launch site
 class LaunchSite:
-  def __init__(self, rail_length, alt, long, lat, wind=[0,0,0], atmosphere=StandardAtmosphere):
+  def __init__(self, rail_length, rail_azimuth, rail_polar ,alt, longi, lat, wind=[0,0,0], atmosphere=StandardAtmosphere):
     self.rail_length = rail_length
+    self.rail_azimuth = rail_azimuth #Angle that rail points from straight up
+    self.rail_polar = rail_polar    #Angle from north that rail inclination points in
     self.alt = alt                  #Altitude
-    self.long = long                #Longitude
+    self.longi = longi                #Longitude
     self.lat = lat                  #Latitude
-    self.wind = np.array(wind)      #Wind speed vector relative to the surface of the Earth, [X', Y', Z'] m/s
+    self.wind = np.array(wind)      #Wind speed vector relative to the surface of the Earth, [x_l, y_l, z_l] m/s
     self.atmosphere = atmosphere    #An Atmosphere object to get atmosphere data from
     
     
 #Class to store all the import information on a rocket
 class Rocket:
-    def __init__(self, dry_mass, Ixx, Iyy, Izz, motor, aero, launch_site):
+    def __init__(self, dry_mass, Ixx, Iyy, Izz, motor, aero, launch_site, h, variable):
         '''
         dry_mass - Mass without fuel
         Ixx
@@ -160,9 +180,8 @@ class Rocket:
         aero - Aerodynamic coefficients and stability derivatives
         launch_site - a LaunchSite object
         '''
-          
+
         self.launch_site = launch_site                  #LaunchSite object
-          
         self.dry_mass = dry_mass                    #Dry mass kg
         self.Ixx = Ixx                              #Principal moments of inertia kg m2
         self.Iyy = Iyy
@@ -171,26 +190,30 @@ class Rocket:
         self.motor = motor                              #Motor object containing motor data
         self.aero = aero        #e.g. drag coefficients
     
-    
-        self.time = 0               #Time since ignition s
-        self.m = 0                  #Instantaneous mass (will vary as fuel is used) kg
-        self.w = np.array([0,0,0])  #Angular velocity of the x,y,z coordinate system in the X,Y,Z coordinate system [X,Y,Z] rad/s
-        self.v_b = np.array([0,0,0])#Velocity in body coordinates [x, y, z] m/s
-        self.pos = np.array([0,0,0])#Position in inertial coordinates [X, Y, Z] m
-        self.alt = launch_site.alt  #Altitude
-    
-    def body_to_intertial(self, vector):  #Convert a vector in x,y,z to X,Y,Z
-        pass
-    
-    def surfacevelocity_to_inertial(self, vector):    #Converts a surface velocity to an inertial one
-        print("surfacevelocity_to_inertial is not yet functional")
-        return [0,0,0]                          #Doesn't work yet
+        self.time = 0                                                       #Time since ignition s
+        self.h = h                                                          #Time step size (can evolve)
+        self.variable_time = variable                                       #Vary timestep with error (option for ease of debugging)
+        self.m = 0                                                          #Instantaneous mass (will vary as fuel is used) kg
+        self.w = np.array([0,0,0])                                          #Angular velocity of the x,y,z coordinate system in the X,Y,Z coordinate system - the euler angles as given in the diagram in readme [alpha',beta',gamma'] with the body frame as the red rad/s
+        self.v = vel_launch_to_inertial(np.array([0,0,0]),launch_site,0)    #Velocity in intertial coordinates [x',y',z'] m/s
+        self.v_b = np.array([0,0,0])                                        #Velocity in body coordinates [x_b, y_b, z_b] m/s
+        self.pos = pos_launch_to_inertial(np.array([0,0,0]),launch_site,0)  #Position in inertial coordinates [x,y,z] m
+        self.alt = launch_site.alt                                          #Altitude
+        self.point = np.array([0,0,0])                                      #Euler angles given by readme diagram with red as body frame [alpha,beta,gamma] rad
+        self.on_rail=True
+        
+    def surfacevelocity_to_inertial(self, vector):                  #Converts a surface velocity to an inertial one
+        print("surfacevelocity_to_inertial is not yet functional")  #Doesn't work yet
+        return [0,0,0]                                          
     
     def aero_forces(self):
         '''
         Returns aerodynamic forces, and the point at which they act (i.e. the centre of pressure) 
         
-        Note that this currently ignores the damping moment generated by the rocket is rotating about its long axis
+        Note that:
+         -This currently ignores the damping moment generated by the rocket is rotating about its long axis
+         -I'm not sure if I used the right angles for calculating CN as the angles of attack vary
+             (same for CA as angles of attack vary)
         '''
         
         #Velocities and Mach number
@@ -214,7 +237,7 @@ class Rocket:
         
         #Drag/Force coefficients
         Cx = self.aero.CA(mach, abs(delta))         #WARNING: Not sure if I'm using the right angles for these all
-        Cz = self.aero.CN(mach, abs(alpha_star))    #OR IF THIS IS THE CORRECT WAY TO USE CN
+        Cz = self.aero.CN(mach, abs(alpha_star))    #Or if this is the correct way to use CN
         Cy = self.aero.CN(mach, abs(beta)) 
         
         #Forces
@@ -229,20 +252,90 @@ class Rocket:
         
     def motor_forces(self):         #Returns thrust and moments generated by the motor, based on current conditions
         pass
-    
-    
-    def accelerations(self, forces, moments):     #Returns translational and rotational accelerations on the rocket, given the applied forces
-        pass                                #Some kind of implementation of the equations of motion
 
+    def gravity(position):
+        return 9.81
+    
+    def acceleration(self,pos,v_b,w,time,alt):     #Returns translational and rotational accelerations on the rocket, given the applied forces
+        #Some kind of implementation of the equations of motion
+        #Out put needs to be relative to the inertial frame (doesn't really mean anything for it to be accelerating in the body frame but makes sense for forces to be applied in body frame)
+        out = np.stack((np.array([0,0,0]),np.array([0,0,0])))
+        return out
+    
+    def step(self):
+        #Implimenting a time step variable method based on Numerical recipes (link in readme)
+        #Including possibility to update altitude incase it is decided that the altitude change between steps effects air pressure significantly but will keep constant for now 
+        k_1=self.h*self.acceleration(self.pos,self.v,self.w,self.time,self.alt)
+        k_2=self.h*self.acceleration(self.pos,self.v+a[1][0]*k_1,self.w,self.time+c[1]*self.h,self.alt)
+        k_3=self.h*self.acceleration(self.pos,self.v+a[2][0]*k_1+a[2][1]*k_2,self.w,self.time+c[2]*self.h,self.alt)
+        k_4=self.h*self.acceleration(self.pos,self.v+a[3][0]*k_1+a[3][1]*k_2+a[3][2]*k_3,self.w,self.time+c[3]*self.h,self.alt)
+        k_5=self.h*self.acceleration(self.pos,self.v+a[4][0]*k_1+a[4][1]*k_2+a[4][2]*k_3+a[4][3]*k_4,self.w,self.time+c[4]*self.h,self.alt)
+        k_6=self.h*self.acceleration(self.pos,self.v+a[5][0]*k_1+a[5][1]*k_2+a[5][2]*k_3+a[5][3]*k_4+a[5][4]*k_5,self.w,self.time+c[4]*self.h,self.alt)
+        
+        l_1=np.stack((self.v,self.w))
+        l_2=l_1+a[1][0]*k_1
+        l_3=l_1+a[2][0]*k_1+a[2][1]*k_2
+        l_4=l_1+a[3][0]*k_1+a[3][1]*k_2+a[3][2]*k_3
+        l_5=l_1+a[4][0]*k_1+a[4][1]*k_2+a[4][2]*k_3+a[4][3]*k_4
+        l_6=l_1+a[5][0]*k_1+a[5][1]*k_2+a[5][2]*k_3+a[5][3]*k_4+a[5][4]*k_5
 
-#Functions
-def integrate(initial_conditions, accelerations):      #Not sure what other inputs would be needed
+        v=np.stack((self.v,self.w))+b[0]*k_1+b[1]*k_2+b[2]*k_3+b[3]*k_4+b[4]*k_5+b[5]*k_6 #+O(h^6)
+        r=np.stack((self.pos,self.point))+b[0]*l_1+b[1]*l_2+b[2]*l_3+b[3]*l_4+b[4]*l_5+b[5]*l_6 #+O(h^6) This is movement of the body frame from wherever it is- needs to be transformed to inertial frame
+
+        if(self.variable_time==True):
+            v_=np.stack((self.v,self.w))+b_[0]*k_1+b_[1]*k_2+b_[2]*k_3+b_[3]*k_4+b_[4]*k_5+b_[5]*k_6 #+O(h^5)
+            r_=np.stack((self.pos,self.point))+b_[0]*l_1+b_[1]*l_2+b_[2]*l_3+b_[3]*l_4+b_[4]*l_5+b_[5]*l_6 #+O(h^5)
+
+            scale_v=atol_v+rtol_v*abs(np.maximum.reduce([v,self.v_b]))
+            scale_r=atol_r+rtol_r*abs(np.maximum.reduce([r,self.r_b]))
+            err_v=(v-v_)/scale_v
+            err_r=(v-v_)/scale_r
+            err=max(err_v,err_r)
+            self.h=sf*self.h*pow(max(err),-1/5)
+
+        self.v=v[0]
+        self.w=v[1]
+        self.pos=r[0]
+        self.point=r[1]
+
+def pos_launch_to_inertial(position,launch_site,time): 
+    '''
+    Takes position vector and launch site object
+    Adapted from https://gist.github.com/mpkuse/d7e2f29952b507921e3da2d7a26d1d93 
+    '''
+    phi = launch_site.lati / 180. * np.pi
+    lambada = (launch_site.longi+time*7.292115e-5) / 180. * np.pi
+    h = launch_site.alt
+
+    e = 0.081819191 #earth ecentricity
+    q = np.sin( phi )
+    N = 6378137.0 / np.sqrt( 1 - e*e * q*q )
+    X = (N + h) * np.cos( phi ) * np.cos( lambada )
+    Y = (N + h) * np.cos( phi ) * np.sin( lambada )
+    Z = (N*(1-e*e) + h) * np.sin( phi )
+    return np.array([X,Y,Z])
+
+def vel_launch_to_inertial(velocity,launch_site,time):
+    pass
+
+def orient_inertial_to_launch(orientation, launch_site, time):
+    pass
+
+def accel_body_to_inertial(acceleration, position, time):
+    pass
+
+def orient_body_to_inertial(orientation, position, time):
     pass
 
 
 def run_simulation(rocket):     #'rocket' can be a Rocket object
-    pass                        #Maybe returns a dictionary of data?
-
+    record={"position":[],"velocity":[],"orientation":[],"mass":[]}#all in inertial frame
+    while rocket.alt>0:
+        rocket.step()
+        record["position"].append(pos_inertial_to_launch(rocket.pos,rocket.launch_site,rocket.time))
+        record["velocity"].append(vel_inertial_to_launch(rocket.vel,rocket.launch_site,rocket.time))
+        record["orientation"].append(orient_inertial_to_launch(rocket.point,rocket.launch_site,rocket.time))
+        record["mass"].append(rocket.m)
 
 
 def plot_altitude_time(simulation_output):  #takes data from a simulation and plots nice graphs for you
