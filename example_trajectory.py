@@ -44,10 +44,9 @@ launch_site = main.LaunchSite(10, 10, 0, 0, StandardAtmosphere)
 
 martlet4 = main.Rocket(45.73, 86.8, 86.8, 0.32, pulsar, aerodynamic_coefficients, launch_site)
 
+simulation_output = main.run_simulation(martlet4)
 
-#simulation_output = main.run_simulation(martlet4)
-
-#main.plot_altitude_time(simulation_output)
+main.plot_altitude_time(simulation_output)
 
 
 
