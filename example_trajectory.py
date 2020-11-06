@@ -1,7 +1,11 @@
+<<<<<<< HEAD
 import numpy as np
 import matplotlib.pyplot as plt
 import csv
 import main
+=======
+import main,csv
+>>>>>>> main
 from main import StandardAtmosphere
 ###############################################################################
 #Import data from CSV files
@@ -11,7 +15,7 @@ from main import StandardAtmosphere
 aerodynamic_coefficients = main.RasAeroData("Martlet4 RasAeroII.CSV")
 
 #Import motor data - copied from Joe Hunt's simulation
-with open('motor_out.csv') as csvfile:
+with open('Motor/motor_out.csv') as csvfile:
     motor_out = csv.reader(csvfile)
 
     (motor_time_data, prop_mass_data, cham_pres_data,
@@ -37,16 +41,18 @@ with open('motor_out.csv') as csvfile:
 #Initialising and running the simulations
 ###############################################################################
     
-pulsar = main.HybridMotor(motor_time_data, prop_mass_data, cham_pres_data, throat_data,
+pulsar = main.Motor(motor_time_data, prop_mass_data, cham_pres_data, throat_data,
                           gamma_data, nozzle_efficiency_data, exit_pres_data, area_ratio_data)
 
-launch_site = main.LaunchSite(10, 10, 0, 0, StandardAtmosphere)
+launch_site = main.LaunchSite(10, 1, 0 , 0, 0, 0)
 
-martlet4 = main.Rocket(45.73, 86.8, 86.8, 0.32, pulsar, aerodynamic_coefficients, launch_site)
+martlet4 = main.Rocket(45.73, 86.8, 86.8, 0.32, pulsar, aerodynamic_coefficients, launch_site, 0.001, False)
+martlet4.step()
 
-simulation_output = main.run_simulation(martlet4)
 
-main.plot_altitude_time(simulation_output)
+#simulation_output = main.run_simulation(martlet4)
+
+#main.plot_altitude_time(simulation_output)
 
 
 
