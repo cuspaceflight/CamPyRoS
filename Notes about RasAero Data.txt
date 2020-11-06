@@ -1,0 +1,21 @@
+As far as I can tell:
+
+'Power-Off' assumes the rocket is coasting, "Power-On" assumes the engine is firing. 
+I think the only difference is that the latter takes into account the nozzle exit pressure?
+
+CA is axially along the body (i.e. x-direction)
+CN is normal to the body (i.e. y or z direction, since it is rotationally symmetric).
+
+CD is parralel to the incoming flow
+CL is normal to the incoming flow
+
+I think "CNalpha (0 to 4 deg) (per rad)" is simply
+
+(CN at alpha=4 - CN at alpha=0) / (4 degrees, in radians)
+
+CP (0 to 4 deg) is simply the CP at alpha=4
+
+It uses the largest cross-sectional area to normalise force coefficients.
+= 0.0305128422 m^2 for the RasAero II Marlet 4 file
+
+

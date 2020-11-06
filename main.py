@@ -144,7 +144,7 @@ class LaunchSite:
     self.alt = alt                  #Altitude
     self.long = long                #Longitude
     self.lat = lat                  #Latitude
-    self.wind = wind                #Wind speed vector relative to the surface of the Earth, [X', Y', Z'] m/s
+    self.wind = np.array(wind)      #Wind speed vector relative to the surface of the Earth, [X', Y', Z'] m/s
     self.atmosphere = atmosphere    #An Atmosphere object to get atmosphere data from
     
     
@@ -175,7 +175,7 @@ class Rocket:
         self.time = 0               #Time since ignition s
         self.m = 0                  #Instantaneous mass (will vary as fuel is used) kg
         self.w = np.array([0,0,0])  #Angular velocity of the x,y,z coordinate system in the X,Y,Z coordinate system [X,Y,Z] rad/s
-        self.v = np.array([0,0,0])  #Velocity in intertial coordinates [X, Y, Z] m/s
+        self.v_b = np.array([0,0,0])#Velocity in body coordinates [x, y, z] m/s
         self.pos = np.array([0,0,0])#Position in inertial coordinates [X, Y, Z] m
         self.alt = launch_site.alt  #Altitude
     
@@ -194,10 +194,10 @@ class Rocket:
         '''
         
         #Velocities and Mach number
-        v_rel_wind = self.v - self.surfacevelocity_to_inertial(self.launch_site.wind)
+        v_rel_wind = self.v_b - self.surfacevelocity_to_inertial(self.launch_site.wind)
         v_a = np.linalg.norm(v_rel_wind)
         v_sound = np.interp(self.alt, self.launch_site.atmosphere.adat, self.launch_site.atmosphere.sdat)
-        M = v_a/v_sound
+        mach = v_a/v_sound
         
         #Angles
         alpha = np.arctan(v_rel_wind[2]/v_rel_wind[0])
@@ -206,24 +206,24 @@ class Rocket:
         alpha_star = np.arctan(v_rel_wind[2] / (v_rel_wind[0]**2 + v_rel_wind[1]**2 )**0.5 )
         beta_star = np.arctan(v_rel_wind[1]/v_rel_wind[0])
             
-        #Dynamic pressure at the current altitude and velocity
+        #Dynamic pressure at the current altitude and velocity - WARNING: Am I using the right density?
         q = 0.5*np.interp(self.alt, self.launch_site.atmosphere.adat, self.launch_site.atmosphere.ddat)*(v_a**2)
         
         #Characteristic area
         S = self.aero.area
         
         #Drag/Force coefficients
-        Cx = self.aero.CA(M, delta)         #WARNING: Not sure if I'm using the right angles for these all
-        Cz = self.aero.CN(M, alpha_star)    #OR IF THIS IS THE CORRECT WAY TO USE CN
-        Cy = self.aero.CN(M, beta) 
+        Cx = self.aero.CA(mach, abs(delta))         #WARNING: Not sure if I'm using the right angles for these all
+        Cz = self.aero.CN(mach, abs(alpha_star))    #OR IF THIS IS THE CORRECT WAY TO USE CN
+        Cy = self.aero.CN(mach, abs(beta)) 
         
         #Forces
-        Fx = Cx*q*S                         #WARNING: I have not checked the directions on these forces yet
-        Fy = Cy*q*S                         #Only the magnitudes have been done
-        Fz = Cz*q*S
+        Fx = -np.sign(v_rel_wind)[0]*Cx*q*S                         
+        Fy = -np.sign(v_rel_wind)[1]*Cy*q*S                         
+        Fz = -np.sign(v_rel_wind)[2]*Cz*q*S
         
         #Position where moments act:
-        COP = self.aero.COP(M, delta)[0]
+        COP = self.aero.COP(mach, abs(delta))[0]
 
         return np.array([Fx,Fy,Fz]), COP
         
