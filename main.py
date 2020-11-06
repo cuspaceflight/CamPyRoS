@@ -175,8 +175,8 @@ class Rocket:
             v_=np.stack((self.v,self.w))+b_[0]*k_1+b_[1]*k_2+b_[2]*k_3+b_[3]*k_4+b_[4]*k_5+b_[5]*k_6 #+O(h^5)
             r_=np.stack((self.pos,self.orientation))+b_[0]*l_1+b_[1]*l_2+b_[2]*l_3+b_[3]*l_4+b_[4]*l_5+b_[5]*l_6 #+O(h^5)
 
-            scale_v=atol_v+rtol_v*abs(np.maximum.reduce([v,self.v]))
-            scale_r=atol_r+rtol_r*abs(np.maximum.reduce([r,self.pos]))
+            scale_v=atol_v+rtol_v*abs(np.maximum.reduce([v,np.stack((self.v,self.w))]))
+            scale_r=atol_r+rtol_r*abs(np.maximum.reduce([r,np.stack((self.pos,self.orientation))))
             err_v=(v-v_)/scale_v
             err_r=(r-r_)/scale_r
             err=max(err_v,err_r)
