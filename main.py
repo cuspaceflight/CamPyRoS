@@ -123,11 +123,11 @@ class Rocket:
         self.h = h            #Time step size (can evolve)
         self.variable_time = variable   #Vary timestep with error (option for ease of debugging)
         self.m = 0                  #Instantaneous mass (will vary as fuel is used) kg
-        self.orientation = np.array([0,0,0]) #yaw pitch roll  of the body frame in the inertial frame rad
-        self.w = np.array([0,0,0])            #Angular velocity of the x,y,z coordinate system in the X,Y,Z coordinate system (as in thr NASA document) rad/s
+        self.w = np.array([0,0,0])            #Angular velocity of the x,y,z coordinate system in the X,Y,Z coordinate system - the euler angles as given in the diagram in readme [alpha',beta',gamma'] with the body frame as the red rad/s
+        self.v = vel_launch_to_inertial(np.array([0,0,0]),launch_site,0)           #Velocity in intertial coordinates [x',y',z'] m/s
         self.pos = pos_launch_to_inertial(np.array([0,0,0]),launch_site,0)         #Position in inertial coordinates [x,y,z] m
-        self.v = np.array([0,0,0])#vel_launch_to_inertial(np.array([0,0,0]),launch_site,0)           #Velocity in intertial coordinates [x',y',z'] m/s
         self.alt = launch_site.alt  #Altitude
+        self.point = np.array([0,0,0])    #Euler angles given by readme diagram with red as body frame [alpha,beta,gamma] rad
         self.on_rail=True
     
     def body_to_intertial(self,vector):  #Convert a vector in x,y,z to X,Y,Z
@@ -145,9 +145,6 @@ class Rocket:
 
     def gravity(position):
         return 9.81
-    
-    def altitude(position):
-        return np.linalg.norm(position)-6317000
     
     def acceleration(self,pos,v_b,w,time,alt):     #Returns translational and rotational accelerations on the rocket, given the applied forces
         #Some kind of implementation of the equations of motion
@@ -173,7 +170,7 @@ class Rocket:
         l_6=l_1+a[5][0]*k_1+a[5][1]*k_2+a[5][2]*k_3+a[5][3]*k_4+a[5][4]*k_5
 
         v=np.stack((self.v,self.w))+b[0]*k_1+b[1]*k_2+b[2]*k_3+b[3]*k_4+b[4]*k_5+b[5]*k_6 #+O(h^6)
-        r=np.stack((self.pos,self.orientation))+b[0]*l_1+b[1]*l_2+b[2]*l_3+b[3]*l_4+b[4]*l_5+b[5]*l_6 #+O(h^6) This is movement of the body frame from wherever it is- needs to be transformed to inertial frame
+        r=np.stack((self.pos,self.point))+b[0]*l_1+b[1]*l_2+b[2]*l_3+b[3]*l_4+b[4]*l_5+b[5]*l_6 #+O(h^6) This is movement of the body frame from wherever it is- needs to be transformed to inertial frame
 
         if(self.variable_time==True):
             v_=np.stack((self.v,self.w))+b_[0]*k_1+b_[1]*k_2+b_[2]*k_3+b_[3]*k_4+b_[4]*k_5+b_[5]*k_6 #+O(h^5)
@@ -190,10 +187,10 @@ class Rocket:
         self.w=v[1]
         self.pos=r[0]
         self.point=r[1]
-        
-def pos_launch_to_inertial(position,launch_site,time):#takes position vector and launch site object
+
+def pos_launch_to_inertial(position,launch_site,time)#takes position vector and launch site object
     #Adapted from https://gist.github.com/mpkuse/d7e2f29952b507921e3da2d7a26d1d93 
-    phi = launch_site.lat / 180. * np.pi
+    phi = launch_site.lati / 180. * np.pi
     lambada = (launch_site.longi+time*7.292115e-5) / 180. * np.pi
     h = launch_site.alt
 
@@ -205,28 +202,18 @@ def pos_launch_to_inertial(position,launch_site,time):#takes position vector and
     Z = (N*(1-e*e) + h) * np.sin( phi )
     return np.array([X,Y,Z])
 
-def vel_launch_to_inertial(launch_site):
-    #This assums spherical earth and as such will need updating if we go for a more complicated model
+def vel_launch_to_inertial(velocity,launch_site,time):
     pass
 
-def rot_matrix(orientation,inverse=False):#left hand multiply this (i.e. np.matmul(rotation_matrix(....),vec)) 
-    #can be used on accelerations in the body frame for passing to the integrator, don't think the rate of angular velocity needs changing
-    if inverse==True:
-        orientation=[-inv for inv in orientation]
-    r_x=np.array([[1,0,0],
-        [0,np.cos(orientation[2]),-np.sin(orientation[2])],
-        [0,np.sin(orientation[2]),np.cos(orientation[2])]])
-    r_y=np.array([[np.cos(orientation[1]),0,np.sin(orientation[1])],
-        [0,1,0],
-        [-np.sin(orientation[1]),0,np.cos(orientation[1])]])
-    r_z=np.array([[np.cos(orientation[0]),-np.sin(orientation[0]),0],
-        [np.sin(orientation[0]),np.cos(orientation[0]),0],
-        [0,0,1]])
-    if inverse==True:
-        rot = np.matmul(r_z.transpose(),np.matmul(r_y.transpose(),r_x.transpose())).transpose()
-    else:
-        rot = np.matmul(r_z,np.matmul(r_y,r_x))
-    return rot
+def orient_inertial_to_launch(orientation, launch_site, time):
+    pass
+
+def accel_body_to_inertial(acceleration, position, time):
+    pass
+
+def orient_body_to_inertial(orientation, position, time):
+    pass
+
 
 def run_simulation(rocket):     #'rocket' can be a Rocket object
     record={"position":[],"velocity":[],"orientation":[],"mass":[]}#all in inertial frame
@@ -237,7 +224,6 @@ def run_simulation(rocket):     #'rocket' can be a Rocket object
         record["orientation"].append(orient_inertial_to_launch(rocket.point,rocket.launch_site,rocket.time))
         record["mass"].append(rocket.m)
 
-    return 0
 
 def plot_altitude_time(simulation_output):  #takes data from a simulation and plots nice graphs for you
     pass        
