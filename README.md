@@ -15,6 +15,8 @@ Used for integration algorithm
 ### Papers for later
 https://dl.acm.org/doi/abs/10.1145/2742854.2742894 about improving numerical integration accuracy (probably won't be the largest error - I'd guess the error on the vehicle parameters will be bigger)
 
+https://space.stackexchange.com/questions/41931/moment-of-inertia-of-rocket - For modelling how the moments of inertia change as the rocket consumes fuel
+
 We need to make sure to remove all the links to pirated books if we make the repository public. 
 ## Program Workflow
 ![Rough flowchart](img/flowchart1.jpeg)
