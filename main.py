@@ -170,12 +170,12 @@ class LaunchSite:
     
 #Class to store all the import information on a rocket
 class Rocket:
-    def __init__(self, dry_mass, Ixx, Iyy, Izz, motor, aero, launch_site, h, variable):
+    def __init__(self, dry_mass, ixx, iyy, izz, motor, aero, launch_site, h, variable):
         '''
         dry_mass - Mass without fuel
-        Ixx
-        Iyy
-        Izz - principal moments of inertia - rocket points in the xx direction
+        ixx
+        iyy
+        izz - principal moments of inertia - rocket points in the xx direction
         motor - some kind of Motor object - currently the only option is HybridMotor
         aero - Aerodynamic coefficients and stability derivatives
         launch_site - a LaunchSite object
@@ -186,9 +186,9 @@ class Rocket:
         self.aero = aero                                #object containing aerodynamic information
                             
         self.dry_mass = dry_mass                        #Dry mass kg
-        self.Ixx = Ixx                                  #Principal moments of inertia kg m2
-        self.Iyy = Iyy
-        self.Izz = Izz
+        self.ixx = ixx                                  #Principal moments of inertia kg m2
+        self.iyy = iyy
+        self.izz = izz
     
         self.time = 0                                                       #Time since ignition s
         self.h = h                                                          #Time step size (can evolve)
@@ -208,7 +208,7 @@ class Rocket:
     
     def aero_forces(self):
         '''
-        Returns aerodynamic forces, and the distance of the centre of pressure (COP) from the front of the vehicle.
+        Returns aerodynamic forces (in the body reference frame, [x_b, y_b, z_b]), and the distance of the centre of pressure (COP) from the front of the vehicle.
         You can use these forces, and the position they act on (the COP), to find the moments about the centre of mass.
         
         Note that:
@@ -243,9 +243,9 @@ class Rocket:
         Cy = self.aero.CN(mach, abs(beta)) 
         
         #Forces
-        Fx = -np.sign(v_rel_wind)[0]*Cx*q*S                         
-        Fy = -np.sign(v_rel_wind)[1]*Cy*q*S                         
-        Fz = -np.sign(v_rel_wind)[2]*Cz*q*S
+        Fx = -np.sign(v_rel_wind[0])*Cx*q*S                         
+        Fy = -np.sign(v_rel_wind[1])*Cy*q*S                         
+        Fz = -np.sign(v_rel_wind[2])*Cz*q*S
         
         #Position where moments act:
         COP = self.aero.COP(mach, abs(delta))[0]
