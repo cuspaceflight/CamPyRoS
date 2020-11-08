@@ -223,7 +223,7 @@ class Rocket:
         '''
         
         #Velocities and Mach number
-        v_rel_wind = self.v - self.surfacevelocity_to_inertial(self.launch_site.wind)
+        v_rel_wind = self.v - vel_launch_to_inertial(self.launch_site.wind,self.launch_site,self.time)
         v_a = np.linalg.norm(v_rel_wind)
         v_sound = np.interp(self.alt, self.launch_site.atmosphere.adat, self.launch_site.atmosphere.sdat)
         mach = v_a/v_sound
