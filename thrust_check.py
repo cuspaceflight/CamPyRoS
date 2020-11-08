@@ -39,12 +39,20 @@ pulsar = main.Motor(motor_time_data, prop_mass_data, cham_pres_data, throat_data
 launch_site = main.LaunchSite(10, 1, 0 , 0, 0, 0)
 
 martlet4 = main.Rocket(45.73, 86.8, 86.8, 0.32, pulsar, aerodynamic_coefficients, launch_site, 0.001, False)
-#martlet4.step()
 
+#Create a time array
+time = np.linspace(0, 50, 100)
+thrust = np.zeros(len(time))
+for i in range(len(time)):
+    thrust[i] = np.linalg.norm(martlet4.thrust(time[i]))
 
-#simulation_output = main.run_simulation(martlet4)
+fig = plt.figure(figsize=(15,15))
+ax = fig.add_subplot(111)
 
-#main.plot_altitude_time(simulation_output)
-
+ax.plot(time, thrust)
+ax.grid()
+ax.set_xlabel("Time / s")
+ax.set_ylabel("Thrust / N")
+plt.show()
 
 
