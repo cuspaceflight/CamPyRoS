@@ -231,6 +231,7 @@ plt.axhline(y=0, color='k', linestyle='-')
 plt.tight_layout()
 
 plt.subplot(324)
+plt.tight_layout(pad=7)
 plt.plot(time_data, thrust_data, 'r', label='thrust force')
 plt.plot(time_data, drag_data, 'b', label='Drag force')
 plt.plot(time_data, [-GRAV_ACCEL*m for m in mass_data], 'g', label='Weight force')
