@@ -74,6 +74,8 @@ sf=0.98 #Safety factor for h scaling
 r_earth = 6378137 #(earth's semimarjor axis in meters)
 #e_earth = 0.081819191 #earth ecentricity
 e_earth = 0 #for simplicity of other calculations for now - if changed need to update the launchsite orientation and velocity transforms
+ang_vel_earth=7.292115090e-5
+
 #Class to store the data on a hybrid motor
 class Motor:
     def __init__(self, motor_time_data, prop_mass_data, cham_pres_data, throat_data,
@@ -203,7 +205,7 @@ class Rocket:
         self.orientation = np.array([launch_site.rail_yaw*np.pi/180,(launch_site.lat+launch_site.rail_pitch)*np.pi/180,0]) #yaw pitch roll  of the body frame in the inertial frame rad
         self.w = np.array([0,0,0])            #rate of change of yaw pitch roll rad/s - would this have an initial value? I don't think it should since after it is free of the rail (which should be negligable)
         self.pos = pos_launch_to_inertial(np.array([0,0,0]),launch_site,0)         #Position in inertial coordinates [x,y,z] m
-        self.v = np.array([0,7.292115e-5*(r_earth+launch_site.alt)*np.cos(launch_site.lat*np.pi/180),0])          #Velocity in intertial coordinates [x',y',z'] m/s
+        self.v = vel_launch_to_inertial([0,0,0],launch_site,0)        #Velocity in intertial coordinates [x',y',z'] m/s
         self.alt = launch_site.alt  #Altitude
         self.on_rail=True
     
@@ -311,61 +313,44 @@ class Rocket:
 def pos_launch_to_inertial(position,launch_site,time):#takes position vector and launch site object
     #Adapted from https://gist.github.com/mpkuse/d7e2f29952b507921e3da2d7a26d1d93 
     phi = launch_site.lat / 180. * np.pi
-    lambada = (launch_site.longi) / 180. * np.pi-time*7.292115e-5
+    lambada = (launch_site.longi) / 180. * np.pi
+    h = launch_site.alt
+
+    position_rotated = np.matmul(rot_matrix(np.array([0,np.pi/2-phi,lambada]),True),position)
+    e=e_earth
+    q = np.sin( phi )
+    N = r_earth / np.sqrt( 1 - e*e * q*q )
+    X = (N + h) * np.cos( phi ) * np.cos( lambada )+position_rotated[0]
+    Y = (N + h) * np.cos( phi ) * np.sin( lambada )+position_rotated[1]
+    Z = (N*(1-e*e) + h) * np.sin( phi )-position_rotated[2]
+    return np.matmul(rot_matrix(np.array([time*ang_vel_earth,0,0])),np.array([X,Y,Z]))
+
+def pos_inertial_to_launch(position,launch_site,time):
+    #Adapted from https://gist.github.com/mpkuse/d7e2f29952b507921e3da2d7a26d1d93 
+    phi = launch_site.lat / 180. * np.pi
+    lambada = (launch_site.longi) / 180. * np.pi+time*ang_vel_earth
     h = launch_site.alt
 
     e=e_earth
     q = np.sin( phi )
     N = r_earth / np.sqrt( 1 - e*e * q*q )
-    X = (N + h) * np.cos( phi ) * np.cos( lambada )
-    Y = (N + h) * np.cos( phi ) * np.sin( lambada )
-    Z = (N*(1-e*e) + h) * np.sin( phi )
-    return np.array([X,Y,Z])
-
-def pos_inertial_to_launch(position,launch_site,time):
-    #Adapted from https://gist.github.com/mpkuse/d7e2f29952b507921e3da2d7a26d1d93 
-    a = r_earth
-    e = e_earth
-    b = a * np.sqrt( 1.0 - e*e )
-    _X = position[0]
-    _Y = position[1]
-    _Z = position[2]
-
-    w_2 = _X**2 + _Y**2
-    l = e**2 / 2.0
-    m = w_2 / a**2
-    n = _Z**2 * (1.0 - e*e) / (a*a)
-    p = (m+n - 4*l*l)/6.0
-    G = m*n*l*l
-    H = 2*p**3 + G
-
-    C = np.cbrt( H+G+2*np.sqrt(H*G) ) / np.cbrt(2)
-    i = -(2.*l*l + m + n ) / 2.0
-    P = p*p
-    beta = i/3.0 - C -P/C
-    k = l*l * ( l*l - m - n )
-    t = np.sqrt( np.sqrt( beta**2 - k ) - (beta+i)/2.0 ) - np.sign( m-n ) * np.sqrt( np.abs(beta-i) / 2.0 )
-    F = t**4 + 2*i*t*t + 2.*l*(m-n)*t + k
-    dF_dt = 4*t**3 + 4*i*t + 2*l*(m-n)
-    delta_t = -F / dF_dt
-    u = t + delta_t + l
-    v = t + delta_t - l
-    w = np.sqrt( w_2 )
-    lat = (np.arctan2( _Z*u, w*v ))*180/np.pi
-    delta_w = w* (1.0-1.0/u )
-    delta_z = _Z*( 1- (1-e*e) / v )
-    alt = np.sign( u-1.0 ) * np.sqrt( delta_w**2 + delta_z**2 )
-    longi = (np.arctan2( _Y, _X )+time*7.292115e-5)*180/np.pi
-
-    return np.array([lat,longi,alt])
+    X = position[0]-(N + h) * np.cos( phi ) * np.cos( lambada )
+    Y = position[1]-(N + h) * np.cos( phi ) * np.sin( lambada )
+    Z = position[2]-(N*(1-e*e) + h) * np.sin( phi )
+    return np.matmul(rot_matrix(np.array([time*ang_vel_earth,np.pi/2-phi,lambada-time*ang_vel_earth]),True),np.array([X,Y,Z]))
 
 def vel_inertial_to_launch(velocity,launch_site,time):
-    return np.matmul(rot_matrix([time*7.292115e-5,launch_site.lat,0]),velocity-np.array([0,7.292115e-5*(r_earth+launch_site.alt)*np.cos(launch_site.lat*np.pi/180),0]))
+    launch_site_velocity = np.array([0,ang_vel_earth*(r_earth+launch_site.alt)*np.cos(launch_site.lat*np.pi/180),0])
+    inertial_rot_launch = np.matmul(rot_matrix([time*ang_vel_earth+launch_site.longi*np.pi/180,0,0],True),velocity)
+    return inertial_rot_launch-launch_site_velocity
 
 def vel_launch_to_inertial(velocity,launch_site,time):
-    return np.matmul(rot_matrix([time*7.292115e-5,launch_site.lat,0]),np.array([0,7.292115e-5*(r_earth+launch_site.alt)*np.cos(launch_site.lat*np.pi/180),0])+velocity)
+    launch_site_velocity = np.array([0,ang_vel_earth*(r_earth+launch_site.alt)*np.cos(launch_site.lat*np.pi/180),0])
+    launch_rot_inertial = np.matmul(rot_matrix([time*ang_vel_earth+launch_site.longi*np.pi/180,0,0]),velocity)
+    return launch_rot_inertial+launch_site_velocity
 
 def rot_matrix(orientation,inverse=False):#left hand multiply this (i.e. np.matmul(rotation_matrix(....),vec)) 
+    #recall that orientation is in format yaw pitch roll i.e. rot about z then y then x
     #can be used on accelerations in the body frame for passing to the integrator, don't think the rate of angular velocity needs changing
     if inverse==True:
         orientation=[-inv for inv in orientation]
