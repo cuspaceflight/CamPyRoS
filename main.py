@@ -29,6 +29,7 @@ import csv
 import numpy as np
 import matplotlib.pyplot as plt
 import scipy.interpolate
+import pandas as pd
 
 
 #Class to store atmospheric model data
@@ -316,8 +317,9 @@ class Rocket:
         return out
     
     def step(self):
-        #Implimenting a time step variable method based on Numerical recipes (link in readme)
-        #Including possibility to update altitude incase it is decided that the altitude change between steps effects air pressure significantly but will keep constant for now 
+        """Implimenting a time step variable method based on Numerical recipes (link in readme)
+        Including possibility to update altitude incase it is decided that the altitude change between steps effects air pressure significantly but will keep constant for now 
+        """
         k_1=self.h*self.acceleration(self.pos,self.v,self.w,self.time,self.alt)
         k_2=self.h*self.acceleration(self.pos,self.v+a[1][0]*k_1,self.w,self.time+c[1]*self.h,self.alt)
         k_3=self.h*self.acceleration(self.pos,self.v+a[2][0]*k_1+a[2][1]*k_2,self.w,self.time+c[2]*self.h,self.alt)
@@ -351,8 +353,18 @@ class Rocket:
         self.pos=r[0]
         self.orientation=r[1]
         
-def pos_launch_to_inertial(position,launch_site,time):#takes position vector and launch site object
-    #Adapted from https://gist.github.com/mpkuse/d7e2f29952b507921e3da2d7a26d1d93 
+def pos_launch_to_inertial(position,launch_site,time):
+    """Converts position in launch frame to position in inertial frame
+    Adapted from https://gist.github.com/mpkuse/d7e2f29952b507921e3da2d7a26d1d93 
+
+    Args:
+        position (Numpy Array): Position in launch frame
+        launch_site (LaunchSite): The relivant launch site
+        time (float): Elapsed time from ignition
+
+    Returns:
+        Numpy array: Velocity in inertial frame
+    """
     phi = launch_site.lat / 180. * np.pi
     lambada = (launch_site.longi) / 180. * np.pi
     h = launch_site.alt
@@ -367,7 +379,17 @@ def pos_launch_to_inertial(position,launch_site,time):#takes position vector and
     return np.matmul(rot_matrix(np.array([time*ang_vel_earth,0,0])),np.array([X,Y,Z]))
 
 def pos_inertial_to_launch(position,launch_site,time):
-    #Adapted from https://gist.github.com/mpkuse/d7e2f29952b507921e3da2d7a26d1d93 
+    """Converts position in inertial frame to position in launch frame
+    Adapted from https://gist.github.com/mpkuse/d7e2f29952b507921e3da2d7a26d1d93 
+
+    Args:
+        position (Numpy Array): Position in inertial frame
+        launch_site (LaunchSite): The relivant launch site
+        time (float): Elapsed time from ignition
+
+    Returns:
+        Numpy array: Velocity in launch frame
+    """
     phi = launch_site.lat / 180. * np.pi
     lambada = (launch_site.longi) / 180. * np.pi+time*ang_vel_earth
     h = launch_site.alt
@@ -381,18 +403,46 @@ def pos_inertial_to_launch(position,launch_site,time):
     return np.matmul(rot_matrix(np.array([time*ang_vel_earth,np.pi/2-phi,lambada-time*ang_vel_earth]),True),np.array([X,Y,Z]))
 
 def vel_inertial_to_launch(velocity,launch_site,time):
+    """Converts inertial velocity to velocity in launch frame
+
+    Args:
+        velocity (np.array): [x,y,z] Velocity in inertial frame
+        launch_site (LaunchSite): The relivant launch site
+        time (float): Elapsed time from ignition
+
+    Returns:
+        Numpy array: Velocity in launch frame
+    """    
     launch_site_velocity = np.array([0,ang_vel_earth*(r_earth+launch_site.alt)*np.cos(launch_site.lat*np.pi/180),0])
     inertial_rot_launch = np.matmul(rot_matrix([time*ang_vel_earth+launch_site.longi*np.pi/180,0,0],True),velocity)
     return inertial_rot_launch-launch_site_velocity
 
 def vel_launch_to_inertial(velocity,launch_site,time):
+    """Converts launch frame velocity to velocity in inertial frame
+
+    Args:
+        velocity (Numpy array): [x,y,z] velocity in launch frame
+        launch_site (LaunchSite): The relivant launch site
+        time (float): Elapsed time from ignition
+
+    Returns:
+        Numpy array: Velocity in inertial frame
+    """    
     launch_site_velocity = np.array([0,ang_vel_earth*(r_earth+launch_site.alt)*np.cos(launch_site.lat*np.pi/180),0])
     launch_rot_inertial = np.matmul(rot_matrix([time*ang_vel_earth+launch_site.longi*np.pi/180,0,0]),velocity)
     return launch_rot_inertial+launch_site_velocity
 
-def rot_matrix(orientation,inverse=False):#left hand multiply this (i.e. np.matmul(rotation_matrix(....),vec)) 
-    #recall that orientation is in format yaw pitch roll i.e. rot about z then y then x
-    #can be used on accelerations in the body frame for passing to the integrator, don't think the rate of angular velocity needs changing
+def rot_matrix(orientation,inverse=False):
+    """Generates a rotation matrix between frames which are rotated by yaw, pitch and roll specified by orientation
+    Left hand matrix multiply this by the relivant vector (i.e. np.matmul(rotation_matrix(....),vec))
+
+    Args:
+        orientation (np.array): The rotation of the frames relative to eachother as yaw, pitch and roll (about z, about y, about x)
+        inverse (bool, optional): If the inverse is required (i.e. when transforming from the frame which is rotated by orientation). Defaults to False.
+
+    Returns:
+        [type]: [description]
+    """    
     if inverse==True:
         orientation=[-inv for inv in orientation]
     r_x=np.array([[1,0,0],
@@ -410,13 +460,23 @@ def rot_matrix(orientation,inverse=False):#left hand multiply this (i.e. np.matm
         rot = np.matmul(r_z,np.matmul(r_y,r_x))
     return rot
 
-def run_simulation(rocket):     #'rocket' can be a Rocket object
-    record={"position":[],"velocity":[],"orientation":[],"mass":[]}#all in inertial frame
+def run_simulation(rocket):
+    """Runs the simulaiton to completeion outputting dictionary of the position, velocity and mass of the rocket
+
+    Args:
+        rocket (Rocket): The rocket to be simulated
+
+    Returns:
+        Pandas Dataframe: Record of position, velocity and mass at time t 
+    """  
+    record=pd.DataFrame({"Time":[],"Position":[],"Velocity":[],"Mass":[]}) #time:[position,velocity,mass]
     while rocket.alt>0:
         rocket.step()
-        record["position"].append(pos_inertial_to_launch(rocket.pos,rocket.launch_site,rocket.time))
-        record["velocity"].append(vel_inertial_to_launch(rocket.vel,rocket.launch_site,rocket.time))
-        record["mass"].append(rocket.m)
+        record.append({"Time":rocket.time,
+                        "Position":pos_inertial_to_launch(rocket.pos,rocket.launch_site,rocket.time),
+                        "Velocity":vel_inertial_to_launch(rocket.vel,rocket.launch_site,rocket.time),
+                        "Mass":rocket.m})
+    return record
 
 def plot_altitude_time(simulation_output):  #takes data from a simulation and plots nice graphs for you
     pass        
