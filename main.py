@@ -195,16 +195,16 @@ class Rocket:
                             
         self.dry_mass = dry_mass                        #Dry mass kg
         
-        self.Ixx = Ixx                                  #Principal moments of inertia kg m2
-        self.Iyy = Iyy
-        self.Izz = Izz
+        self.Ixx = ixx                                  #Principal moments of inertia kg m2
+        self.Iyy = iyy
+        self.Izz = izz
         
         self.time = 0               #Time since ignition s
         self.h = h            #Time step size (can evolve)
         self.variable_time = variable   #Vary timestep with error (option for ease of debugging)
         self.m = 0                  #Instantaneous mass (will vary as fuel is used) kg
         self.orientation = np.array([launch_site.rail_yaw*np.pi/180,(launch_site.lat+launch_site.rail_pitch)*np.pi/180,0]) #yaw pitch roll  of the body frame in the inertial frame rad
-        self.w = np.array([0,0,0])            #rate of change of yaw pitch roll rad/s - would this have an initial value? I don't think it should since after it is free of the rail (which should be negligable)
+        self.w = np.matmul(rot_matrix(self.orientation),np.array([ang_vel_earth,0,0]))           #rate of change of yaw pitch roll rad/s - would this have an initial value? I don't think it should since after it is free of the rail (which should be negligable)
         self.pos = pos_launch_to_inertial(np.array([0,0,0]),launch_site,0)         #Position in inertial coordinates [x,y,z] m
         self.v = vel_launch_to_inertial([0,0,0],launch_site,0)        #Velocity in intertial coordinates [x',y',z'] m/s
         self.alt = launch_site.alt  #Altitude
@@ -304,7 +304,7 @@ class Rocket:
         #Multiply the thrust by the direction it acts in, and return it.
         return thrust*vector/np.linalg.norm(vector)
         
-    def gravity(position):
+    def gravity(self,position):
         return 9.81
     
     def altitude(self,position):
