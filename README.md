@@ -10,6 +10,7 @@ Covers the same ground as Paper A. Has a flow chart that we could consult if we 
 Provides check cases and peformace comparison and some lessons learned (but seem to complex for our needs anyway).
 ### Paper E: [DAVE-ML](https://daveml.org/intro.html)
 DAVE-ML is a standard for data handeling in simulation software that we should probably try to adhere to, might be a pain though since they use XML instead of something designed in the last centuary.
+### Paper F: [SIX DEGREE OF FREEDOM DIGITAL SIMULATION MODEL FOR UNGUIDED FIN-STABILIZED ROCKETS](https://apps.dtic.mil/dtic/tr/fulltext/u2/452106.pdf)
 ### [Numerical Recipies](https://cloudflare-ipfs.com/ipfs/bafykbzacebqr3dr5pl3o23plmtxhafrin65b2ysk6b4ettofftex5n5gp5efm?filename=William%20H.%20Press%2C%20Saul%20A.%20Teukolsky%2C%20William%20T.%20Vetterling%2C%20Brian%20P.%20Flannery%20-%20Numerical%20recipes_%20the%20art%20of%20scientific%20computing-Cambridge%20University%20Press%20%282007%29.pdf)
 Used for integration algorithm
 ### Papers for later
