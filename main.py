@@ -266,7 +266,7 @@ class Rocket:
     def body_to_inertial(self,vector):  #Convert a vector in x,y,z to X,Y,Z
         return np.matmul(rot_matrix(self.orientation+np.array([0,-np.pi/2,0])), np.array(vector))
     
-    def aero_forces(self, alt, velocity,time):
+    def aero_forces(self, alt, velocity, time):
         '''
         Returns aerodynamic forces (in the body reference frame, [x_b, y_b, z_b]), and the distance of the centre of pressure (COP) from the front of the vehicle.
         You can use these forces, and the position they act on (the COP), to find the moments about the centre of mass.
@@ -280,7 +280,7 @@ class Rocket:
         #print("Running Rocket.aero_forces()")
 
         #Velocities and Mach number
-        v_rel_wind = velocity[0] - vel_launch_to_inertial(self.launch_site.wind,self.launch_site,time)
+        v_rel_wind = velocity[0] + vel_launch_to_inertial(self.launch_site.wind,self.launch_site,time)
         v_a = np.linalg.norm(v_rel_wind)
         v_sound = np.interp(alt, self.launch_site.atmosphere.adat, self.launch_site.atmosphere.sdat)
         mach = v_a/v_sound
@@ -375,7 +375,7 @@ class Rocket:
     def altitude(self, position):
         return np.linalg.norm(position)-r_earth
     
-    def acceleration(self, position, velocity, angular_velocity, time):     #Returns translational and rotational accelerations on the rocket, given the applied forces
+    def acceleration(self, position, velocities, time):     #Returns translational and rotational accelerations on the rocket, given the applied forces
         '''
         Returns lin_acc, rot_acc
         
@@ -387,7 +387,7 @@ class Rocket:
         
         #Get all the forces in body coordinates
         thrust_b = self.thrust(time,self.altitude(position))
-        aero_force_b, cop = self.aero_forces(self.altitude(position),velocity,time)
+        aero_force_b, cop = self.aero_forces(self.altitude(position),velocities[0],time)
         cog = self.mass_model.cog(time)
         
         
@@ -401,10 +401,10 @@ class Rocket:
         #Convert forces to inertial coordinates
         thrust = self.body_to_inertial(thrust_b)
         aero_force = self.body_to_inertial(aero_force_b)
-        
         #Get total force and moment
         F = thrust + aero_force + self.gravity(time, position)
         Q_b = aero_moment_b + thrust_moment_b   #Keep the moments in the body coordinate system for now
+        print(F)
         
         #F = ma in inertial coordinates
         lin_acc = F/self.mass_model.mass(time)
@@ -416,21 +416,22 @@ class Rocket:
         
         #Convert rotational accelerations into inertial coordinates
         rot_acc = self.body_to_inertial(rot_acc_b)
-        rot_acc=np.array([0,0,0])
 
         #print("Finished running Rocket.acceleration()")
+        #return np.stack([np.array([lin_acc[0],0,0]), np.array([0,0,0])])
         return np.stack([lin_acc, rot_acc])
     
     
     def step(self):
         """Implimenting a time step variable method based on Numerical recipes (link in readme)
         """
-        k_1=self.h*self.acceleration(self.pos,self.v,self.w,self.time)
-        k_2=self.h*self.acceleration(self.pos,self.v+a[1][0]*k_1,self.w,self.time+c[1]*self.h)
-        k_3=self.h*self.acceleration(self.pos,self.v+a[2][0]*k_1+a[2][1]*k_2,self.w,self.time+c[2]*self.h)
-        k_4=self.h*self.acceleration(self.pos,self.v+a[3][0]*k_1+a[3][1]*k_2+a[3][2]*k_3,self.w,self.time+c[3]*self.h)
-        k_5=self.h*self.acceleration(self.pos,self.v+a[4][0]*k_1+a[4][1]*k_2+a[4][2]*k_3+a[4][3]*k_4,self.w,self.time+c[4]*self.h)
-        k_6=self.h*self.acceleration(self.pos,self.v+a[5][0]*k_1+a[5][1]*k_2+a[5][2]*k_3+a[5][3]*k_4+a[5][4]*k_5,self.w,self.time+c[4]*self.h)
+        vels=np.stack([self.v,self.w])
+        k_1=self.h*self.acceleration(self.pos,vels,self.time)
+        k_2=self.h*self.acceleration(self.pos,vels+a[1][0]*k_1,self.time+c[1]*self.h)
+        k_3=self.h*self.acceleration(self.pos,vels+a[2][0]*k_1+a[2][1]*k_2,self.time+c[2]*self.h)
+        k_4=self.h*self.acceleration(self.pos,vels+a[3][0]*k_1+a[3][1]*k_2+a[3][2]*k_3,self.time+c[3]*self.h)
+        k_5=self.h*self.acceleration(self.pos,vels+a[4][0]*k_1+a[4][1]*k_2+a[4][2]*k_3+a[4][3]*k_4,self.time+c[4]*self.h)
+        k_6=self.h*self.acceleration(self.pos,vels+a[5][0]*k_1+a[5][1]*k_2+a[5][2]*k_3+a[5][3]*k_4+a[5][4]*k_5,self.time+c[4]*self.h)
         
         l_1=np.stack((self.v,self.w))
         l_2=l_1+a[1][0]*k_1
@@ -567,6 +568,7 @@ def rot_matrix(orientation,inverse=False):
     return rot
 
 def run_simulation(rocket):
+    print(rocket.pos)
     """Runs the simulaiton to completeion outputting dictionary of the position, velocity and mass of the rocket
 
     Args:
@@ -581,6 +583,8 @@ def run_simulation(rocket):
         rocket.step()
         launch_position = pos_inertial_to_launch(rocket.pos,rocket.launch_site,rocket.time)
         launch_velocity = vel_inertial_to_launch(rocket.v,rocket.launch_site,rocket.time)
+        launch_position = rocket.pos
+        launch_velocity = rocket.v
         new_row={"Time":rocket.time,
                         "x":launch_position[0],
                         "y":launch_position[1],
