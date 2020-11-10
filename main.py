@@ -208,7 +208,6 @@ class RasAeroData:
             self.CN = scipy.interpolate.interp2d(Mach, alpha, CN)
             
             
-    self.lat = lat                  #Latitude
 #Class to store all the import information on a rocket
 class Rocket:
     def __init__(self, mass_model, motor, aero, launch_site, h, variable):
