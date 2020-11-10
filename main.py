@@ -103,7 +103,7 @@ class LaunchSite:
     self.atmosphere = atmosphere    #An Atmosphere object to get atmosphere data from
     
 #Class to use for the variable mass model for the rocket
-class CylindericalMassModel:
+class CylindricalMassModel:
     def __init__(self, mass, time, l, r):
         '''
         Assumes the rocket is a solid cylinder, constant volume, which has a mass that reduces with time (i.e. the density of the cylinder reducs)
