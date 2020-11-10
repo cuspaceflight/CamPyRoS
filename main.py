@@ -475,7 +475,7 @@ def run_simulation(rocket):
         record.append({"Time":rocket.time,
                         "Position":pos_inertial_to_launch(rocket.pos,rocket.launch_site,rocket.time),
                         "Velocity":vel_inertial_to_launch(rocket.vel,rocket.launch_site,rocket.time),
-                        "Mass":rocket.m})
+                        "Mass":rocket.m}, ignore_index=True)
     return record
 
 def plot_altitude_time(simulation_output):  #takes data from a simulation and plots nice graphs for you
