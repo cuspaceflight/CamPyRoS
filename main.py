@@ -117,7 +117,7 @@ class CylindricalMassModel:
         self.ixx(time), self.iyy(time), self.izz(time) - Each returns the principa moment of inertia at a 'time' after ignition
         self.cog(time) - Returns centre of gravity, as a distance from the nose tip. Would be a constant, 'time' does not actually affect it (but is included for completeness)
         '''
-        self.mass = scipy.inter1d(time, mass)
+        self.mass = scipy.interpolate.interp1d(time, mass)
         self.l = l
         self.r = r
           
@@ -233,7 +233,7 @@ class Rocket:
         self.alt = launch_site.alt                                                              #Altitude
         self.on_rail=True
     
-    def body_to_intertial(self,vector):  #Convert a vector in x,y,z to X,Y,Z
+    def body_to_inertial(self,vector):  #Convert a vector in x,y,z to X,Y,Z
         return np.matmul(rot_matrix(self.orientation),vector)
     
     def aero_forces(self):
@@ -327,8 +327,14 @@ class Rocket:
         #Multiply the thrust by the direction it acts in, and return it.
         return thrust*vector/np.linalg.norm(vector)
         
-    def gravity(self,position):
-        return 9.81
+    def gravity(self):
+        '''
+        Returns the gravity force, as a vector in inertial coordinates
+        
+        Uses a spherical Earth gravity model
+        '''
+        # F = GMm/r^2 = mu m/r^2 where mu = 3.986004418e14 for Earth
+        return 3.986004418e14 * self.mass_model.mass(self.time) * self.pos / np.linalg.norm(self.pos)**3
     
     def altitude(self,position):
         return np.linalg.norm(position)-6317000
@@ -356,12 +362,10 @@ class Rocket:
         
         #Convert forces to inertial coordinates
         thrust = self.body_to_inertial(thrust_b)
-        #thrust_moment = self.body_to_inertial(thrust_moment_b)
         aero_force = self.body_to_inertial(aero_force_b)
-        #aero_moment = self.body_to_inertial(aero_moment_b)
         
         #Get total force and moment
-        F = thrust + aero_force
+        F = thrust + aero_force + self.gravity()
         Q_b = aero_moment_b + thrust_moment_b   #Keep the moments in the body coordinate system for now
         
         #F = ma in inertial coordinates
