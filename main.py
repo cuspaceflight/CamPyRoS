@@ -537,11 +537,40 @@ def run_simulation(rocket):
     record=pd.DataFrame({"Time":[],"Position":[],"Velocity":[],"Mass":[]}) #time:[position,velocity,mass]
     while rocket.alt>0:
         rocket.step()
+        launch_position = pos_inertial_to_launch(rocket.pos,rocket.launch_site,rocket.time)
+        launch_velocity = vel_inertial_to_launch(rocket.vel,rocket.launch_site,rocket.time)
         record.append({"Time":rocket.time,
-                        "Position":pos_inertial_to_launch(rocket.pos,rocket.launch_site,rocket.time),
-                        "Velocity":vel_inertial_to_launch(rocket.vel,rocket.launch_site,rocket.time),
+                        "x":launch_position[0],
+                        "y":launch_position[1],
+                        "z":launch_position[2],
+                        "v_x":launch_velocity[0],
+                        "v_y":launch_velocity[1],
+                        "v_z":launch_velocity[2],
                         "Mass":rocket.m}, ignore_index=True)
     return record
 
-def plot_altitude_time(simulation_output):  #takes data from a simulation and plots nice graphs for you
-    pass        
+def get_velocity_magnitude(df):
+    return (np.sqrt(df["v_x"]**2+df["v_y"]**2+df["v_z"]**2))
+
+def plot_altitude_time(simulation_output):
+    fig, axs = plt.subplots(2, 2)
+    axs[0, 0].plot(simulation_output["y"], -simulation_output["x"])
+    axs[0, 0].set_title('Ground Track ($^*$)')
+    axs[0,0].set_xlabel("East/m")
+    axs[0,0].set_ylabel("North/m")
+    #plt.text(0,-simulation_output["x"].max(),'$^*$ This is in the fixed cartesian launch frame so will not be actual ground position over large distances',horizontalalignment='left', verticalalignment='center')
+    axs[0, 1].plot(simulation_output["Time"],simulation_output["z"], 'tab:orange')
+    axs[0, 1].set_title('Altitude')
+    axs[0,1].set_xlabel("Time/s")
+    axs[0,1].set_ylabel("Altitude/m")
+    axs[1, 0].plot(simulation_output["Time"],simulation_output.apply(get_velocity_magnitude,axis=1), 'tab:green')
+    axs[1, 0].set_title('Speed')
+    axs[1,0].set_xlabel("Time/s")
+    axs[1,0].set_ylabel("Speed/m/s")
+    axs[1, 1].plot(simulation_output["Time"],simulation_output["v_z"], 'tab:red')
+    axs[1, 1].set_title('Vertical Velocity')
+    axs[1,1].set_xlabel("Time/s")
+    axs[1,1].set_ylabel("Velocity/m/s")
+    fig.tight_layout()
+    
+    plt.show() 
