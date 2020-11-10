@@ -43,6 +43,8 @@ martlet4 = main.Rocket(mass_model, pulsar, aerodynamic_coefficients, launch_site
 simulation_output = main.run_simulation(martlet4)
 
 main.plot_altitude_time(simulation_output)
-main.plot_trajectory_3d(simulation_output)
+main.plot_aero_forces(simulation_output)
+main.plot_orientation(simulation_output)
+main.plot_trajectory_3d(simulation_output, show_orientation=True)
 
 
