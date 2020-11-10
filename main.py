@@ -90,6 +90,50 @@ class Motor:
         self.exit_pres_data = exit_pres_data
         self.area_ratio_data = area_ratio_data
 
+#Class to store data on your launch site
+class LaunchSite:
+  def __init__(self, rail_length, rail_yaw, rail_pitch,alt, longi, lat, wind=[0,0,0], atmosphere=StandardAtmosphere):
+    self.rail_length = rail_length
+    self.rail_yaw = rail_yaw        #Angle of rotation about the z axis (north pointing)
+    self.rail_pitch = rail_pitch    #Angle of rotation about "East" pointing y axis - in order to simplify calculations below this needs to be measured in the yaw then pitch order
+    self.alt = alt                  #Altitude
+    self.longi = longi              #Longitude
+    self.lat = lat                  #Latitude
+    self.wind = np.array(wind)      #Wind speed vector relative to the surface of the Earth, [x_l, y_l, z_l] m/s
+    self.atmosphere = atmosphere    #An Atmosphere object to get atmosphere data from
+    
+#Class to use for the variable mass model for the rocket
+class CylindericalMassModel:
+    def __init__(self, mass, time, l, r):
+        '''
+        Assumes the rocket is a solid cylinder, constant volume, which has a mass that reduces with time (i.e. the density of the cylinder reducs)
+        
+        mass = A list of masses, at each moment in time (after ignition)
+        time = A list of times, corresponding to the masses in the 'mass' list
+        l = length of the cylinder
+        r = radius of the cylinder
+        
+        self.mass(time) - Returns the mass at a 'time' after ignition
+        self.ixx(time), self.iyy(time), self.izz(time) - Each returns the principa moment of inertia at a 'time' after ignition
+        self.cog(time) - Returns centre of gravity, as a distance from the nose tip. Would be a constant, 'time' does not actually affect it (but is included for completeness)
+        '''
+        self.mass = scipy.inter1d(time, mass)
+        self.l = l
+        self.r = r
+          
+    def ixx(self, time):
+        return (1/2)* self.r**2 * self.mass(time)
+      
+    def iyy(self, time):
+        return ((1/4)*self.r**2 + (1/12)*self.l**2) * self.mass(time)
+      
+    def izz(self, time):
+        return self.iyy(time)
+    
+    def cog(self, time):
+        return l/2
+
+
 #Class used to get the data we need from a RasAero II 'Aero Plots' export file
 class RasAeroData:
         def __init__(self, file_location_string, area = 0.0305128422): 
@@ -164,28 +208,13 @@ class RasAeroData:
             self.CN = scipy.interpolate.interp2d(Mach, alpha, CN)
             
             
-#Class to store data on your launch site
-class LaunchSite:
-  def __init__(self, rail_length, rail_yaw, rail_pitch,alt, longi, lat, wind=[0,0,0], atmosphere=StandardAtmosphere):
-    self.rail_length = rail_length
-    self.rail_yaw = rail_yaw        #Angle of rotation about the z axis (north pointing)
-    self.rail_pitch = rail_pitch    #Angle of rotation about "East" pointing y axis - in order to simplify calculations below this needs to be measured in the yaw then pitch order
-    self.alt = alt                  #Altitude
-    self.longi = longi                #Longitude
     self.lat = lat                  #Latitude
-    self.wind = np.array(wind)                #Wind speed vector relative to the surface of the Earth, [x_] m/s
-    self.atmosphere = atmosphere    #An Atmosphere object to get atmosphere data from
-    
-    
 #Class to store all the import information on a rocket
 class Rocket:
-    def __init__(self, dry_mass, ixx, iyy, izz, motor, aero, launch_site, h, variable):
+    def __init__(self, mass_model, motor, aero, launch_site, h, variable):
         '''
-        dry_mass - Mass without fuel
-        ixx
-        iyy
-        izz - principal moments of inertia - rocket points in the xx direction
         motor - some kind of Motor object - currently the only option is HybridMotor
+        mass_model - The object used to model the rocket's mass - currently the only option is CylindricalMassModel
         aero - Aerodynamic coefficients and stability derivatives
         launch_site - a LaunchSite object
         '''
@@ -193,22 +222,16 @@ class Rocket:
         self.launch_site = launch_site                  #LaunchSite object
         self.motor = motor                              #Motor object containing motor data
         self.aero = aero                                #object containing aerodynamic information
-                            
-        self.dry_mass = dry_mass                        #Dry mass kg
+        self.mass_model = mass_model                    #Object used to model the mass of the rocket
         
-        self.Ixx = ixx                                  #Principal moments of inertia kg m2
-        self.Iyy = iyy
-        self.Izz = izz
-        
-        self.time = 0               #Time since ignition s
-        self.h = h            #Time step size (can evolve)
-        self.variable_time = variable   #Vary timestep with error (option for ease of debugging)
-        self.m = 0                  #Instantaneous mass (will vary as fuel is used) kg
+        self.time = 0                           #Time since ignition (seconds)
+        self.h = h                              #Time step size (can evolve)
+        self.variable_time = variable           #Vary timestep with error (option for ease of debugging)
         self.orientation = np.array([launch_site.rail_yaw*np.pi/180,(launch_site.lat+launch_site.rail_pitch)*np.pi/180,0]) #yaw pitch roll  of the body frame in the inertial frame rad
-        self.w = np.matmul(rot_matrix(self.orientation),np.array([ang_vel_earth,0,0]))           #rate of change of yaw pitch roll rad/s - would this have an initial value? I don't think it should since after it is free of the rail (which should be negligable)
-        self.pos = pos_launch_to_inertial(np.array([0,0,0]),launch_site,0)         #Position in inertial coordinates [x,y,z] m
-        self.v = vel_launch_to_inertial([0,0,0],launch_site,0)        #Velocity in intertial coordinates [x',y',z'] m/s
-        self.alt = launch_site.alt  #Altitude
+        self.w = np.matmul(rot_matrix(self.orientation),np.array([ang_vel_earth,0,0]))          #rate of change of yaw pitch roll rad/s - would this have an initial value? I don't think it should since after it is free of the rail (which should be negligable)
+        self.pos = pos_launch_to_inertial(np.array([0,0,0]),launch_site,0)                      #Position in inertial coordinates [x,y,z] m
+        self.v = vel_launch_to_inertial([0,0,0],launch_site,0)                                  #Velocity in intertial coordinates [x',y',z'] m/s
+        self.alt = launch_site.alt                                                              #Altitude
         self.on_rail=True
     
     def body_to_intertial(self,vector):  #Convert a vector in x,y,z to X,Y,Z
@@ -311,10 +334,50 @@ class Rocket:
     def altitude(self,position):
         return np.linalg.norm(position)-6317000
     
-    def acceleration(self,pos,v_b,w,time,alt):     #Returns translational and rotational accelerations on the rocket, given the applied forces
-        #Some kind of implementation of the equations of motion in inertial frame
-        out = np.stack((np.array([0,0,0]),np.array([0,0,0])))
-        return out
+    def acceleration(self):     #Returns translational and rotational accelerations on the rocket, given the applied forces
+        '''
+        Returns lin_acc, rot_acc
+        
+        lin_acc = The linear acceleration in inertial coordinates [ax_i, ay_i, az_i]
+        rot_acc = The rotataional acceleration in inertial coordinates [wdot_x_i, wdot_y_i, wdot_z_i]
+        '''
+        
+        #Get all the forces in body coordinates
+        thrust_b = self.body_to_inertial(self.thrust(self.time))
+        aero_force_b, cop = self.body_to_inertial(self.aero_forces())
+        cog = self.mass_model.cog(self.time)
+        
+        #Get the vectors we need to calculate moments
+        r_engine_cog_b = (self.mass_model.l - cog)*np.array([-1,0,0])   #Vector (in body coordinates) of nozzle exit, relative to CoG
+        r_cop_cog_b = (cop - cog)*np.array([-1,0,0])                    #Vector (in body coordinates) of CoP, relative to CoG
+        
+        #Calculate moments in body coordinates using moment = r x F
+        aero_moment_b = np.cross(r_cop_cog_b, aero_force_b)
+        thrust_moment_b = np.cross(r_engine_cog_b, thrust_b)
+        
+        #Convert forces to inertial coordinates
+        thrust = self.body_to_inertial(thrust_b)
+        #thrust_moment = self.body_to_inertial(thrust_moment_b)
+        aero_force = self.body_to_inertial(aero_force_b)
+        #aero_moment = self.body_to_inertial(aero_moment_b)
+        
+        #Get total force and moment
+        F = thrust + aero_force
+        Q_b = aero_moment_b + thrust_moment_b   #Keep the moments in the body coordinate system for now
+        
+        #F = ma in inertial coordinates
+        lin_acc = F/self.mass_model.mass(self.time)
+        
+        #Q = Ig wdot in body coordinates (because then we're using principal moments of inertia)
+        rot_acc_b = np.array(Q_b[0]/self.mass_model.ixx(self.time),
+                           Q_b[1]/self.mass_model.iyy(self.time),
+                           Q_b[2]/self.mass_model.izz(self.time))
+        
+        #Convert rotational accelerations into inertial coordinates
+        rot_acc = self.body_to_inertial(rot_acc_b)
+        
+        return lin_acc, rot_acc
+    
     
     def step(self):
         """Implimenting a time step variable method based on Numerical recipes (link in readme)
