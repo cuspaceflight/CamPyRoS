@@ -117,15 +117,44 @@ class CylindricalMassModel:
         self.ixx(time), self.iyy(time), self.izz(time) - Each returns the principa moment of inertia at a 'time' after ignition
         self.cog(time) - Returns centre of gravity, as a distance from the nose tip. Would be a constant, 'time' does not actually affect it (but is included for completeness)
         '''
-        self.mass = scipy.interpolate.interp1d(time, mass)
+        self.mass_interp = scipy.interpolate.interp1d(time, mass)
+        self.time = time
         self.l = l
         self.r = r
-          
+
+    def mass(self, time):
+        if time<0:
+            raise ValueError("Tried to input negative time when using CylindricalMassModel.ixx()")
+        elif time < self.time[0]:
+            print("Trying to calculate mass or moment of inertia data before first time datapoint - rounding from time={} to time={}".format(time, self.time[0]))
+            return self.mass_interp(self.time[0])
+        elif time < self.time[-1]:
+            return self.mass_interp(time)
+        else:
+            return self.mass_interp(self.time[-1])
+
     def ixx(self, time):
-        return (1/2)* self.r**2 * self.mass(time)
+        if time<0:
+            raise ValueError("Tried to input negative time when using CylindricalMassModel.ixx()")
+        elif time < self.time[0]:
+            print("Trying to calculate mass or moment of inertia data before first time datapoint - rounding from time={} to time={}".format(time, self.time[0]))
+            return (1/2)* self.r**2 * self.mass(self.time[0])
+        elif time < self.time[-1]:
+            return (1/2)* self.r**2 * self.mass(time)
+        else:
+            return (1/2)* self.r**2 * self.mass(self.time[-1])
+
       
     def iyy(self, time):
-        return ((1/4)*self.r**2 + (1/12)*self.l**2) * self.mass(time)
+        if time < 0:
+            raise ValueError("Tried to input negative time when using CylindricalMassModel.ixx()")
+        elif time < self.time[0]:
+            print("Trying to calculate mass or moment of inertia data before first time datapoint - rounding from time={} to time={}".format(time, self.time[0]))
+            return ((1/4)*self.r**2 + (1/12)*self.l**2) * self.mass(self.time[0])
+        elif time < self.time[-1]:
+            return ((1/4)*self.r**2 + (1/12)*self.l**2) * self.mass(time)
+        else:
+            return ((1/4)*self.r**2 + (1/12)*self.l**2) * self.mass(self.time[-1])
       
     def izz(self, time):
         return self.iyy(time)
@@ -234,7 +263,7 @@ class Rocket:
         self.on_rail=True
     
     def body_to_inertial(self,vector):  #Convert a vector in x,y,z to X,Y,Z
-        return np.matmul(rot_matrix(self.orientation),vector)
+        return np.matmul(rot_matrix(self.orientation), np.array(vector))
     
     def aero_forces(self, alt, velocity):
         '''
@@ -247,19 +276,20 @@ class Rocket:
              (same for CA as angles of attack vary)
          -Not sure if I'm using the right density for converting between force coefficients and forces
         '''
-        
+        print("Running Rocket.aero_forces()")
+
         #Velocities and Mach number
         v_rel_wind = velocity - vel_launch_to_inertial(self.launch_site.wind,self.launch_site,self.time)
         v_a = np.linalg.norm(v_rel_wind)
         v_sound = np.interp(alt, self.launch_site.atmosphere.adat, self.launch_site.atmosphere.sdat)
         mach = v_a/v_sound
         
-        #Angles
-        alpha = np.arctan(v_rel_wind[2]/v_rel_wind[0])
-        beta = np.arctan(v_rel_wind[1] / (v_rel_wind[0]**2 + v_rel_wind[2]**2 )**0.5 )
-        delta = np.arctan( (v_rel_wind[2]**2 + v_rel_wind[1]**2)**0.5 / v_rel_wind[0])
-        alpha_star = np.arctan(v_rel_wind[2] / (v_rel_wind[0]**2 + v_rel_wind[1]**2 )**0.5 )
-        beta_star = np.arctan(v_rel_wind[1]/v_rel_wind[0])
+        #Angles - use np.angle(a + jb) to replace np.arctan(b/a) because the latter gave divide by zero errors, if x=0
+        alpha = np.angle(1j*v_rel_wind[2] + v_rel_wind[0])
+        beta = np.angle(1j*v_rel_wind[1] + (v_rel_wind[0]**2 + v_rel_wind[2]**2 )**0.5 )
+        delta = np.angle( 1j*(v_rel_wind[2]**2 + v_rel_wind[1]**2)**0.5 + v_rel_wind[0])
+        alpha_star = np.angle(1j*v_rel_wind[2] + (v_rel_wind[0]**2 + v_rel_wind[1]**2 )**0.5 )
+        beta_star = np.angle(1j*v_rel_wind[1] + v_rel_wind[0])
             
         #Dynamic pressure at the current altitude and velocity - WARNING: Am I using the right density?
         q = 0.5*np.interp(alt, self.launch_site.atmosphere.adat, self.launch_site.atmosphere.ddat)*(v_a**2)
@@ -268,9 +298,9 @@ class Rocket:
         S = self.aero.area
         
         #Drag/Force coefficients
-        Cx = self.aero.CA(mach, abs(delta))         #WARNING: Not sure if I'm using the right angles for these all
-        Cz = self.aero.CN(mach, abs(alpha_star))    #Or if this is the correct way to use CN
-        Cy = self.aero.CN(mach, abs(beta)) 
+        Cx = self.aero.CA(mach, abs(delta))[0]         #WARNING: Not sure if I'm using the right angles for these all
+        Cz = self.aero.CN(mach, abs(alpha_star))[0]    #Or if this is the correct way to use CN
+        Cy = self.aero.CN(mach, abs(beta))[0] 
         
         #Forces
         Fx = -np.sign(v_rel_wind[0])*Cx*q*S                         
@@ -282,6 +312,7 @@ class Rocket:
         
         #Return the forces (note that they're given using the body coordinate system, [x_b, y_b, z_b]).
         #Also return the distance that the COP is from the front of the rocket.
+        print("Finished running Rocket.aero_forces()")
         return np.array([Fx,Fy,Fz]), COP
         
     def thrust(self, time, alt, vector = [-1,0,0]): 
@@ -297,6 +328,8 @@ class Rocket:
             -Thrust misalignment is not yet modelled, so this currently only outputs a thrust
             -It currently takes a 'time' argument, which is the time since motor ignition. We could change this to self.time later if we want.
         '''   
+        print("Running Rocket.thrust()")
+
         #Make sure "vector" is a Numpy array, in case the user inputted a Python list.
         vector = np.array(vector)
         
@@ -325,18 +358,20 @@ class Rocket:
             thrust = 0
         
         #Multiply the thrust by the direction it acts in, and return it.
+        print("Finished running Rocket.thrust()")
         return thrust*vector/np.linalg.norm(vector)
         
-    def gravity(self):
+    def gravity(self, time, position):
         '''
         Returns the gravity force, as a vector in inertial coordinates
         
         Uses a spherical Earth gravity model
         '''
-        # F = GMm/r^2 = mu m/r^2 where mu = 3.986004418e14 for Earth
-        return 3.986004418e14 * self.mass_model.mass(self.time) * self.pos / np.linalg.norm(self.pos)**3
+        # F = -GMm/r^2 = μm/r^2 where μ = 3.986004418e14 for Earth
+        return -3.986004418e14 * self.mass_model.mass(time) * position / np.linalg.norm(position)**3
+
     
-    def altitude(self,position):
+    def altitude(self, position):
         return np.linalg.norm(position)-r_earth
     
     def acceleration(self, position, velocity, angular_velocity, time):     #Returns translational and rotational accelerations on the rocket, given the applied forces
@@ -346,17 +381,20 @@ class Rocket:
         lin_acc = The linear acceleration in inertial coordinates [ax_i, ay_i, az_i]
         rot_acc = The rotataional acceleration in inertial coordinates [wdot_x_i, wdot_y_i, wdot_z_i]
         '''
+
+        print("Running Rocket.acceleration()")
         
         #Get all the forces in body coordinates
-        thrust_b = self.body_to_inertial(self.thrust(time,self.altitude(position)))
-        aero_force_b, cop = self.body_to_inertial(self.aero_forces(self.altitude(position),velocity))
-        cog = self.mass_model.cog(self.time)
+        thrust_b = self.thrust(time,self.altitude(position))
+        aero_force_b, cop = self.aero_forces(self.altitude(position),velocity)
+        cog = self.mass_model.cog(time)
+        
         
         #Get the vectors we need to calculate moments
         r_engine_cog_b = (self.mass_model.l - cog)*np.array([-1,0,0])   #Vector (in body coordinates) of nozzle exit, relative to CoG
         r_cop_cog_b = (cop - cog)*np.array([-1,0,0])                    #Vector (in body coordinates) of CoP, relative to CoG
         
-        #Calculate moments in body coordinates using moment = r x F
+        #Calculate moments in body coordinates using moment = r x F    
         aero_moment_b = np.cross(r_cop_cog_b, aero_force_b)
         thrust_moment_b = np.cross(r_engine_cog_b, thrust_b)
         
@@ -365,20 +403,21 @@ class Rocket:
         aero_force = self.body_to_inertial(aero_force_b)
         
         #Get total force and moment
-        F = thrust + aero_force + self.gravity()
+        F = thrust + aero_force + self.gravity(time, position)
         Q_b = aero_moment_b + thrust_moment_b   #Keep the moments in the body coordinate system for now
         
         #F = ma in inertial coordinates
-        lin_acc = F/self.mass_model.mass(self.time)
+        lin_acc = F/self.mass_model.mass(time)
         
         #Q = Ig wdot in body coordinates (because then we're using principal moments of inertia)
-        rot_acc_b = np.array(Q_b[0]/self.mass_model.ixx(self.time),
-                           Q_b[1]/self.mass_model.iyy(self.time),
-                           Q_b[2]/self.mass_model.izz(self.time))
+        rot_acc_b = np.array([Q_b[0]/self.mass_model.ixx(time),
+                           Q_b[1]/self.mass_model.iyy(time),
+                           Q_b[2]/self.mass_model.izz(time)])
         
         #Convert rotational accelerations into inertial coordinates
         rot_acc = self.body_to_inertial(rot_acc_b)
         
+        print("Finished running Rocket.acceleration()")
         return lin_acc, rot_acc
     
     
