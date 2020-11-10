@@ -28,7 +28,7 @@ with open('motor_out.csv') as csvfile:
         area_ratio_data.append(float(row[7]))      
 
 #Create the HybridMotor object
-pulsar = main.HybridMotor(motor_time_data, prop_mass_data, cham_pres_data, throat_data,
+pulsar = main.Motor(motor_time_data, prop_mass_data, cham_pres_data, throat_data,
                           gamma_data, nozzle_efficiency_data, exit_pres_data, area_ratio_data)
 
 #Create the LaunchSite
