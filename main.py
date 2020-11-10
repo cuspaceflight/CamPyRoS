@@ -126,7 +126,7 @@ class CylindricalMassModel:
         if time<0:
             raise ValueError("Tried to input negative time when using CylindricalMassModel.ixx()")
         elif time < self.time[0]:
-            print("Trying to calculate mass or moment of inertia data before first time datapoint - rounding from time={} to time={}".format(time, self.time[0]))
+            #print("Trying to calculate mass or moment of inertia data before first time datapoint - rounding from time={} to time={}".format(time, self.time[0]))
             return self.mass_interp(self.time[0])
         elif time < self.time[-1]:
             return self.mass_interp(time)
@@ -137,7 +137,7 @@ class CylindricalMassModel:
         if time<0:
             raise ValueError("Tried to input negative time when using CylindricalMassModel.ixx()")
         elif time < self.time[0]:
-            print("Trying to calculate mass or moment of inertia data before first time datapoint - rounding from time={} to time={}".format(time, self.time[0]))
+            #print("Trying to calculate mass or moment of inertia data before first time datapoint - rounding from time={} to time={}".format(time, self.time[0]))
             return (1/2)* self.r**2 * self.mass(self.time[0])
         elif time < self.time[-1]:
             return (1/2)* self.r**2 * self.mass(time)
@@ -149,7 +149,7 @@ class CylindricalMassModel:
         if time < 0:
             raise ValueError("Tried to input negative time when using CylindricalMassModel.ixx()")
         elif time < self.time[0]:
-            print("Trying to calculate mass or moment of inertia data before first time datapoint - rounding from time={} to time={}".format(time, self.time[0]))
+            #print("Trying to calculate mass or moment of inertia data before first time datapoint - rounding from time={} to time={}".format(time, self.time[0]))
             return ((1/4)*self.r**2 + (1/12)*self.l**2) * self.mass(self.time[0])
         elif time < self.time[-1]:
             return ((1/4)*self.r**2 + (1/12)*self.l**2) * self.mass(time)
@@ -276,7 +276,7 @@ class Rocket:
              (same for CA as angles of attack vary)
          -Not sure if I'm using the right density for converting between force coefficients and forces
         '''
-        print("Running Rocket.aero_forces()")
+        #print("Running Rocket.aero_forces()")
 
         #Velocities and Mach number
         v_rel_wind = velocity[0] - vel_launch_to_inertial(self.launch_site.wind,self.launch_site,self.time)
@@ -312,7 +312,7 @@ class Rocket:
         
         #Return the forces (note that they're given using the body coordinate system, [x_b, y_b, z_b]).
         #Also return the distance that the COP is from the front of the rocket.
-        print("Finished running Rocket.aero_forces()")
+        #print("Finished running Rocket.aero_forces()")
         return np.array([Fx,Fy,Fz]), COP
         
     def thrust(self, time, alt, vector = [-1,0,0]): 
@@ -328,7 +328,7 @@ class Rocket:
             -Thrust misalignment is not yet modelled, so this currently only outputs a thrust
             -It currently takes a 'time' argument, which is the time since motor ignition. We could change this to self.time later if we want.
         '''   
-        print("Running Rocket.thrust()")
+        #print("Running Rocket.thrust()")
 
         #Make sure "vector" is a Numpy array, in case the user inputted a Python list.
         vector = np.array(vector)
@@ -358,7 +358,7 @@ class Rocket:
             thrust = 0
         
         #Multiply the thrust by the direction it acts in, and return it.
-        print("Finished running Rocket.thrust()")
+        #print("Finished running Rocket.thrust()")
         return thrust*vector/np.linalg.norm(vector)
         
     def gravity(self, time, position):
@@ -382,7 +382,7 @@ class Rocket:
         rot_acc = The rotataional acceleration in inertial coordinates [wdot_x_i, wdot_y_i, wdot_z_i]
         '''
 
-        print("Running Rocket.acceleration()")
+        #print("Running Rocket.acceleration()")
         
         #Get all the forces in body coordinates
         thrust_b = self.thrust(time,self.altitude(position))
@@ -417,7 +417,7 @@ class Rocket:
         #Convert rotational accelerations into inertial coordinates
         rot_acc = self.body_to_inertial(rot_acc_b)
         
-        print("Finished running Rocket.acceleration()")
+        #print("Finished running Rocket.acceleration()")
         return np.stack([lin_acc, rot_acc])
     
     
@@ -441,6 +441,7 @@ class Rocket:
         v=np.stack((self.v,self.w))+b[0]*k_1+b[1]*k_2+b[2]*k_3+b[3]*k_4+b[4]*k_5+b[5]*k_6 #+O(h^6)
         r=np.stack((self.pos,self.orientation))+b[0]*l_1+b[1]*l_2+b[2]*l_3+b[3]*l_4+b[4]*l_5+b[5]*l_6 #+O(h^6) This is movement of the body frame from wherever it is- needs to be transformed to inertial frame
 
+        self.time+=self.h
         if(self.variable_time==True):
             v_=np.stack((self.v,self.w))+b_[0]*k_1+b_[1]*k_2+b_[2]*k_3+b_[3]*k_4+b_[4]*k_5+b_[5]*k_6 #+O(h^5)
             r_=np.stack((self.pos,self.orientation))+b_[0]*l_1+b_[1]*l_2+b_[2]*l_3+b_[3]*l_4+b_[4]*l_5+b_[5]*l_6 #+O(h^5)
@@ -573,19 +574,21 @@ def run_simulation(rocket):
     Returns:
         Pandas Dataframe: Record of position, velocity and mass at time t 
     """  
+    print("Running simulation")
     record=pd.DataFrame({"Time":[],"Position":[],"Velocity":[],"Mass":[]}) #time:[position,velocity,mass]
-    while rocket.alt>0:
+    while (rocket.altitude(rocket.pos)>=0 or rocket.time<100):
+        print("Current Alt: %s"%rocket.altitude(rocket.pos))
         rocket.step()
         launch_position = pos_inertial_to_launch(rocket.pos,rocket.launch_site,rocket.time)
-        launch_velocity = vel_inertial_to_launch(rocket.vel,rocket.launch_site,rocket.time)
+        launch_velocity = vel_inertial_to_launch(rocket.v,rocket.launch_site,rocket.time)
         record.append({"Time":rocket.time,
                         "x":launch_position[0],
                         "y":launch_position[1],
                         "z":launch_position[2],
                         "v_x":launch_velocity[0],
                         "v_y":launch_velocity[1],
-                        "v_z":launch_velocity[2],
-                        "Mass":rocket.m}, ignore_index=True)
+                        "v_z":launch_velocity[2]}, ignore_index=True)
+        print(rocket.pos,rocket.time)
     return record
 
 def get_velocity_magnitude(df):
