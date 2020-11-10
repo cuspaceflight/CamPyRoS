@@ -280,17 +280,24 @@ class Rocket:
         #print("Running Rocket.aero_forces()")
 
         #Velocities and Mach number
-        v_rel_wind = velocity[0] + vel_launch_to_inertial(self.launch_site.wind,self.launch_site,time)
+        v_rel_wind = velocity - vel_launch_to_inertial(self.launch_site.wind,self.launch_site,time)
         v_a = np.linalg.norm(v_rel_wind)
         v_sound = np.interp(alt, self.launch_site.atmosphere.adat, self.launch_site.atmosphere.sdat)
         mach = v_a/v_sound
         
-        #Angles - use np.angle(a + jb) to replace np.arctan(b/a) because the latter gave divide by zero errors, if x=0
-        alpha = np.angle(1j*v_rel_wind[2] + v_rel_wind[0])
-        beta = np.angle(1j*v_rel_wind[1] + (v_rel_wind[0]**2 + v_rel_wind[2]**2 )**0.5 )
-        delta = np.angle( 1j*(v_rel_wind[2]**2 + v_rel_wind[1]**2)**0.5 + v_rel_wind[0])
-        alpha_star = np.angle(1j*v_rel_wind[2] + (v_rel_wind[0]**2 + v_rel_wind[1]**2 )**0.5 )
-        beta_star = np.angle(1j*v_rel_wind[1] + v_rel_wind[0])
+        #Angles - use np.angle(a + jb) to replace np.arctan(a/b) because the latter gave divide by zero errors, if b=0
+        alpha = np.angle(v_rel_wind[2] + 1j*v_rel_wind[0])
+        beta = np.angle(v_rel_wind[1] + 1j*(v_rel_wind[0]**2 + v_rel_wind[2]**2 )**0.5 )
+        delta = np.angle( (v_rel_wind[2]**2 + 1j*v_rel_wind[1]**2)**0.5 + v_rel_wind[0])
+        alpha_star = np.angle(v_rel_wind[2] + 1j*(v_rel_wind[0]**2 + v_rel_wind[1]**2 )**0.5 )
+        beta_star = np.angle(v_rel_wind[1] + 1j*v_rel_wind[0])
+        
+        #If the angle of attack is too high, our linearised model will be inaccurate
+        if delta>2*np.pi*6/360:
+            print("WARNING: delta = {:.2f} (Large angle of attack)".format(360*delta/(2*np.pi)))
+        #print("\nv_rel_wind = {}".format(v_rel_wind))
+        #print("velocity = {}".format(velocity))
+        #print("wind in inertial frame = {}\n".format(vel_launch_to_inertial(self.launch_site.wind,self.launch_site,time)))
             
         #Dynamic pressure at the current altitude and velocity - WARNING: Am I using the right density?
         q = 0.5*np.interp(alt, self.launch_site.atmosphere.adat, self.launch_site.atmosphere.ddat)*(v_a**2)
@@ -417,7 +424,8 @@ class Rocket:
         rot_acc = self.body_to_inertial(rot_acc_b)
 
         #print("Finished running Rocket.acceleration()")
-        return np.stack([np.array([lin_acc[0],0,0]), np.array([0,0,0])])
+        return np.stack([lin_acc, np.array([0,0,0])])
+        #print("rot_acc = {}, aero_moment_b, thrust_moment_b = {}".format(rot_acc, aero_moment_b, thrust_moment_b))
         #return np.stack([lin_acc, rot_acc])
     
     
@@ -579,7 +587,7 @@ def run_simulation(rocket):
     """  
     print("Running simulation")
     record=pd.DataFrame({"Time":[],"x":[],"y":[],"z":[],"v_x":[],"v_y":[],"v_z":[]}) #time:[position,velocity,mass]
-    while (rocket.altitude(rocket.pos)>=0 and c<2000):
+    while (rocket.altitude(rocket.pos)>=0 and c<1000):
         rocket.step()
         launch_position = pos_inertial_to_launch(rocket.pos,rocket.launch_site,rocket.time)
         launch_velocity = vel_inertial_to_launch(rocket.v,rocket.launch_site,rocket.time)
@@ -591,7 +599,7 @@ def run_simulation(rocket):
                         "v_y":launch_velocity[1],
                         "v_z":launch_velocity[2]}
         record=record.append(new_row, ignore_index=True)
-        print(rocket.pos-np.array([r_earth,0,0]))
+        print("alt={:.0f} time={:.1f}".format(rocket.altitude(rocket.pos), rocket.time))
         c+=1
     return record
 
@@ -631,4 +639,39 @@ def plot_altitude_time(simulation_output):
     ax.set_xlabel('X Axes')
     ax.set_ylabel('Y Axes')
     ax.set_zlabel('Z Axes')"""    
+    plt.show() 
+
+def plot_trajectory_3d(simulation_output):
+    '''
+    Plots the trajectory in 3D, given the simulation_output
+    '''
+    fig = plt.figure()
+    ax = plt.axes(projection="3d")
+
+    ax.plot3D(simulation_output["x"],simulation_output["y"],simulation_output["z"])
+    ax.scatter(0,0,0,c='red', label="Launch site")
+    ax.set_xlabel('X Axes')
+    ax.set_ylabel('Y Axes')
+    ax.set_zlabel('Z Axes')  
+    ax.legend()
+    #Make axes equal ratios - source: https://stackoverflow.com/questions/13685386/matplotlib-equal-unit-length-with-equal-aspect-ratio-z-axis-is-not-equal-to 
+    x_limits = ax.get_xlim3d()
+    y_limits = ax.get_ylim3d()
+    z_limits = ax.get_zlim3d()
+
+    x_range = abs(x_limits[1] - x_limits[0])
+    x_middle = np.mean(x_limits)
+    y_range = abs(y_limits[1] - y_limits[0])
+    y_middle = np.mean(y_limits)
+    z_range = abs(z_limits[1] - z_limits[0])
+    z_middle = np.mean(z_limits)
+
+    # The plot bounding box is a sphere in the sense of the infinity
+    # norm, hence call half the max range the plot radius.
+    plot_radius = 0.5*max([x_range, y_range, z_range])
+
+    ax.set_xlim3d([x_middle - plot_radius, x_middle + plot_radius])
+    ax.set_ylim3d([y_middle - plot_radius, y_middle + plot_radius])
+    ax.set_zlim3d([z_middle - plot_radius, z_middle + plot_radius])
+    
     plt.show() 
