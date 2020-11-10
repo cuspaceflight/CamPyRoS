@@ -404,7 +404,6 @@ class Rocket:
         #Get total force and moment
         F = thrust + aero_force + self.gravity(time, position)
         Q_b = aero_moment_b + thrust_moment_b   #Keep the moments in the body coordinate system for now
-        print(F)
         
         #F = ma in inertial coordinates
         lin_acc = F/self.mass_model.mass(time)
@@ -418,8 +417,8 @@ class Rocket:
         rot_acc = self.body_to_inertial(rot_acc_b)
 
         #print("Finished running Rocket.acceleration()")
-        #return np.stack([np.array([lin_acc[0],0,0]), np.array([0,0,0])])
-        return np.stack([lin_acc, rot_acc])
+        return np.stack([np.array([lin_acc[0],0,0]), np.array([0,0,0])])
+        #return np.stack([lin_acc, rot_acc])
     
     
     def step(self):
@@ -433,15 +432,15 @@ class Rocket:
         k_5=self.h*self.acceleration(self.pos,vels+a[4][0]*k_1+a[4][1]*k_2+a[4][2]*k_3+a[4][3]*k_4,self.time+c[4]*self.h)
         k_6=self.h*self.acceleration(self.pos,vels+a[5][0]*k_1+a[5][1]*k_2+a[5][2]*k_3+a[5][3]*k_4+a[5][4]*k_5,self.time+c[4]*self.h)
         
-        l_1=np.stack((self.v,self.w))
-        l_2=l_1+a[1][0]*k_1
-        l_3=l_1+a[2][0]*k_1+a[2][1]*k_2
-        l_4=l_1+a[3][0]*k_1+a[3][1]*k_2+a[3][2]*k_3
-        l_5=l_1+a[4][0]*k_1+a[4][1]*k_2+a[4][2]*k_3+a[4][3]*k_4
-        l_6=l_1+a[5][0]*k_1+a[5][1]*k_2+a[5][2]*k_3+a[5][3]*k_4+a[5][4]*k_5
+        l_1=vels*self.h
+        l_2=l_1+a[1][0]*k_2
+        l_3=l_2+a[2][1]*k_3
+        l_4=l_3+a[3][2]*k_4
+        l_5=l_4+a[4][3]*k_5
+        l_6=l_5+a[5][4]*k_6
 
         v=np.stack((self.v,self.w))+b[0]*k_1+b[1]*k_2+b[2]*k_3+b[3]*k_4+b[4]*k_5+b[5]*k_6 #+O(h^6)
-        r=np.stack((self.pos,self.orientation))+b[0]*l_1+b[1]*l_2+b[2]*l_3+b[3]*l_4+b[4]*l_5+b[5]*l_6 #+O(h^6) This is movement of the body frame from wherever it is- needs to be transformed to inertial frame
+        r=np.stack((self.pos,self.orientation))+(b[0]*l_1+b[1]*l_2+b[2]*l_3+b[3]*l_4+b[4]*l_5+b[5]*l_6) #+O(h^6) This is movement of the body frame from wherever it is- needs to be transformed to inertial frame
 
         self.time+=self.h
         if(self.variable_time==True):
@@ -568,6 +567,7 @@ def rot_matrix(orientation,inverse=False):
     return rot
 
 def run_simulation(rocket):
+    c=0
     print(rocket.pos)
     """Runs the simulaiton to completeion outputting dictionary of the position, velocity and mass of the rocket
 
@@ -579,12 +579,10 @@ def run_simulation(rocket):
     """  
     print("Running simulation")
     record=pd.DataFrame({"Time":[],"x":[],"y":[],"z":[],"v_x":[],"v_y":[],"v_z":[]}) #time:[position,velocity,mass]
-    while (rocket.altitude(rocket.pos)>=0 or rocket.time<50):
+    while (rocket.altitude(rocket.pos)>=0 and c<2000):
         rocket.step()
         launch_position = pos_inertial_to_launch(rocket.pos,rocket.launch_site,rocket.time)
         launch_velocity = vel_inertial_to_launch(rocket.v,rocket.launch_site,rocket.time)
-        launch_position = rocket.pos
-        launch_velocity = rocket.v
         new_row={"Time":rocket.time,
                         "x":launch_position[0],
                         "y":launch_position[1],
@@ -593,6 +591,8 @@ def run_simulation(rocket):
                         "v_y":launch_velocity[1],
                         "v_z":launch_velocity[2]}
         record=record.append(new_row, ignore_index=True)
+        print(rocket.pos-np.array([r_earth,0,0]))
+        c+=1
     return record
 
 def get_velocity_magnitude(df):
