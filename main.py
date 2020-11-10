@@ -239,7 +239,7 @@ class RasAeroData:
             
 #Class to store all the import information on a rocket
 class Rocket:
-    def __init__(self, mass_model, motor, aero, launch_site, h, variable):
+    def __init__(self, mass_model, motor, aero, launch_site, h, variable=False):
         '''
         motor - some kind of Motor object - currently the only option is HybridMotor
         mass_model - The object used to model the rocket's mass - currently the only option is CylindricalMassModel
@@ -279,7 +279,7 @@ class Rocket:
         print("Running Rocket.aero_forces()")
 
         #Velocities and Mach number
-        v_rel_wind = velocity - vel_launch_to_inertial(self.launch_site.wind,self.launch_site,self.time)
+        v_rel_wind = velocity[0] - vel_launch_to_inertial(self.launch_site.wind,self.launch_site,self.time)
         v_a = np.linalg.norm(v_rel_wind)
         v_sound = np.interp(alt, self.launch_site.atmosphere.adat, self.launch_site.atmosphere.sdat)
         mach = v_a/v_sound
@@ -418,7 +418,7 @@ class Rocket:
         rot_acc = self.body_to_inertial(rot_acc_b)
         
         print("Finished running Rocket.acceleration()")
-        return lin_acc, rot_acc
+        return np.stack([lin_acc, rot_acc])
     
     
     def step(self):
