@@ -265,7 +265,9 @@ class Rocket:
     
     def body_to_inertial(self,vector):  #Convert a vector in x,y,z to X,Y,Z
         return np.matmul(rot_matrix(self.orientation+np.array([0,-np.pi/2,0])), np.array(vector))
-    
+    def inertial_to_body(self,vector):  #Convert a vector in x,y,z to X,Y,Z
+        return np.matmul(rot_matrix(self.orientation+np.array([0,-np.pi/2,0]), inverse=True), np.array(vector))
+
     def aero_forces(self, alt, orientation, velocity, time):
         '''
         Returns aerodynamic forces (in the body reference frame, [x_b, y_b, z_b]), and the distance of the centre of pressure (COP) from the front of the vehicle.
@@ -521,12 +523,10 @@ def pos_inertial_to_launch(position,launch_site,time):
 
 def vel_inertial_to_launch(velocity,launch_site,time):
     """Converts inertial velocity to velocity in launch frame
-
     Args:
         velocity (np.array): [x,y,z] Velocity in inertial frame
         launch_site (LaunchSite): The relivant launch site
         time (float): Elapsed time from ignition
-
     Returns:
         Numpy array: Velocity in launch frame
     """    
@@ -534,14 +534,12 @@ def vel_inertial_to_launch(velocity,launch_site,time):
     inertial_rot_launch = np.matmul(rot_matrix([time*ang_vel_earth+launch_site.longi*np.pi/180,launch_site.lat*np.pi/180,0],True),velocity)
     return inertial_rot_launch-launch_site_velocity
 
-def vel_launch_to_inertial(velocity,launch_site,time, alt):
+def vel_launch_to_inertial(velocity,launch_site,time,alt):
     """Converts launch frame velocity to velocity in inertial frame
-
     Args:
         velocity (Numpy array): [x,y,z] velocity in launch frame
         launch_site (LaunchSite): The relivant launch site
         time (float): Elapsed time from ignition
-
     Returns:
         Numpy array: Velocity in inertial frame
     """    
@@ -591,7 +589,6 @@ def run_simulation(rocket):
     print("Running simulation")
     record=pd.DataFrame({"Time":[],"x":[],"y":[],"z":[],"v_x":[],"v_y":[],"v_z":[]}) #time:[position,velocity,mass]
 
-
     while (rocket.altitude(rocket.pos)>=0):
         rocket.step()
         launch_position = pos_inertial_to_launch(rocket.pos,rocket.launch_site,rocket.time)
@@ -600,6 +597,9 @@ def run_simulation(rocket):
         cog = rocket.mass_model.cog(rocket.time)
         orientation = rocket.orientation
         x_b_l = orientation+np.array([np.pi/2+rocket.launch_site.rail_yaw*np.pi/180+ang_vel_earth*rocket.time,rocket.launch_site.rail_pitch*np.pi/180+np.pi/2-rocket.launch_site.lat*np.pi/180,0])
+        x_b_i = rocket.body_to_inertial([1,0,0])
+        x_b_i = vel_inertial_to_launch(x_b_i, rocket.launch_site, rocket.time)
+        lin_acc, rot_acc = rocket.acceleration(rocket.pos, [rocket.v, rocket.w], rocket.time)
         new_row={"Time":rocket.time,
                         "x":launch_position[0],
                         "y":launch_position[1],
@@ -607,22 +607,26 @@ def run_simulation(rocket):
                         "v_x":launch_velocity[0],
                         "v_y":launch_velocity[1],
                         "v_z":launch_velocity[2],
-                        "aero_x":aero_forces[0],
-                        "aero_y":aero_forces[1],
-                        "aero_z":aero_forces[2],
+                        "aero_xb":aero_forces[0],
+                        "aero_yb":aero_forces[1],
+                        "aero_zb":aero_forces[2],
                         "cop":cop,
                         "cog":cog,
                         "orientation_0":orientation[0],
                         "orientation_1":orientation[1],
                         "orientation_2":orientation[2],
-                        "attitude_lx":x_b_l[0],
-                        "attitude_ly":x_b_l[1],
-                        "attitude_lz":x_b_l[2]}
+                        "attitude_ix":x_b_i[0],
+                        "attitude_iy":x_b_i[1],
+                        "attitude_iz":x_b_i[2],
+                        "rot_acc_xi":rot_acc[0],
+                        "rot_acc_yi":rot_acc[1],
+                        "rot_acc_zi":rot_acc[2]}
         record=record.append(new_row, ignore_index=True)
         if d==1000:
             print(rocket.time)
             d=0
         #print("alt={:.0f} time={:.1f}".format(rocket.altitude(rocket.pos), rocket.time))
+
         c+=1
         d+=1
     return record
@@ -656,17 +660,17 @@ def plot_altitude_time(simulation_output):
 
 def plot_aero_forces(simulation_output):
     fig, axs = plt.subplots(2, 2)
-    axs[0, 0].plot(simulation_output["Time"], simulation_output["aero_x"])
+    axs[0, 0].plot(simulation_output["Time"], simulation_output["aero_xb"])
     axs[0, 0].set_title('aero_x_b')
     axs[0,0].set_xlabel("Time/s")
     axs[0,0].set_ylabel("Force/N")
     
-    axs[0, 1].plot(simulation_output["Time"], simulation_output["aero_y"])
+    axs[0, 1].plot(simulation_output["Time"], simulation_output["aero_yb"])
     axs[0, 1].set_title('aero_y_b')
     axs[0,1].set_xlabel("Time/s")
     axs[0,1].set_ylabel("Force/N")
     
-    axs[1, 0].plot(simulation_output["Time"], simulation_output["aero_z"])
+    axs[1, 0].plot(simulation_output["Time"], simulation_output["aero_zb"])
     axs[1, 0].set_title('aero_z_b')
     axs[1,0].set_xlabel("Time/s")
     axs[1,0].set_ylabel("Force/N")
@@ -706,17 +710,38 @@ def plot_orientation(simulation_output):
     axs[0, 0].plot(simulation_output["Time"], simulation_output["orientation_0"])
     axs[0, 0].set_title('Rocket.orientation[0]')
     axs[0,0].set_xlabel("Time/s")
-    axs[0,0].set_ylabel("Angles/ rad (I think?)")
+    axs[0,0].set_ylabel("Angles/ rad")
     
     axs[0, 1].plot(simulation_output["Time"], simulation_output["orientation_1"])
     axs[0, 1].set_title('Rocket.orientation[1]')
     axs[0,1].set_xlabel("Time/s")
-    axs[0,1].set_ylabel("Angles/ rad (I think?)")
+    axs[0,1].set_ylabel("Angles/ rad")
     
     axs[1, 0].plot(simulation_output["Time"], simulation_output["orientation_2"])
     axs[1, 0].set_title('Rocket.orientation[2]')
     axs[1,0].set_xlabel("Time/s")
-    axs[1,0].set_ylabel("Angles/ rad (I think?)")
+    axs[1,0].set_ylabel("Angles/ rad")
+    
+    plt.show()
+
+def plot_rot_acc(simulation_output):
+    fig, axs = plt.subplots(2, 2)
+    
+    axs[0, 0].plot(simulation_output["Time"], simulation_output["rot_acc_xi"])
+    axs[0, 0].set_title('rot_acc_xi')
+    axs[0,0].set_xlabel("Time/s")
+    axs[0,0].set_ylabel("Acceleration/ rad s^-2")
+    
+    axs[0, 1].plot(simulation_output["Time"], simulation_output["rot_acc_yi"])
+    axs[0, 1].set_title('rot_acc_yi')
+    axs[0,1].set_xlabel("Time/s")
+    axs[0,1].set_ylabel("Acceleration/ rad s^-2")
+    
+    axs[1, 0].plot(simulation_output["Time"], simulation_output["rot_acc_zi"])
+    axs[1, 0].set_title('rot_acc_zi')
+    axs[1,0].set_xlabel("Time/s")
+    axs[1,0].set_ylabel("Acceleration/ rad s^-2")
+    
     plt.show()
 
 def plot_trajectory_3d(simulation_output, show_orientation=False):
@@ -740,10 +765,10 @@ def plot_trajectory_3d(simulation_output, show_orientation=False):
     
     #Plot the direction the rocket faces at each point (i.e. direction of x_b), using quivers
     if show_orientation==True:
-        print("WARNING: I don't know if I've got the directions of the arrows right, I might have used 'rot_matrix(orientation)' incorrectly in the run_simulation() function")
-        u=-1*simulation_output["attitude_lx"]
-        v=-1*simulation_output["attitude_ly"]
-        w=-1*simulation_output["attitude_lz"]
+        print("WARNING: plot_trajectory_3d() is all over the place - I think body_to_inertial() isn't working perfectly? - z seems to be swapped with x in the output")
+        u=simulation_output["attitude_iz"]
+        v=simulation_output["attitude_iy"]
+        w=simulation_output["attitude_ix"]
         
         #Spaced out arrows, so it's not cluttered
         idx = np.round(np.linspace(0, len(u) - 1, int(len(u)/30))).astype(int)
