@@ -266,7 +266,7 @@ class Rocket:
     def body_to_inertial(self,vector):  #Convert a vector in x,y,z to X,Y,Z
         return np.matmul(rot_matrix(self.orientation+np.array([0,np.pi/2,0])), np.array(vector))
     def inertial_to_body(self,vector):  #Convert a vector in x,y,z to X,Y,Z
-        return np.matmul(rot_matrix(self.orientation+np.array([0,np.pi/2,0]), inverse=True), np.array(vector))
+        return np.matmul(rot_matrix(self.orientation+np.array([0,-np.pi/2,0]), inverse=True), np.array(vector))
 
     def aero_forces(self, alt, orientation, velocity, time):
         '''
@@ -632,7 +632,7 @@ def get_velocity_magnitude(df):
     return (np.sqrt(df["v_x"]**2+df["v_y"]**2+df["v_z"]**2))
 
 def plot_altitude_time(simulation_output):
-    
+
     fig, axs = plt.subplots(2, 2)
     axs[0, 0].plot(simulation_output["y"], -simulation_output["x"])
     axs[0, 0].set_title('Ground Track ($^*$)')
@@ -647,7 +647,7 @@ def plot_altitude_time(simulation_output):
     axs[1, 0].set_title('Speed')
     axs[1,0].set_xlabel("Time/s")
     axs[1,0].set_ylabel("Speed/m/s")
-    axs[1, 1].plot(simulation_output["Time"],simulation_output["v_z"], 'tab:red')
+    axs[1, 1].plot(simulation_output["Time"],-simulation_output["v_x"], 'tab:red')
     axs[1, 1].set_title('Vertical Velocity')
     axs[1,1].set_xlabel("Time/s")
     axs[1,1].set_ylabel("Velocity/m/s")
@@ -685,7 +685,7 @@ def plot_aero_forces(simulation_output):
 def plot_velocity(simulation_output):
     fig, axs = plt.subplots(2, 2)
     
-    axs[0, 0].plot(simulation_output["Time"], simulation_output["v_x"])
+    axs[0, 0].plot(simulation_output["Time"], -simulation_output["v_x"])
     axs[0, 0].set_title('V_x')
     axs[0,0].set_xlabel("Time/s")
     axs[0,0].set_ylabel("Velocity/m/s")
