@@ -283,10 +283,7 @@ class Rocket:
 
         #Velocities and Mach number
         velocity_orientation=-orientation+np.array([np.arctan(velocity[2]/((velocity[0]**2+velocity[1]**2)**0.5)),np.arctan(velocity[1]/velocity[0]),0])
-        #velocity_orientation=np.array([0,0,0])
         v_rel_wind = np.matmul(rot_matrix(velocity_orientation),velocity - vel_launch_to_inertial(self.launch_site.wind,self.launch_site,time,alt))
-        #print(velocity,vel_launch_to_inertial(self.launch_site.wind,self.launch_site,time,alt))
-        #print(Velocity_orientation)
         v_a = np.linalg.norm(v_rel_wind)
         v_sound = np.interp(alt, self.launch_site.atmosphere.adat, self.launch_site.atmosphere.sdat)
         mach = v_a/v_sound
@@ -598,7 +595,7 @@ def run_simulation(rocket):
         orientation = rocket.orientation
         x_b_l = orientation+np.array([np.pi/2+rocket.launch_site.rail_yaw*np.pi/180+ang_vel_earth*rocket.time,rocket.launch_site.rail_pitch*np.pi/180+np.pi/2-rocket.launch_site.lat*np.pi/180,0])
         x_b_i = rocket.body_to_inertial([1,0,0])
-        x_b_i = vel_inertial_to_launch(x_b_i, rocket.launch_site, rocket.time)
+        #x_b_i = vel_inertial_to_launch(x_b_i, rocket.launch_site, rocket.time)
         lin_acc, rot_acc = rocket.acceleration(rocket.pos, [rocket.v, rocket.w], rocket.time)
         new_row={"Time":rocket.time,
                         "x":launch_position[0],
@@ -768,7 +765,7 @@ def plot_trajectory_3d(simulation_output, show_orientation=False):
         print("WARNING: plot_trajectory_3d() is all over the place - I think body_to_inertial() isn't working perfectly? - z seems to be swapped with x in the output")
         u=simulation_output["attitude_ix"]
         v=simulation_output["attitude_iy"]
-        w=simulation_output["attitude_iz"]
+        w=-simulation_output["attitude_iz"]
         
         #Spaced out arrows, so it's not cluttered
         idx = np.round(np.linspace(0, len(u) - 1, int(len(u)/30))).astype(int)
