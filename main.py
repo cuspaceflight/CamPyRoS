@@ -264,9 +264,9 @@ class Rocket:
         self.on_rail=True
     
     def body_to_inertial(self,vector):  #Convert a vector in x,y,z to X,Y,Z
-        return np.matmul(rot_matrix(self.orientation+np.array([0,-np.pi/2,0])), np.array(vector))
+        return np.matmul(rot_matrix(self.orientation+np.array([0,np.pi/2,0])), np.array(vector))
     def inertial_to_body(self,vector):  #Convert a vector in x,y,z to X,Y,Z
-        return np.matmul(rot_matrix(self.orientation+np.array([0,-np.pi/2,0]), inverse=True), np.array(vector))
+        return np.matmul(rot_matrix(self.orientation+np.array([0,np.pi/2,0]), inverse=True), np.array(vector))
 
     def aero_forces(self, alt, orientation, velocity, time):
         '''
@@ -766,9 +766,9 @@ def plot_trajectory_3d(simulation_output, show_orientation=False):
     #Plot the direction the rocket faces at each point (i.e. direction of x_b), using quivers
     if show_orientation==True:
         print("WARNING: plot_trajectory_3d() is all over the place - I think body_to_inertial() isn't working perfectly? - z seems to be swapped with x in the output")
-        u=simulation_output["attitude_iz"]
+        u=simulation_output["attitude_ix"]
         v=simulation_output["attitude_iy"]
-        w=simulation_output["attitude_ix"]
+        w=simulation_output["attitude_iz"]
         
         #Spaced out arrows, so it's not cluttered
         idx = np.round(np.linspace(0, len(u) - 1, int(len(u)/30))).astype(int)
