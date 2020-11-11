@@ -13,8 +13,7 @@ x_l, y_l, z_l = Launch site coordinate system (origin on launch site, rotates wi
 
 Would be useful to define directions, e.g. maybe
 - Body:
-    x in direction the rocket points - y and z aligned with launch site coordinates at t=0
-    y points east and z north at take off (before rail alignment is accounted for)
+    y points east and z north at take off (before rail alignment is accounted for) x up
 
 - Launch site:
     z points perpendicular to the earth, y in the east direction and x tangential to the earth pointing south
@@ -67,10 +66,10 @@ b=[35.0/384.0,  0,  500.0/1113.0, 125.0/192.0, -2187.0/6784.0,  11.0/84.0,  0]
 b_=[5179.0/57600.0,  0,  7571.0/16695.0,  393.0/640.0,  -92097.0/339200.0, 187.0/2100.0,  1.0/40.0]
 
 #These should be moved to the rocket class or at least the run simulation function
-atol_v=np.array([[0.01,0.01,0.01],[0.01,0.01,0.01]]) #absolute error of each component of v and w
-rtol_v=np.array([[0.000001,0.000001,0.000001],[0.000001,0.000001,0.000001]]) #relative error of each component of v and w
-atol_r=np.array([[0.01,0.01,0.01],[0.01,0.01,0.01]]) #absolute error of each component of position and pointing
-rtol_r=np.array([[0.000001,0.000001,0.000001],[0.000001,0.000001,0.000001]]) #relative error of each component of position and pointing
+atol_v=np.array([[0.001,0.001,0.001],[0.0001,0.0001,0.0001]]) #absolute error of each component of v and w
+rtol_v=np.array([[0.000001,0.000001,0.000001],[0.0000001,0.0000001,0.0000001]]) #relative error of each component of v and w
+atol_r=np.array([[0.001,0.001,0.001],[0.00001,0.00001,0.0001]]) #absolute error of each component of position and pointing
+rtol_r=np.array([[0.000001,0.000001,0.000001],[0.0000001,0.0000001,0.0000001]]) #relative error of each component of position and pointing
 sf=0.98 #Safety factor for h scaling
 
 r_earth = 6378137 #(earth's semimarjor axis in meters)
@@ -256,7 +255,7 @@ class Rocket:
         self.time = 0                           #Time since ignition (seconds)
         self.h = h                              #Time step size (can evolve)
         self.variable_time = variable           #Vary timestep with error (option for ease of debugging)
-        self.orientation = np.array([launch_site.rail_yaw*np.pi/180,(launch_site.rail_pitch)*np.pi/180+np.pi/2-launch_site.lat*np.pi/180,0]) #yaw pitch roll  of the body frame in the inertial frame rad
+        self.orientation = np.array([launch_site.longi*np.pi/180,-launch_site.lat*np.pi/180,0])#np.array([launch_site.rail_yaw*np.pi/180,(launch_site.rail_pitch)*np.pi/180+np.pi/2-launch_site.lat*np.pi/180,0]) #yaw pitch roll  of the body frame in the inertial frame rad
         self.w = np.matmul(rot_matrix(self.orientation),np.array([ang_vel_earth,0,0]))          #rate of change of yaw pitch roll rad/s - would this have an initial value? I don't think it should since after it is free of the rail (which should be negligable)
         self.pos = pos_launch_to_inertial(np.array([0,0,0]),launch_site,0)                      #Position in inertial coordinates [x,y,z] m
         self.v = vel_launch_to_inertial([0,0,0],launch_site.lat, launch_site.longi,0,0)                                  #Velocity in intertial coordinates [x',y',z'] m/s
@@ -264,9 +263,9 @@ class Rocket:
         self.on_rail=True
     
     def body_to_inertial(self,vector,orientation):  #Convert a vector in x,y,z to X,Y,Z
-        return np.matmul(rot_matrix(orientation+np.array([0,np.pi/2,0])), np.array(vector))
+        return np.matmul(rot_matrix(orientation), np.array(vector))
     def inertial_to_body(self,vector ,orientation):  #Convert a vector in x,y,z to X,Y,Z
-        return np.matmul(rot_matrix(orientation+np.array([0,-np.pi/2,0]), inverse=True), np.array(vector))
+        return np.matmul(rot_matrix(orientation, inverse=True), np.array(vector))
 
     def aero_forces(self, alt, orientation, position, velocity, time):
         '''
@@ -282,7 +281,10 @@ class Rocket:
         #print("Running Rocket.aero_forces()")
 
         #Velocities and Mach number
-        wind_inertial = vel_launch_to_inertial(self.launch_site.wind,np.arctan(position[1]/position[0]),np.arctan(position[2]/np.sqrt(position[0]**2+position[1]**2)),time,self.altitude(position))
+        ###input(str(np.arctan(position[1]/position[0]))+str(np.arctan(position[2]/np.sqrt(position[0]**2+position[1]**2))))
+        ###input(np.arctan(position[0]/position[1])*180/np.pi)
+        #This round here is a massive bodge, when very close to a pole x and y are just numerical errors so when by some stroke of luck y becomes bigger than x arctan yeets to 0 instead of 90 even though they're like 1e-10 sized
+        wind_inertial = vel_launch_to_inertial(self.launch_site.wind,np.arctan(position[2]/np.sqrt(position[0]**2+position[1]**2))*180/np.pi,np.arctan(round(position[0],10)/round(position[1],10))*180/np.pi,time,self.altitude(position))
         v_rel_wind = self.inertial_to_body(velocity-wind_inertial, orientation)
         v_a = np.linalg.norm(v_rel_wind)
         v_sound = np.interp(alt, self.launch_site.atmosphere.adat, self.launch_site.atmosphere.sdat)
@@ -393,7 +395,7 @@ class Rocket:
         lin_acc = The linear acceleration in inertial coordinates [ax_i, ay_i, az_i]
         rot_acc = The rotataional acceleration in inertial coordinates [wdot_x_i, wdot_y_i, wdot_z_i]
         '''
-
+        ##input("here%s"%self.body_to_inertial([1,0,0],positions[1]))
         #print("Running Rocket.acceleration()")
         
         #Get all the forces in body coordinates
@@ -411,12 +413,12 @@ class Rocket:
         thrust_moment_b = np.cross(r_engine_cog_b, thrust_b)
         
         #Convert forces to inertial coordinates
-        thrust = np.matmul(rot_matrix(self.orientation-np.array([0,np.pi/2,0])),thrust_b)
-        aero_force = np.matmul(rot_matrix(self.orientation-np.array([0,np.pi/2,0])),aero_force_b)
+        thrust = self.body_to_inertial(thrust_b,positions[1])
+        aero_force = self.body_to_inertial(aero_force_b,positions[1])
         
         #Get total force and moment
         F = thrust + aero_force + self.gravity(time, positions[0])
-
+        #print("F%s"%F)
         Q_b = aero_moment_b + thrust_moment_b   #Keep the moments in the body coordinate system for now
         #F = ma in inertial coordinates
         lin_acc = F/self.mass_model.mass(time)
@@ -469,6 +471,7 @@ class Rocket:
         self.w=v[1]
         self.pos=r[0]
         self.orientation=r[1]
+        ##input(self.pos)
         
 def pos_launch_to_inertial(position,launch_site,time):
     """Converts position in launch frame to position in inertial frame
@@ -525,8 +528,8 @@ def inertial_to_inertial_long_lat(position):
     From https://gist.github.com/mpkuse/d7e2f29952b507921e3da2d7a26d1d93
     """
 
-    a = 6378137 #(earth's semimarjor axis in meters)
-    e = 0.081819191 #earth ecentricity
+    a = r_earth
+    e = e_earth
     b = a * np.sqrt( 1.0 - e*e )
     _X = ecef_X[0]
     _Y = ecef_X[1]
@@ -584,7 +587,10 @@ def vel_launch_to_inertial(velocity,launch_site_lat,launch_site_longi,time,alt):
         Numpy array: Velocity in inertial frame
     """    
     launch_site_velocity = np.array([0,ang_vel_earth*(r_earth+alt)*np.cos(launch_site_lat*np.pi/180),0])
+    ##inputlaunch_site_lat)
+    ##inputlaunch_site_velocity)
     launch_rot_inertial = np.matmul(rot_matrix([time*ang_vel_earth+launch_site_longi*np.pi/180,0,0]),velocity)
+    ##inputlaunch_rot_inertial)
     return launch_rot_inertial+launch_site_velocity
 
 def rot_matrix(orientation,inverse=False):
@@ -628,8 +634,10 @@ def run_simulation(rocket):
     """  
     print("Running simulation")
     record=pd.DataFrame({"Time":[],"x":[],"y":[],"z":[],"v_x":[],"v_y":[],"v_z":[]}) #time:[position,velocity,mass]
-
+    #input(rocket.body_to_inertial([1,0,0],rocket.orientation))
+    #input(rocket.pos)
     while (rocket.altitude(rocket.pos)>=0):
+        #input(rocket.body_to_inertial([1,0,0],rocket.orientation))
         rocket.step()
         launch_position = pos_inertial_to_launch(rocket.pos,rocket.launch_site,rocket.time)
         launch_velocity = vel_inertial_to_launch(rocket.v,rocket.launch_site,rocket.time)
@@ -762,6 +770,14 @@ def plot_orientation(simulation_output):
     axs[1, 0].set_title('Rocket.orientation[2]')
     axs[1,0].set_xlabel("Time/s")
     axs[1,0].set_ylabel("Angles/ rad")
+
+    axs[1, 1].plot(simulation_output["Time"], simulation_output["orientation_0"])
+    axs[1, 1].plot(simulation_output["Time"], simulation_output["orientation_1"])
+    axs[1, 1].plot(simulation_output["Time"], simulation_output["orientation_2"])
+    axs[1, 1].set_title('Rocket.orientation[2]')
+    axs[1,1].set_xlabel("Time/s")
+    axs[1,1].set_ylabel("Angles/ rad")
+    axs[1,1].legend(["Z","Y","X"])
     
     plt.show()
 
@@ -806,10 +822,9 @@ def plot_trajectory_3d(simulation_output, show_orientation=False):
     
     #Plot the direction the rocket faces at each point (i.e. direction of x_b), using quivers
     if show_orientation==True:
-        print("WARNING: plot_trajectory_3d() is all over the place - I think body_to_inertial() isn't working perfectly? - z seems to be swapped with x in the output")
         u=simulation_output["attitude_iz"]
         v=simulation_output["attitude_iy"]
-        w=-simulation_output["attitude_ix"]
+        w=simulation_output["attitude_ix"]
         
         #Spaced out arrows, so it's not cluttered
         idx = np.round(np.linspace(0, len(u) - 1, int(len(u)/30))).astype(int)
