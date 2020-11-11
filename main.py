@@ -529,7 +529,7 @@ def vel_inertial_to_launch(velocity,launch_site,time):
         Numpy array: Velocity in launch frame
     """    
     launch_site_velocity = np.array([0,ang_vel_earth*(r_earth+launch_site.alt)*np.cos(launch_site.lat*np.pi/180),0])
-    inertial_rot_launch = np.matmul(rot_matrix([time*ang_vel_earth+launch_site.longi*np.pi/180,launch_site.lat*np.pi/180,0],True),velocity)
+    inertial_rot_launch = np.matmul(rot_matrix([time*ang_vel_earth+launch_site.longi*np.pi/180,launch_site.lat*np.pi/180+np.pi/2,0],True),velocity)
     return inertial_rot_launch-launch_site_velocity
 
 def vel_launch_to_inertial(velocity,launch_site,time,alt):
@@ -687,7 +687,7 @@ def plot_aero_forces(simulation_output):
 def plot_velocity(simulation_output):
     fig, axs = plt.subplots(2, 2)
     
-    axs[0, 0].plot(simulation_output["Time"], -simulation_output["v_x"])
+    axs[0, 0].plot(simulation_output["Time"], simulation_output["v_x"])
     axs[0, 0].set_title('V_x')
     axs[0,0].set_xlabel("Time/s")
     axs[0,0].set_ylabel("Velocity/m/s")
@@ -765,9 +765,9 @@ def plot_trajectory_3d(simulation_output, show_orientation=False):
     #Plot the direction the rocket faces at each point (i.e. direction of x_b), using quivers
     if show_orientation==True:
         print("WARNING: plot_trajectory_3d() is all over the place - I think body_to_inertial() isn't working perfectly? - z seems to be swapped with x in the output")
-        u=simulation_output["attitude_ix"]
+        u=simulation_output["attitude_iz"]
         v=simulation_output["attitude_iy"]
-        w=-simulation_output["attitude_iz"]
+        w=-simulation_output["attitude_ix"]
         
         #Spaced out arrows, so it's not cluttered
         idx = np.round(np.linspace(0, len(u) - 1, int(len(u)/30))).astype(int)
