@@ -67,10 +67,10 @@ b=[35.0/384.0,  0,  500.0/1113.0, 125.0/192.0, -2187.0/6784.0,  11.0/84.0,  0]
 b_=[5179.0/57600.0,  0,  7571.0/16695.0,  393.0/640.0,  -92097.0/339200.0, 187.0/2100.0,  1.0/40.0]
 
 #These should be moved to the rocket class or at least the run simulation function
-atol_v=np.array([[0.1,0.1,0.1],[0.1,0.1,0.1]]) #absolute error of each component of v and w
-rtol_v=np.array([[0.1,0.1,0.1],[0.1,0.1,0.1]]) #relative error of each component of v and w
-atol_r=np.array([[1e-10,1e-10,1e-10],[1e-10,1e-10,1e-10]]) #absolute error of each component of position and pointing
-rtol_r=np.array([[1e-10,1e-10,1e-10],[1e-10,1e-10,1e-10]]) #relative error of each component of position and pointing
+atol_v=np.array([[0.01,0.01,0.01],[0.01,0.01,0.01]]) #absolute error of each component of v and w
+rtol_v=np.array([[0.000001,0.000001,0.000001],[0.000001,0.000001,0.000001]]) #relative error of each component of v and w
+atol_r=np.array([[0.01,0.01,0.01],[0.01,0.01,0.01]]) #absolute error of each component of position and pointing
+rtol_r=np.array([[0.000001,0.000001,0.000001],[0.000001,0.000001,0.000001]]) #relative error of each component of position and pointing
 sf=0.98 #Safety factor for h scaling
 
 r_earth = 6378137 #(earth's semimarjor axis in meters)
@@ -282,8 +282,9 @@ class Rocket:
         #print("Running Rocket.aero_forces()")
 
         #Velocities and Mach number
-        velocity_orientation=-orientation+np.array([np.arctan(velocity[2]/((velocity[0]**2+velocity[1]**2)**0.5)),np.arctan(velocity[1]/velocity[0]),0])
-        v_rel_wind = np.matmul(rot_matrix(velocity_orientation),velocity - vel_launch_to_inertial(self.launch_site.wind,self.launch_site,time,alt))
+        #velocity_orientation=-orientation+np.array([np.arctan(velocity[2]/((velocity[0]**2+velocity[1]**2)**0.5)),np.arctan(velocity[1]/velocity[0]),0])
+        velocity_orientation=np.array([0,0,0])
+        v_rel_wind = v_rel_wind = self.inertial_to_body(velocity - vel_launch_to_inertial(self.launch_site.wind,self.launch_site,time,self.launch_site.alt))
         v_a = np.linalg.norm(v_rel_wind)
         v_sound = np.interp(alt, self.launch_site.atmosphere.adat, self.launch_site.atmosphere.sdat)
         mach = v_a/v_sound
@@ -617,10 +618,11 @@ def run_simulation(rocket):
                         "attitude_iz":x_b_i[2],
                         "rot_acc_xi":rot_acc[0],
                         "rot_acc_yi":rot_acc[1],
-                        "rot_acc_zi":rot_acc[2]}
+                        "rot_acc_zi":rot_acc[2],
+                        "h":rocket.h}
         record=record.append(new_row, ignore_index=True)
         if d==1000:
-            print(rocket.time)
+            print(rocket.time,rocket.h)
             d=0
         #print("alt={:.0f} time={:.1f}".format(rocket.altitude(rocket.pos), rocket.time))
 
@@ -724,7 +726,7 @@ def plot_orientation(simulation_output):
 def plot_rot_acc(simulation_output):
     fig, axs = plt.subplots(2, 2)
     
-    axs[0, 0].plot(simulation_output["Time"], simulation_output["rot_acc_xi"])
+    axs[0, 0].plot(simulation_output["Time"], simulation_output["rot_acc_zi"])
     axs[0, 0].set_title('rot_acc_xi')
     axs[0,0].set_xlabel("Time/s")
     axs[0,0].set_ylabel("Acceleration/ rad s^-2")
@@ -734,7 +736,7 @@ def plot_rot_acc(simulation_output):
     axs[0,1].set_xlabel("Time/s")
     axs[0,1].set_ylabel("Acceleration/ rad s^-2")
     
-    axs[1, 0].plot(simulation_output["Time"], simulation_output["rot_acc_zi"])
+    axs[1, 0].plot(simulation_output["Time"], simulation_output["rot_acc_xi"])
     axs[1, 0].set_title('rot_acc_zi')
     axs[1,0].set_xlabel("Time/s")
     axs[1,0].set_ylabel("Acceleration/ rad s^-2")

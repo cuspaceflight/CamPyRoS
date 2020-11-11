@@ -44,6 +44,8 @@ martlet4 = main.Rocket(mass_model, pulsar, aerodynamic_coefficients, launch_site
 
 simulation_output = main.run_simulation(martlet4)
 
+print(min(simulation_output["h"]),max(simulation_output["h"]))
+
 
 main.plot_orientation(simulation_output)
 main.plot_velocity(simulation_output)
