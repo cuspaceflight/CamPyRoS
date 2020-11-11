@@ -66,10 +66,10 @@ b=[35.0/384.0,  0,  500.0/1113.0, 125.0/192.0, -2187.0/6784.0,  11.0/84.0,  0]
 b_=[5179.0/57600.0,  0,  7571.0/16695.0,  393.0/640.0,  -92097.0/339200.0, 187.0/2100.0,  1.0/40.0]
 
 #These should be moved to the rocket class or at least the run simulation function
-atol_v=np.array([[0.001,0.001,0.001],[0.0001,0.0001,0.0001]]) #absolute error of each component of v and w
-rtol_v=np.array([[0.000001,0.000001,0.000001],[0.0000001,0.0000001,0.0000001]]) #relative error of each component of v and w
-atol_r=np.array([[0.001,0.001,0.001],[0.00001,0.00001,0.0001]]) #absolute error of each component of position and pointing
-rtol_r=np.array([[0.000001,0.000001,0.000001],[0.0000001,0.0000001,0.0000001]]) #relative error of each component of position and pointing
+atol_v=np.array([[0.01,0.01,0.01],[0.0001,0.0001,0.0001]]) #absolute error of each component of v and w
+rtol_v=np.array([[0.001,0.001,0.001],[0.00001,0.00001,0.00001]]) #relative error of each component of v and w
+atol_r=np.array([[0.1,0.1,0.1],[0.01,0.01,0.01]]) #absolute error of each component of position and pointing
+rtol_r=np.array([[0.01,0.01,0.01],[0.001,0.001,0.001]]) #relative error of each component of position and pointing
 sf=0.98 #Safety factor for h scaling
 
 r_earth = 6378137 #(earth's semimarjor axis in meters)
@@ -471,7 +471,6 @@ class Rocket:
         self.w=v[1]
         self.pos=r[0]
         self.orientation=r[1]
-        ##input(self.pos)
         
 def pos_launch_to_inertial(position,launch_site,time):
     """Converts position in launch frame to position in inertial frame
@@ -751,6 +750,25 @@ def plot_velocity(simulation_output):
     axs[1, 0].set_title('V_z')
     axs[1,0].set_xlabel("Time/s")
     axs[1,0].set_ylabel("Velocity/m/s")
+    plt.show()
+
+def plot_position(simulation_output):
+    fig, axs = plt.subplots(2, 2)
+    
+    axs[0, 0].plot(simulation_output["Time"], simulation_output["x"])
+    axs[0, 0].set_title('x')
+    axs[0,0].set_xlabel("Time/s")
+    axs[0,0].set_ylabel("Distance/m")
+    
+    axs[0, 1].plot(simulation_output["Time"], simulation_output["y"])
+    axs[0, 1].set_title('y')
+    axs[0,1].set_xlabel("Time/s")
+    axs[0,1].set_ylabel("Distance/m")
+    
+    axs[1, 0].plot(simulation_output["Time"], simulation_output["z"])
+    axs[1, 0].set_title('z')
+    axs[1,0].set_xlabel("Time/s")
+    axs[1,0].set_ylabel("Distance/m")
     plt.show()
 
 def plot_orientation(simulation_output):
