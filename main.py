@@ -523,7 +523,7 @@ def pos_inertial_to_launch(position,launch_site,time):
     Z = position[2]-(N*(1-e*e) + h) * np.sin( phi )
     return np.matmul(rot_matrix(np.array([time*ang_vel_earth,np.pi/2-phi,lambada-time*ang_vel_earth]),True),np.array([X,Y,Z]))
 
-def vel_inertial_to_launch(velocity,launch_site,time):
+def vel_inertial_to_launch(velocity,launch_site,time, ignore_rotational_velocity = False):
     """Converts inertial velocity to velocity in launch frame
 
     Args:
@@ -534,11 +534,14 @@ def vel_inertial_to_launch(velocity,launch_site,time):
     Returns:
         Numpy array: Velocity in launch frame
     """    
-    launch_site_velocity = np.array([0,ang_vel_earth*(r_earth+launch_site.alt)*np.cos(launch_site.lat*np.pi/180),0])
     inertial_rot_launch = np.matmul(rot_matrix([time*ang_vel_earth+launch_site.longi*np.pi/180,0,0],True),velocity)
-    return inertial_rot_launch-launch_site_velocity
+    if ignore_rotational_velocity == False:
+        launch_site_velocity = np.array([0,ang_vel_earth*(r_earth+launch_site.alt)*np.cos(launch_site.lat*np.pi/180),0])
+        return inertial_rot_launch-launch_site_velocity
+    else:
+        return inertial_rot_launch
 
-def vel_launch_to_inertial(velocity,launch_site,time):
+def vel_launch_to_inertial(velocity,launch_site,time, ignore_rotational_velocity = False):
     """Converts launch frame velocity to velocity in inertial frame
 
     Args:
@@ -548,10 +551,13 @@ def vel_launch_to_inertial(velocity,launch_site,time):
 
     Returns:
         Numpy array: Velocity in inertial frame
-    """    
-    launch_site_velocity = np.array([0,ang_vel_earth*(r_earth+launch_site.alt)*np.cos(launch_site.lat*np.pi/180),0])
+    """  
     launch_rot_inertial = np.matmul(rot_matrix([time*ang_vel_earth+launch_site.longi*np.pi/180,0,0]),velocity)
-    return launch_rot_inertial+launch_site_velocity
+    if ignore_rotational_velocity == False:
+        launch_site_velocity = np.array([0,ang_vel_earth*(r_earth+launch_site.alt)*np.cos(launch_site.lat*np.pi/180),0])
+        return launch_rot_inertial+launch_site_velocity
+    else:
+        return launch_rot_inertial
 
 def rot_matrix(orientation,inverse=False):
     """Generates a rotation matrix between frames which are rotated by yaw, pitch and roll specified by orientation
@@ -594,14 +600,15 @@ def run_simulation(rocket):
     """  
     print("Running simulation")
     record=pd.DataFrame({"Time":[],"x":[],"y":[],"z":[],"v_x":[],"v_y":[],"v_z":[]}) #time:[position,velocity,mass]
-    while (rocket.altitude(rocket.pos)>=0 and c<1000):
+    while (rocket.altitude(rocket.pos)>=0 and c<1500):
         rocket.step()
         launch_position = pos_inertial_to_launch(rocket.pos,rocket.launch_site,rocket.time)
         launch_velocity = vel_inertial_to_launch(rocket.v,rocket.launch_site,rocket.time)
         aero_forces, cop = rocket.aero_forces(rocket.altitude(rocket.pos), rocket.v, rocket.time)
         cog = rocket.mass_model.cog(rocket.time)
         orientation = rocket.orientation
-        x_b_l = pos_inertial_to_launch(rot_matrix(orientation)[:,0],rocket.launch_site,rocket.time)
+        x_b_i = rocket.body_to_inertial([1,0,0])
+        x_b_i = vel_inertial_to_launch(x_b_i, rocket.launch_site, rocket.time, ignore_rotational_velocity = True)
         lin_acc, rot_acc = rocket.acceleration(rocket.pos, [rocket.v, rocket.w], rocket.time)
         new_row={"Time":rocket.time,
                         "x":launch_position[0],
@@ -618,14 +625,14 @@ def run_simulation(rocket):
                         "orientation_0":orientation[0],
                         "orientation_1":orientation[1],
                         "orientation_2":orientation[2],
-                        "attitude_lx":x_b_l[0],
-                        "attitude_ly":x_b_l[1],
-                        "attitude_lz":x_b_l[2],
+                        "attitude_ix":x_b_i[0],
+                        "attitude_iy":x_b_i[1],
+                        "attitude_iz":x_b_i[2],
                         "rot_acc_xi":rot_acc[0],
                         "rot_acc_yi":rot_acc[1],
                         "rot_acc_zi":rot_acc[2]}
         record=record.append(new_row, ignore_index=True)
-        print("alt={:.0f} time={:.1f}".format(rocket.altitude(rocket.pos), rocket.time))
+        print("alt={:.0f} time={:.1f}, c={}".format(rocket.altitude(rocket.pos), rocket.time, c))
         c+=1
     return record
 
@@ -744,10 +751,10 @@ def plot_trajectory_3d(simulation_output, show_orientation=False):
     
     #Plot the direction the rocket faces at each point (i.e. direction of x_b), using quivers
     if show_orientation==True:
-        print("WARNING: I don't know if I've got the directions of the arrows right, I might have used 'rot_matrix(orientation)' incorrectly in the run_simulation() function")
-        u=-1*simulation_output["attitude_lx"]
-        v=-1*simulation_output["attitude_ly"]
-        w=-1*simulation_output["attitude_lz"]
+        print("WARNING: plot_trajectory_3d() is all over the place - I think body_to_inertial() isn't working perfectly? - z seems to be swapped with x in the output")
+        u=simulation_output["attitude_iz"]
+        v=simulation_output["attitude_iy"]
+        w=simulation_output["attitude_ix"]
         
         #Spaced out arrows, so it's not cluttered
         idx = np.round(np.linspace(0, len(u) - 1, len(u)/30)).astype(int)
