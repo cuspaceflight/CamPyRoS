@@ -29,8 +29,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import scipy.interpolate
 import pandas as pd
-from mpl_toolkits.mplot3d import axes3d
-
+from matplotlib.animation import FuncAnimation
 
 #Class to store atmospheric model data
 class Atmosphere:
@@ -635,7 +634,7 @@ def run_simulation(rocket):
     record=pd.DataFrame({"Time":[],"x":[],"y":[],"z":[],"v_x":[],"v_y":[],"v_z":[]}) #time:[position,velocity,mass]
     #input(rocket.body_to_inertial([1,0,0],rocket.orientation))
     #input(rocket.pos)
-    while (rocket.altitude(rocket.pos)>=0):
+    while (rocket.altitude(rocket.pos)>=0 and rocket.time<200):
         #input(rocket.body_to_inertial([1,0,0],rocket.orientation))
         rocket.step()
         launch_position = pos_inertial_to_launch(rocket.pos,rocket.launch_site,rocket.time)
@@ -869,3 +868,91 @@ def plot_trajectory_3d(simulation_output, show_orientation=False):
     ax.set_zlim3d([z_middle - plot_radius, z_middle + plot_radius])
     
     plt.show() 
+    
+    
+def animate(simulation_output):
+    fig, axs = plt.subplots(2, 2)
+    
+    yaw=simulation_output["orientation_0"]
+    pitch=simulation_output["orientation_1"]
+    roll=simulation_output["orientation_2"]
+    altitude = simulation_output["z"]
+    time = simulation_output["Time"]
+    
+    frames = 2000
+    
+    line1, = axs[0,0].plot([], [], lw=3, color='red')
+    line2, = axs[0,1].plot([], [], lw=3, color='green')
+    line3, = axs[1,0].plot([], [], lw=3, color='blue')
+    line4, = axs[1,1].plot([], [], lw=3, color='orange')
+    
+    axs[0, 0].set_title('Yaw')
+    axs[0, 1].set_title('Pitch')
+    axs[1, 0].set_title('Roll')
+    axs[1, 1].set_title('Altitude')
+    
+    axs[0,0].set_xlim(-1,1)
+    axs[0,0].set_ylim(-1,1)
+    
+    axs[0,1].set_xlim(-1,1)
+    axs[0,1].set_ylim(-1,1)
+    
+    axs[1,0].set_xlim(-1,1)
+    axs[1,0].set_ylim(-1,1)
+    
+    axs[1,1].set_xlim(0,200)
+    axs[1,1].set_ylim(0,30e3)
+    
+    def init1():
+        line1.set_data([], [])
+        return line1,
+    
+    def init2():
+        line2.set_data([], [])
+        return line1,
+    
+    def init3():
+        line3.set_data([], [])
+        return line1,
+    
+    def init4():
+        line4.set_data([], [])
+        return line1,
+    
+    def animate1(i):
+        x = np.linspace(0,np.cos(yaw[i]), 1000)
+        y = np.linspace(0, np.sin(yaw[i]), 1000)
+        line1.set_data(x, y)
+        return line1,
+    
+    def animate2(i):
+        x = np.linspace(0,np.cos(pitch[i]), 1000)
+        y = np.linspace(0, np.sin(pitch[i]), 1000)
+        line2.set_data(x, y)
+        return line2,
+    
+    def animate3(i):
+        x = np.linspace(0,np.cos(roll[i]), 1000)
+        y = np.linspace(0, np.sin(roll[i]), 1000)
+        line3.set_data(x, y)
+        return line3,
+    
+    def animate4(i):
+        j = int(i*len(altitude)/frames)
+        y = altitude[0:j]
+        x = time[0:j]
+        line4.set_data(x, y)
+        return line4,
+    
+    
+    anim1 = FuncAnimation(fig, animate1, init_func=init1,
+                                   frames=frames, interval=20, blit=True)
+    anim2 = FuncAnimation(fig, animate2, init_func=init2,
+                                   frames=frames, interval=20, blit=True)
+    anim3 = FuncAnimation(fig, animate3, init_func=init3,
+                                   frames=frames, interval=20, blit=True)
+    anim4 = FuncAnimation(fig, animate4, init_func=init4,
+                                   frames=frames, interval=20, blit=True)
+    
+    
+    plt.show()
