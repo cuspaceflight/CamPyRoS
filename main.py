@@ -543,13 +543,16 @@ class Rocket:
         #print("F%s"%F)
         Q_b = aero_moment_b + thrust_moment_b   #Keep the moments in the body coordinate system for now
         #F = ma in inertial coordinates
-        lin_acc = F/self.mass_model.mass(time)
-        
         #Q = Ig wdot in body coordinates (because then we're using principal moments of inertia)
         rot_acc_b = np.array([Q_b[0]/self.mass_model.ixx(time),
                            Q_b[1]/self.mass_model.iyy(time),
                            Q_b[2]/self.mass_model.izz(time)])
-        
+
+        if self.on_rail==True:
+            F=np.array([F[0],0,0])
+            rot_acc_b=np.array([rot_acc_b[0],0,0])
+
+        lin_acc = F/self.mass_model.mass(time)
         #Convert rotational accelerations into inertial coordinates
         rot_acc = self.body_to_inertial(rot_acc_b,positions[1])
 
@@ -593,6 +596,17 @@ class Rocket:
         self.w=v[1]
         self.pos=r[0]
         self.orientation=r[1]
+    
+    def check_phase(self):
+        if self.on_rail==True:
+            flight_distance = np.linalg.norm(pos_inertial_to_launch(self.pos,self.launch_site,self.time))
+            if flight_distance>=self.launch_site.rail_length:
+                print("Cleared rail at t=%ss with alt=%sm and TtW=%sG"%(self.time,
+                self.altitude(self.pos),
+                np.linalg.norm(self.acceleration([self.pos,self.orientation], [self.v, self.w], self.time)[0])/9.81)
+                )
+                self.on_rail=False
+
         
 def pos_launch_to_inertial(position,launch_site,time):
     """Converts position in launch frame to position in inertial frame
@@ -755,10 +769,8 @@ def run_simulation(rocket):
     """  
     print("Running simulation")
     record=pd.DataFrame({"Time":[],"x":[],"y":[],"z":[],"v_x":[],"v_y":[],"v_z":[]}) #time:[position,velocity,mass]
-    #input(rocket.body_to_inertial([1,0,0],rocket.orientation))
-    #input(rocket.pos)
     while (rocket.altitude(rocket.pos)>=0 and rocket.time<200):
-        #input(rocket.body_to_inertial([1,0,0],rocket.orientation))
+        rocket.check_phase()
         rocket.step()
         launch_position = pos_inertial_to_launch(rocket.pos,rocket.launch_site,rocket.time)
         launch_velocity = vel_inertial_to_launch(rocket.v,rocket.launch_site,rocket.time)
