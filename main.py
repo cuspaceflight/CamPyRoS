@@ -519,7 +519,7 @@ class Rocket:
             w_b (Numpy Array): Angular velocity, in the body coordinate system
 
         Returns:
-            [Numpy Array]: Translational accleration in inertial frame, and rotational accelerations needed to calculate rotations (wdot = [w1, w2, w3])
+            [Numpy Array]: Translational accleration in inertial frame, and rotational acceleration using the body coordinate system
         """        
         
         #Get all the forces in body coordinates
@@ -558,11 +558,8 @@ class Rocket:
         
         #F = ma in inertial coordinates
         lin_acc = F/self.mass_model.mass(time)
-        
-        #Convert from [wdotx_b, wdoty_b, wdotz_b] to [w1, w2, w3]  - WARNING: There may be a mistake here.
-        wdot123 = [wdot_b[1], wdot_b[2], wdot_b[0]]
-        
-        return np.stack([lin_acc, wdot123])
+
+        return np.stack([lin_acc, wdot_b])
     
     
     def step(self):
