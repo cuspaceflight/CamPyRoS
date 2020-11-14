@@ -343,7 +343,6 @@ class Rocket:
         self.h = h                              #Time step size (can evolve)
         self.variable_time = variable           #Vary timestep with error (option for ease of debugging)
         self.orientation = np.array([launch_site.longi*np.pi/180,-launch_site.lat*np.pi/180,0])#np.array([launch_site.rail_yaw*np.pi/180,(launch_site.rail_pitch)*np.pi/180+np.pi/2-launch_site.lat*np.pi/180,0]) #yaw pitch roll  of the body frame in the inertial frame rad
-        self.w_b = np.array([0,0,0])
         self.w = np.matmul(rot_matrix(self.orientation),np.array([ang_vel_earth,0,0]))          #rate of change of yaw pitch roll rad/s - would this have an initial value? I don't think it should since after it is free of the rail (which should be negligable)
         self.pos = pos_launch_to_inertial(np.array([0,0,0]),launch_site,0)                      #Position in inertial coordinates [x,y,z] m
         self.v = vel_launch_to_inertial([0,0,0],launch_site.lat, launch_site.longi,0,0)                                  #Velocity in intertial coordinates [x',y',z'] m/s
@@ -509,7 +508,7 @@ class Rocket:
         """        
         return np.linalg.norm(position)-r_earth
     
-    def acceleration(self, positions, velocities, w_b, time):
+    def acceleration(self, positions, velocities, time):
         """Returns translational and rotational accelerations on the rocket, given the applied forces
 
         Args:
@@ -547,20 +546,19 @@ class Rocket:
         i_b = np.array([self.mass_model.ixx(time),
                         self.mass_model.iyy(time),
                         self.mass_model.izz(time)])     #Moments of inertia [ixx, iyy, izz]
-        wdot_b = np.array([0,0,0])                      #Initialise empty array
-        wdot_b[0] = (Q_b[0] + (i_b[1] - i_b[2])*w_b[1]*w_b[2]) / i_b[0]
-        wdot_b[1] = (Q_b[1] + (i_b[2] - i_b[0])*w_b[2]*w_b[0]) / i_b[1]
-        wdot_b[2] = (Q_b[2] + (i_b[0] - i_b[1])*w_b[0]*w_b[1]) / i_b[2]
-
+        w_b=np.matmul(rot_matrix(positions[1]),velocities[1])
+        wdot_b = np.array([(Q_b[0] + (i_b[1] - i_b[2])*w_b[1]*w_b[2]) / i_b[0]
+                            ,(Q_b[1] + (i_b[2] - i_b[0])*w_b[2]*w_b[0]) / i_b[1]
+                            ,(Q_b[2] + (i_b[0] - i_b[1])*w_b[0]*w_b[1]) / i_b[2]])                      #Initialise empty array
         if self.on_rail==True:
             F=np.array([F[0],0,0])
-            wdot_b=np.wdot_b([wdot_b[0],0,0])
+            wdot_b=np.array([wdot_b[0],0,0])
         
         #F = ma in inertial coordinates
         lin_acc = F/self.mass_model.mass(time)
 
-        return np.stack([lin_acc, wdot_b])
-    
+        wdot_i=np.matmul(rot_matrix(positions[1]).transpose(),wdot_b)#https://www.astro.rug.nl/software/kapteyn-beta/_downloads/attitude.pdf
+        return np.stack([lin_acc, wdot_i])
     
     def step(self):
         """Implimenting a time step variable method based on Numerical recipes (link in readme)
@@ -568,17 +566,17 @@ class Rocket:
         vels=np.stack([self.v,self.w])
         positions=np.stack([self.pos,self.orientation])
         k_1=self.h*self.acceleration(positions,vels,self.time)
-        l_1=vels*self.h
+        l_1=self.h*vels
         k_2=self.h*self.acceleration(positions+a[1][0]*l_1,vels+a[1][0]*k_1,self.time+c[1]*self.h)
-        l_2=l_1+a[1][0]*k_2
+        l_2=l_1+a[1][0]*k_1
         k_3=self.h*self.acceleration(positions+a[2][0]*l_1+a[2][1]*l_2,vels+a[2][0]*k_1+a[2][1]*k_2,self.time+c[2]*self.h)
-        l_3=l_2+a[2][1]*k_3
+        l_3=l_1+a[2][0]*k_1+a[2][1]*k_2
         k_4=self.h*self.acceleration(positions+a[3][0]*l_1+a[3][1]*l_2+a[3][2]*l_3,vels+a[3][0]*k_1+a[3][1]*k_2+a[3][2]*k_3,self.time+c[3]*self.h)
-        l_4=l_3+a[3][2]*k_4
+        l_4=l_1+a[3][0]*k_1+a[3][1]*k_2+a[3][2]*k_3
         k_5=self.h*self.acceleration(positions+a[4][0]*l_1+a[4][1]*l_2+a[4][2]*l_3+a[4][3]*l_4,vels+a[4][0]*k_1+a[4][1]*k_2+a[4][2]*k_3+a[4][3]*k_4,self.time+c[4]*self.h)
-        l_5=l_4+a[4][3]*k_5
+        l_5=l_1+a[4][0]*k_1+a[4][1]*k_2+a[4][2]*k_3+a[4][3]*k_4
         k_6=self.h*self.acceleration(positions+a[5][0]*l_1+a[5][1]*l_2+a[5][2]*l_3+a[5][3]*l_4+a[5][4]*l_5,vels+a[5][0]*k_1+a[5][1]*k_2+a[5][2]*k_3+a[5][3]*k_4+a[5][4]*k_5,self.time+c[4]*self.h)
-        l_6=l_5+a[5][4]*k_6
+        l_6=l_1+a[5][0]*k_1+a[5][1]*k_2+a[5][2]*k_3+a[5][3]*k_4+a[5][4]*k_5
 
         v=np.stack((self.v,self.w))+b[0]*k_1+b[1]*k_2+b[2]*k_3+b[3]*k_4+b[4]*k_5+b[5]*k_6 #+O(h^6)
         r=np.stack((self.pos,self.orientation))+(b[0]*l_1+b[1]*l_2+b[2]*l_3+b[3]*l_4+b[4]*l_5+b[5]*l_6) #+O(h^6) This is movement of the body frame from wherever it is- needs to be transformed to inertial frame
