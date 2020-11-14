@@ -317,12 +317,90 @@ class RasAeroData:
         self.COP = scipy.interpolate.interp2d(Mach, alpha, COP)
         self.CA = scipy.interpolate.interp2d(Mach, alpha, CA)
         self.CN = scipy.interpolate.interp2d(Mach, alpha, CN)
-            
-            
+
+class Deviation:
+    def __init__(self, cop=0.0, ca=0.0, cn=0.0, thrust=0.0, gravity=0.0, dry_mass=0.0, variable_mass=0.0, ixx=0.0, iyy=0.0, izz=0.0, thrust_alignment=np.array([0,0,0]), air_density=0.0, air_pressure=0.0, air_temp=0.0):
+        """[summary]
+
+        Args:
+            cop (float): deviation of centre of pressure % Defaults to 0.0.
+            ca (float): deviation of axial drag coefficient % Defaults to 0.0.
+            cn (float): deviation of normal drag coefficient % Defaults to 0.0.
+            thrust (float): deviation of engine thrust % Defaults to 0.0.
+            gravity (float): deviation of gravitational force % Defaults to 0.0.
+            dry_mass (float): deviation of dry mass % Defaults to 0.0.
+            variable_mass (float): deviation from the mass model % Defaults to 0.0.
+            ixx (float): deviation of the moment of inertia in xx % Defaults to 0.0.
+            iyy (float): deviation of the moment of inertia in yy % Defaults to 0.0.
+            izz (float): deviation of the moment of inertia in zz % Defaults to 0.0.
+            thrust_alignment (numpy array): deviation of thrust missalignment, vector % Defaults to 0.0,0.0,0.0.
+            air_density (float): deviation of air density % Defaults to 0.0.
+            air_pressure (float): deviation of air pressure % Defaults to 0.0.
+            air_temp (float): deviation of air temperature % Defaults to 0.0.
+        """        
+        self.cop=cop
+        self.ca=ca
+        self.cn=cn
+        self.thrust=thrust
+        self.gravity=gravity
+        self.dry_mass=dry_mass
+        self.variable_mass=variable_mass
+        self.ixx=ixx
+        self.iyy=iyy
+        self.izz=izz
+        self.thrust_alignment=thrust_alignment
+        self.air_density=air_density
+        self.air_pressure=air_pressure
+        self.air_temp=air_temp
+
+class StatisticalModel:
+    """Class for monte carlo modeling of flights
+    """    
+    def __init__(self, rail_yaw=0.0, rail_pitch=0.0, cop=0.0, ca=0.0, cn=0.0, thrust=0.0, gravity=0.0, dry_mass=0.0, variable_mass=0.0, ixx=0.0, iyy=0.0, izz=0.0, thrust_alignment=0.0, air_density=0.0, air_pressure=0.0, air_temp=0.0):
+        """Creates the model, initialising the maximum deviation for the variable parameters. Initialise with no parameters to not vary.
+
+        Args:
+            rail_yaw (float): maximum deviation of rail yaw rad
+            rail_pitch (float): maximum deviation of rail pitch rad
+            cop (float): maximum deviation of centre of pressure %
+            ca (float): maximum deviation of axial drag coefficient %
+            cn (float): maximum deviation of normal drag coefficient %
+            thrust (float): maximum deviation of engine thrust %
+            gravity (float): maximum deviation of gravitational force %
+            dry_mass (float): maximum deviation of dry mass %
+            variable_mass (float): maximum deviation from the mass model %
+            ixx (float): maximum deviation of the moment of inertia in xx %
+            iyy (float): maximum deviation of the moment of inertia in yy %
+            izz (float): maximum deviation of the moment of inertia in zz %
+            thrust_alignment (numpy array): maximum deviation of thrust missalignment, vector %
+            air_density (float): maximum deviation of air density %
+            air_pressure (float): maximum deviation of air pressure %
+            air_temp (float): maximum deviation of air temperature %
+        """     
+        self.max_deviations={"rail_yaw":rail_yaw,
+                            "rail_pitch":rail_pitch,
+                            "cop":cop,
+                            "ca":ca,
+                            "cn":cn,
+                            "thrust":thrust,
+                            "gravity":gravity,
+                            "dry_mass":dry_mass,
+                            "variable_mass":variable_mass,
+                            "ixx":ixx,
+                            "iyy":iyy,
+                            "izz":izz,
+                            "thrust_alignment":thrust_alignment,
+                            "air_density":air_density,
+                            "air_pressure":air_pressure,
+                            "air_temp":air_temp}
+
+    def run_itteration(self, mass_model, motor, aero, launch_site, h, variable=False):
+        pass
+
 class Rocket:
     """Object that hold the rocket information and functions
     """    
-    def __init__(self, mass_model, motor, aero, launch_site, h, variable=False):
+    def __init__(self, mass_model, motor, aero, launch_site, h, variable=False,dev=Deviation()):
         """Sets up the rocket object
 
         Args:
@@ -331,7 +409,8 @@ class Rocket:
             aero (Aeroo Object): Object holding the aerodynamic data 
             launch_site (Launchsite Object): Launch site object
             h (float): Time step length
-            variable (bool, optional): Adaptive timestep?. Defaults to False.
+            variable (bool, optional): Adaptive timestep?. Defaults to False
+            variability (Variability Object): Object holding the data on the variation from given value of several parameters (see statistical modeling class)
         """        
 
         self.launch_site = launch_site                  #LaunchSite object
@@ -666,9 +745,9 @@ def inertial_to_inertial_long_lat(position):
     a = r_earth
     e = e_earth
     b = a * np.sqrt( 1.0 - e*e )
-    _X = ecef_X[0]
-    _Y = ecef_X[1]
-    _Z = ecef_X[2]
+    _X = position[0]
+    _Y = position[1]
+    _Z = position[2]
 
     w_2 = _X**2 + _Y**2
     l = e**2 / 2.0
