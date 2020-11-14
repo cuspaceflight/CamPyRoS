@@ -343,6 +343,7 @@ class Rocket:
         self.h = h                              #Time step size (can evolve)
         self.variable_time = variable           #Vary timestep with error (option for ease of debugging)
         self.orientation = np.array([launch_site.longi*np.pi/180,-launch_site.lat*np.pi/180,0])#np.array([launch_site.rail_yaw*np.pi/180,(launch_site.rail_pitch)*np.pi/180+np.pi/2-launch_site.lat*np.pi/180,0]) #yaw pitch roll  of the body frame in the inertial frame rad
+        self.w_b = np.array([0,0,0])
         self.w = np.matmul(rot_matrix(self.orientation),np.array([ang_vel_earth,0,0]))          #rate of change of yaw pitch roll rad/s - would this have an initial value? I don't think it should since after it is free of the rail (which should be negligable)
         self.pos = pos_launch_to_inertial(np.array([0,0,0]),launch_site,0)                      #Position in inertial coordinates [x,y,z] m
         self.v = vel_launch_to_inertial([0,0,0],launch_site.lat, launch_site.longi,0,0)                                  #Velocity in intertial coordinates [x',y',z'] m/s
@@ -508,25 +509,25 @@ class Rocket:
         """        
         return np.linalg.norm(position)-r_earth
     
-    def acceleration(self, positions, velocities, time):
+    def acceleration(self, positions, velocities, w_b, time):
         """Returns translational and rotational accelerations on the rocket, given the applied forces
 
         Args:
             positions (Numpy Arrray): The translational and rotational positions in the inertial frame (position stacked with orientation)
             velocities (Numpy Arrray): The translational and rotational velocities in the inertial frame
             time (Float): Time since igition
+            w_b (Numpy Array): Angular velocity, in the body coordinate system
 
         Returns:
-            [Numpy Array]: Translational and rotational accelerations in the inertial frame
+            [Numpy Array]: Translational accleration in inertial frame, and rotational accelerations needed to calculate rotations (wdot = [w1, w2, w3])
         """        
         
         #Get all the forces in body coordinates
         thrust_b = self.thrust(time,self.altitude(positions[0]))
         aero_force_b, cop = self.aero_forces(self.altitude(positions[0]),positions[1],positions[0],velocities[0],time)
         cog = self.mass_model.cog(time)
-        
-        
-        #Get the vectors we need to calculate moments
+    
+        #Get the moment arms
         r_engine_cog_b = (self.mass_model.l - cog)*np.array([-1,0,0])   #Vector (in body coordinates) of nozzle exit, relative to CoG
         r_cop_cog_b = (cop - cog)*np.array([-1,0,0])                    #Vector (in body coordinates) of CoP, relative to CoG
         
@@ -540,23 +541,28 @@ class Rocket:
         
         #Get total force and moment
         F = thrust + aero_force + self.gravity(time, positions[0])
-        #print("F%s"%F)
-        Q_b = aero_moment_b + thrust_moment_b   #Keep the moments in the body coordinate system for now
-        #F = ma in inertial coordinates
-        #Q = Ig wdot in body coordinates (because then we're using principal moments of inertia)
-        rot_acc_b = np.array([Q_b[0]/self.mass_model.ixx(time),
-                           Q_b[1]/self.mass_model.iyy(time),
-                           Q_b[2]/self.mass_model.izz(time)])
+        Q_b = aero_moment_b + thrust_moment_b   
+        
+        #Calculate moments using Euler's equations - IIA Engineering, Module 3C5, Rigid body dynamics handout (page 18)
+        i_b = np.array([self.mass_model.ixx(time),
+                        self.mass_model.iyy(time),
+                        self.mass_model.izz(time)])     #Moments of inertia [ixx, iyy, izz]
+        wdot_b = np.array([0,0,0])                      #Initialise empty array
+        wdot_b[0] = (Q_b[0] + (i_b[1] - i_b[2])*w_b[1]*w_b[2]) / i_b[0]
+        wdot_b[1] = (Q_b[1] + (i_b[2] - i_b[0])*w_b[2]*w_b[0]) / i_b[1]
+        wdot_b[2] = (Q_b[2] + (i_b[0] - i_b[1])*w_b[0]*w_b[1]) / i_b[2]
 
         if self.on_rail==True:
             F=np.array([F[0],0,0])
-            rot_acc_b=np.array([rot_acc_b[0],0,0])
-
+            wdot_b=np.wdot_b([wdot_b[0],0,0])
+        
+        #F = ma in inertial coordinates
         lin_acc = F/self.mass_model.mass(time)
-        #Convert rotational accelerations into inertial coordinates
-        rot_acc = self.body_to_inertial(rot_acc_b,positions[1])
-
-        return np.stack([lin_acc, rot_acc])
+        
+        #Convert from [wdotx_b, wdoty_b, wdotz_b] to [w1, w2, w3]  - WARNING: There may be a mistake here.
+        wdot123 = [wdot_b[1], wdot_b[2], wdot_b[0]]
+        
+        return np.stack([lin_acc, wdot123])
     
     
     def step(self):
