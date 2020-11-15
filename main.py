@@ -7,7 +7,7 @@ Nomenclature is the mostly same as used in https://apps.dtic.mil/sti/pdfs/AD0642
 
 COORDINATE SYSTEM NOMENCLATURE
 x_b,y_b,z_b = Body coordinate system (origin on rocket, rotates with the rocket)
-x_i,y_i,z_i = Inertial coordinate system (does not rotate, origin at centre of the Earth)
+x_i,y_i,z_i = Inertial coordinate system (does not rotate, fixed origin relative to centre of the Earth)
 x_l, y_l, z_l = Launch site coordinate system (origin on launch site, rotates with the Earth)
 
 
@@ -19,8 +19,8 @@ Would be useful to define directions, e.g. maybe
     z points perpendicular to the earth, y in the east direction and x tangential to the earth pointing south
     
 - Inertial:
-    Origin at centre of the Earth
-    Z points to north from centre of earth, x aligned with launchsite at start and y orthogonal
+    Aligned with launch site coordinate system at t=0
+    I have been thinking about it as Z points to north from centre of earth, x aligned with launchsite at start and y orthogonal
 
 '''
 
@@ -97,7 +97,7 @@ class Motor:
             prop_mass_data (list): Mass remaning kg
             cham_pres_data (list): Chamber Pressure Pa
             throat_data (list): Throat diameter m
-            gamma_data (list): Nozzle inlet gamma (ratio of specific heats)
+            gamma_data (list): Nozzle inlet gamma 
             nozzle_efficiency_data (list): Nozzle efficiency
             exit_pres_data (list): Exit pressure Pa
             area_ratio_data (list): Area ratio 
@@ -232,7 +232,7 @@ class CylindricalMassModel:
         return self.iyy(time)
     
     def cog(self, time):
-        """Returns the center of gravity, as a distance from the tip of the nose.
+        """Returns the center of gravity 
 
         Args:
             time (float): Time since ignition
@@ -343,11 +343,11 @@ class Rocket:
         self.time = 0                           #Time since ignition (seconds)
         self.h = h                              #Time step size (can evolve)
         self.variable_time = variable           #Vary timestep with error (option for ease of debugging)
-        self.orientation = np.array([launch_site.longi*np.pi/180,-launch_site.lat*np.pi/180,0])     #np.array([launch_site.rail_yaw*np.pi/180,(launch_site.rail_pitch)*np.pi/180+np.pi/2-launch_site.lat*np.pi/180,0]) #yaw pitch roll  of the body frame in the inertial frame rad
-        self.w_i = np.matmul(rot_matrix(self.orientation),np.array([ang_vel_earth,0,0]))            #Angular velocity in inertial coordinates
-        self.pos_i = pos_launch_to_inertial(np.array([0,0,0]),launch_site,0)                        #Position in inertial coordinates
-        self.v_i = vel_launch_to_inertial([0,0,0],launch_site.lat, launch_site.longi,0,0)           #Velocity in intertial coordinates
-        self.alt = launch_site.alt                                                                  #Altitude
+        self.orientation = np.array([launch_site.longi*np.pi/180,-launch_site.lat*np.pi/180,0])#np.array([launch_site.rail_yaw*np.pi/180,(launch_site.rail_pitch)*np.pi/180+np.pi/2-launch_site.lat*np.pi/180,0]) #yaw pitch roll  of the body frame in the inertial frame rad
+        self.w = np.matmul(rot_matrix(self.orientation),np.array([ang_vel_earth,0,0]))          #rate of change of yaw pitch roll rad/s - would this have an initial value? I don't think it should since after it is free of the rail (which should be negligable)
+        self.pos = pos_launch_to_inertial(np.array([0,0,0]),launch_site,0)                      #Position in inertial coordinates [x,y,z] m
+        self.v = vel_launch_to_inertial([0,0,0],launch_site.lat, launch_site.longi,0,0)                                  #Velocity in intertial coordinates [x',y',z'] m/s
+        self.alt = launch_site.alt                                                              #Altitude
         self.on_rail=True
     
     def body_to_inertial(self,vector,orientation):
@@ -414,7 +414,7 @@ class Rocket:
             print("WARNING: alpha* = {:.2f} (Large angle of attack)".format(360*alpha_star/(2*np.pi)))
         if beta>2*np.pi*6/360:
             print("WARNING: beta = {:.2f} (Large angle of attack)".format(360*beta/(2*np.pi)))
-        """
+"""
         #Dynamic pressure at the current altitude and velocity - WARNING: Am I using the right density?
         q = 0.5*np.interp(alt, self.launch_site.atmosphere.adat, self.launch_site.atmosphere.ddat)*(v_a**2)
         
@@ -436,6 +436,7 @@ class Rocket:
         
         #Return the forces (note that they're given using the body coordinate system, [x_b, y_b, z_b]).
         #Also return the distance that the COP is from the front of the rocket.
+        #print("Finished running Rocket.aero_forces()")
         return np.array([Fx,Fy,Fz]), COP
         
     def thrust(self, time, alt, vector = [1,0,0]): 
@@ -541,7 +542,7 @@ class Rocket:
         F = thrust + aero_force + self.gravity(time, positions[0])
         Q_b = aero_moment_b + thrust_moment_b   
         
-        #Calculate angular velocities using Euler's equations - IIA Engineering, Module 3C5, Rigid body dynamics handout (page 18)
+        #Calculate moments using Euler's equations - IIA Engineering, Module 3C5, Rigid body dynamics handout (page 18)
         i_b = np.array([self.mass_model.ixx(time),
                         self.mass_model.iyy(time),
                         self.mass_model.izz(time)])     #Moments of inertia [ixx, iyy, izz]
@@ -562,8 +563,8 @@ class Rocket:
     def step(self):
         """Implimenting a time step variable method based on Numerical recipes (link in readme)
         """
-        vels=np.stack([self.v_i,self.w_i])
-        positions=np.stack([self.pos_i,self.orientation])
+        vels=np.stack([self.v,self.w])
+        positions=np.stack([self.pos,self.orientation])
         k_1=self.h*self.acceleration(positions,vels,self.time)
         l_1=self.h*vels
         k_2=self.h*self.acceleration(positions+a[1][0]*l_1,vels+a[1][0]*k_1,self.time+c[1]*self.h)
@@ -577,33 +578,33 @@ class Rocket:
         k_6=self.h*self.acceleration(positions+a[5][0]*l_1+a[5][1]*l_2+a[5][2]*l_3+a[5][3]*l_4+a[5][4]*l_5,vels+a[5][0]*k_1+a[5][1]*k_2+a[5][2]*k_3+a[5][3]*k_4+a[5][4]*k_5,self.time+c[4]*self.h)
         l_6=l_1+a[5][0]*k_1+a[5][1]*k_2+a[5][2]*k_3+a[5][3]*k_4+a[5][4]*k_5
 
-        v=np.stack((self.v_i,self.w_i))+b[0]*k_1+b[1]*k_2+b[2]*k_3+b[3]*k_4+b[4]*k_5+b[5]*k_6 #+O(h^6)
-        r=np.stack((self.pos_i,self.orientation))+(b[0]*l_1+b[1]*l_2+b[2]*l_3+b[3]*l_4+b[4]*l_5+b[5]*l_6) #+O(h^6) This is movement of the body frame from wherever it is- needs to be transformed to inertial frame
+        v=np.stack((self.v,self.w))+b[0]*k_1+b[1]*k_2+b[2]*k_3+b[3]*k_4+b[4]*k_5+b[5]*k_6 #+O(h^6)
+        r=np.stack((self.pos,self.orientation))+(b[0]*l_1+b[1]*l_2+b[2]*l_3+b[3]*l_4+b[4]*l_5+b[5]*l_6) #+O(h^6) This is movement of the body frame from wherever it is- needs to be transformed to inertial frame
 
         self.time+=self.h
         if(self.variable_time==True):
-            v_=np.stack((self.v_i,self.w_i))+b_[0]*k_1+b_[1]*k_2+b_[2]*k_3+b_[3]*k_4+b_[4]*k_5+b_[5]*k_6 #+O(h^5)
+            v_=np.stack((self.v,self.w))+b_[0]*k_1+b_[1]*k_2+b_[2]*k_3+b_[3]*k_4+b_[4]*k_5+b_[5]*k_6 #+O(h^5)
             r_=np.stack((self.pos,self.orientation))+b_[0]*l_1+b_[1]*l_2+b_[2]*l_3+b_[3]*l_4+b_[4]*l_5+b_[5]*l_6 #+O(h^5)
 
-            scale_v=atol_v+rtol_v*abs(np.maximum.reduce([v,np.stack((self.v_i,self.w))]))
+            scale_v=atol_v+rtol_v*abs(np.maximum.reduce([v,np.stack((self.v,self.w))]))
             scale_r=atol_r+rtol_r*abs(np.maximum.reduce([r,np.stack((self.pos,self.orientation))]))
             err_v=(v-v_)/scale_v
             err_r=(r-r_)/scale_r
             err=max(np.max(err_v),np.max(err_r))
             self.h=sf*self.h*pow(err,-1/5)
 
-        self.v_i=v[0]
-        self.w_i=v[1]
-        self.pos_i=r[0]
+        self.v=v[0]
+        self.w=v[1]
+        self.pos=r[0]
         self.orientation=r[1]
     
     def check_phase(self):
         if self.on_rail==True:
-            flight_distance = np.linalg.norm(pos_inertial_to_launch(self.pos_i,self.launch_site,self.time))
+            flight_distance = np.linalg.norm(pos_inertial_to_launch(self.pos,self.launch_site,self.time))
             if flight_distance>=self.launch_site.rail_length:
                 print("Cleared rail at t=%ss with alt=%sm and TtW=%sG"%(self.time,
-                self.altitude(self.pos_i),
-                np.linalg.norm(self.acceleration([self.pos_i,self.orientation], [self.v_i, self.w_i], self.time)[0])/9.81)
+                self.altitude(self.pos),
+                np.linalg.norm(self.acceleration([self.pos,self.orientation], [self.v, self.w], self.time)[0])/9.81)
                 )
                 self.on_rail=False
 
@@ -769,29 +770,28 @@ def run_simulation(rocket):
     """  
     print("Running simulation")
     record=pd.DataFrame({"Time":[],"x":[],"y":[],"z":[],"v_x":[],"v_y":[],"v_z":[]}) #time:[position,velocity,mass]
-    while (rocket.altitude(rocket.pos_i)>=0 and rocket.time<200):
+    while (rocket.altitude(rocket.pos)>=0 and rocket.time<200):
         rocket.check_phase()
         rocket.step()
-        launch_position = pos_inertial_to_launch(rocket.pos_i,rocket.launch_site,rocket.time)
-        launch_velocity = vel_inertial_to_launch(rocket.v_i,rocket.launch_site,rocket.time)
-        aero_forces, cop = rocket.aero_forces(rocket.altitude(rocket.pos_i), rocket.orientation, rocket.pos_i,rocket.v_i, rocket.time)
+        launch_position = pos_inertial_to_launch(rocket.pos,rocket.launch_site,rocket.time)
+        launch_velocity = vel_inertial_to_launch(rocket.v,rocket.launch_site,rocket.time)
+        aero_forces, cop = rocket.aero_forces(rocket.altitude(rocket.pos), rocket.orientation, rocket.pos,rocket.v, rocket.time)
         cog = rocket.mass_model.cog(rocket.time)
         orientation = rocket.orientation
         x_b_l = orientation+np.array([np.pi/2+rocket.launch_site.rail_yaw*np.pi/180+ang_vel_earth*rocket.time,rocket.launch_site.rail_pitch*np.pi/180+np.pi/2-rocket.launch_site.lat*np.pi/180,0])
         x_b_i = rocket.body_to_inertial([1,0,0],rocket.orientation)
         #x_b_i = vel_inertial_to_launch(x_b_i, rocket.launch_site, rocket.time)
-        lin_acc, rot_acc = rocket.acceleration([rocket.pos_i,rocket.orientation], [rocket.v_i, rocket.w_i], rocket.time)
-        burnout_time = rocket.motor.motor_time_data[-1]
+        lin_acc, rot_acc = rocket.acceleration([rocket.pos,rocket.orientation], [rocket.v, rocket.w], rocket.time)
         new_row={"Time":rocket.time,
-                        "x_i":rocket.pos_i[0],
-                        "y_i":rocket.pos_i[1],
-                        "z_i":rocket.pos_i[2],
-                        "x_l":launch_position[0],
-                        "y_l":launch_position[1],
-                        "z_l":launch_position[2],
-                        "vx_l":launch_velocity[0],
-                        "vy_l":launch_velocity[1],
-                        "vz_l":launch_velocity[2],
+                        "x_i":rocket.pos[0],
+                        "y_i":rocket.pos[1],
+                        "z_i":rocket.pos[2],
+                        "x":launch_position[0],
+                        "y":launch_position[1],
+                        "z":launch_position[2],
+                        "v_x":launch_velocity[0],
+                        "v_y":launch_velocity[1],
+                        "v_z":launch_velocity[2],
                         "aero_xb":aero_forces[0],
                         "aero_yb":aero_forces[1],
                         "aero_zb":aero_forces[2],
@@ -806,8 +806,7 @@ def run_simulation(rocket):
                         "rot_acc_xi":rot_acc[0],
                         "rot_acc_yi":rot_acc[1],
                         "rot_acc_zi":rot_acc[2],
-                        "h":rocket.h,
-                        "burnout_time":burnout_time}
+                        "h":rocket.h}
         record=record.append(new_row, ignore_index=True)
         if d==1000:
             print("t={} s (with h={} s)".format(rocket.time,rocket.h))
@@ -819,17 +818,17 @@ def run_simulation(rocket):
     return record
 
 def get_velocity_magnitude(df):
-    return (np.sqrt(df["vx_l"]**2+df["vy_l"]**2+df["vz_l"]**2))
+    return (np.sqrt(df["v_x"]**2+df["v_y"]**2+df["v_z"]**2))
 
 def plot_altitude_time(simulation_output):
 
     fig, axs = plt.subplots(2, 2)
-    axs[0, 0].plot(simulation_output["y_l"], -simulation_output["x_l"])
+    axs[0, 0].plot(simulation_output["y"], -simulation_output["x"])
     axs[0, 0].set_title('Ground Track ($^*$)')
     axs[0,0].set_xlabel("East/m")
     axs[0,0].set_ylabel("North/m")
     #plt.text(0,-simulation_output["x"].max(),'$^*$ This is in the fixed cartesian launch frame so will not be actual ground position over large distances',horizontalalignment='left', verticalalignment='center')
-    axs[0, 1].plot(simulation_output["Time"],simulation_output["z_l"], 'tab:orange')
+    axs[0, 1].plot(simulation_output["Time"],simulation_output["z"], 'tab:orange')
     axs[0, 1].set_title('Altitude')
     axs[0,1].set_xlabel("Time/s")
     axs[0,1].set_ylabel("Altitude/m")
@@ -837,7 +836,7 @@ def plot_altitude_time(simulation_output):
     axs[1, 0].set_title('Speed')
     axs[1,0].set_xlabel("Time/s")
     axs[1,0].set_ylabel("Speed/m/s")
-    axs[1, 1].plot(simulation_output["Time"],-simulation_output["vz_l"], 'tab:red')
+    axs[1, 1].plot(simulation_output["Time"],-simulation_output["v_z"], 'tab:red')
     axs[1, 1].set_title('Vertical Velocity')
     axs[1,1].set_xlabel("Time/s")
     axs[1,1].set_ylabel("Velocity/m/s")
@@ -875,17 +874,17 @@ def plot_aero_forces(simulation_output):
 def plot_velocity(simulation_output):
     fig, axs = plt.subplots(2, 2)
     
-    axs[0, 0].plot(simulation_output["Time"], simulation_output["vx_l"])
+    axs[0, 0].plot(simulation_output["Time"], simulation_output["v_x"])
     axs[0, 0].set_title('V_x')
     axs[0,0].set_xlabel("Time/s")
     axs[0,0].set_ylabel("Velocity/m/s")
     
-    axs[0, 1].plot(simulation_output["Time"], simulation_output["vy_l"])
+    axs[0, 1].plot(simulation_output["Time"], simulation_output["v_y"])
     axs[0, 1].set_title('V_y')
     axs[0,1].set_xlabel("Time/s")
     axs[0,1].set_ylabel("Velocity/m/s")
     
-    axs[1, 0].plot(simulation_output["Time"], simulation_output["vz_l"])
+    axs[1, 0].plot(simulation_output["Time"], simulation_output["v_z"])
     axs[1, 0].set_title('V_z')
     axs[1,0].set_xlabel("Time/s")
     axs[1,0].set_ylabel("Velocity/m/s")
@@ -894,17 +893,17 @@ def plot_velocity(simulation_output):
 def plot_position(simulation_output):
     fig, axs = plt.subplots(2, 2)
     
-    axs[0, 0].plot(simulation_output["Time"], simulation_output["x_l"])
+    axs[0, 0].plot(simulation_output["Time"], simulation_output["x"])
     axs[0, 0].set_title('x')
     axs[0,0].set_xlabel("Time/s")
     axs[0,0].set_ylabel("Distance/m")
     
-    axs[0, 1].plot(simulation_output["Time"], simulation_output["y_l"])
+    axs[0, 1].plot(simulation_output["Time"], simulation_output["y"])
     axs[0, 1].set_title('y')
     axs[0,1].set_xlabel("Time/s")
     axs[0,1].set_ylabel("Distance/m")
     
-    axs[1, 0].plot(simulation_output["Time"], simulation_output["z_l"])
+    axs[1, 0].plot(simulation_output["Time"], simulation_output["z"])
     axs[1, 0].set_title('z')
     axs[1,0].set_xlabel("Time/s")
     axs[1,0].set_ylabel("Distance/m")
@@ -1017,9 +1016,9 @@ def animate(simulation_output):
     yaw=simulation_output["orientation_0"]
     pitch=simulation_output["orientation_1"]
     roll=simulation_output["orientation_2"]
-    altitude = simulation_output["z_l"]
+    altitude = simulation_output["z"]
     time = simulation_output["Time"]
-    burnout_time = simulation_output["burnout_time"]
+    
     #Set number of animation frames in total - less means that the animations runs faster
     frames = 500
     
@@ -1039,11 +1038,6 @@ def animate(simulation_output):
     axs[0,1].plot(np.linspace(0,np.cos(pitch[0]), 100), np.linspace(0, np.sin(pitch[0]), 100), lw=3, color='black')
     axs[1,0].plot(np.linspace(0,np.cos(roll[0]), 100), np.linspace(0, np.sin(roll[0]), 100), lw=3, color='black')
 
-    #Plot the point of engine burnout on the altitude-time graph
-    burnout_index = (np.abs(time - burnout_time)).argmin()
-    axs[1,1].scatter(time[burnout_index], altitude[burnout_index], color="red", label="Engine burnout")
-    axs[1,1].legend()
-    
     #Set up the lines that will be animated
     line1, = axs[0,0].plot([], [], lw=3, color='red')
     line2, = axs[0,1].plot([], [], lw=3, color='green')
