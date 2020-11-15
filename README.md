@@ -20,6 +20,8 @@ https://space.stackexchange.com/questions/41931/moment-of-inertia-of-rocket - Fo
 
 https://aip.scitation.org/doi/pdf/10.1063/1.1722736 - More variable moments of inertia stuff
 
+https://pdfs.semanticscholar.org/d337/9e4baaa1a4b49d17d9eea52df6e10aefbf8e.pdf - parachutes
+
 We need to make sure to remove all the links to pirated books if we make the repository public. 
 ## Program Workflow
 ![Rough flowchart](img/flowchart1.jpeg)
@@ -29,3 +31,15 @@ We need to make sure to remove all the links to pirated books if we make the rep
 RK4 chosen with the aid of [this](https://www.sciencedirect.com/science/article/pii/0045794981900675) paper.
 
 ![Rough flowchart](img/euler.png)
+
+## Variables that can vary
+- Rail pointing
+- Aero coefficients
+- Engine parameters
+- Gravitational force
+- Dry mass
+- Wet mass
+- Moment of inertia
+- Thrust miss alignment
+- Air density, temperature and pressure
+
