@@ -1,4 +1,5 @@
 import main
 import pandas as pd
-data = pd.read_csv("results/results_11_15_2020_12_42_20.csv")
-main.plot_orientation(data)
+data = pd.read_csv("results/stat_model_20201115/3.csv")
+
+main.plot_position(data)
