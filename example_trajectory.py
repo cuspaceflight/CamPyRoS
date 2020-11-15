@@ -40,7 +40,7 @@ launch_site = main.LaunchSite(rail_length=5, rail_yaw=0, rail_pitch=0, alt=0, lo
 
     
 '''Create the Rocket object'''
-martlet4 = main.Rocket(mass_model, pulsar, aerodynamic_coefficients, launch_site, 0.02, False)
+martlet4 = main.Rocket(mass_model, pulsar, aerodynamic_coefficients, launch_site, 0.05, False)
 
 simulation_output = main.run_simulation(martlet4)
 
@@ -52,9 +52,9 @@ main.plot_orientation(simulation_output)
 #main.plot_velocity(simulation_output)
 
 #main.plot_altitude_time(simulation_output)
-#main.plot_aero_forces(simulation_output)
+main.plot_aero_forces(simulation_output)
 #main.plot_orientation(simulation_output)
-#main.plot_trajectory_3d(simulation_output, show_orientation=True)
+main.plot_trajectory_3d(simulation_output, show_orientation=True)
 #main.plot_rot_acc(simulation_output)
 main.plot_position(simulation_output)
 
