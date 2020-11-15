@@ -24,7 +24,7 @@ Would be useful to define directions, e.g. maybe
 
 '''
 
-import csv, random, os
+import csv, random, os, ray
 import numpy as np
 import matplotlib.pyplot as plt
 import scipy.interpolate
@@ -417,10 +417,11 @@ class StatisticalModel:
         self.variable_time=variable
         self.motor=motor
 
+    @ray.remote
     def run_itteration(self, id, save_loc):
-        rocket_devs=self.max_deviations
-        for key in rocket_devs:
-            rocket_devs[key]*=random.random()
+        rocket_devs={}
+        for key in self.max_deviations:
+            rocket_devs[key]=random.random()*self.max_deviations[key]
 
         rocket=Rocket(self.mass_model,self.motor,self.aero,self.launch_site,self.h,variable=self.variable_time,dev=Deviation(rocket_devs))
         #print(rocket.dev.cop,rocket.dev.ca,rocket.dev.cn,rocket.dev.thrust,rocket.dev.gravity,rocket.dev.mass,rocket.dev.ixx,rocket.dev.iyy,rocket.dev.izz,rocket.dev.thrust_alignment,rocket.dev.air_density,rocket.dev.air_pressure,rocket.dev.air_temp,rocket.dev.wind,rocket.dev.rail_yaw,rocket.dev.rail_pitch)
@@ -434,8 +435,11 @@ class StatisticalModel:
         save_loc=os.path.join(os.getcwd(),"results/stat_model_%s"%datetime.now().strftime("%Y%m%d"))
         if not os.path.exists(save_loc):
             os.makedirs(save_loc)
+
+        ray.init()
         for run in range(1,itters+1):
-            self.run_itteration(run,save_loc)
+            self.run_itteration.remote(self,run,save_loc)
+        input()
         return save_loc
 
 
@@ -673,6 +677,7 @@ class Rocket:
         i_b = np.array([self.mass_model.ixx(time)*self.dev.ixx,
                         self.mass_model.iyy(time)*self.dev.iyy,
                         self.mass_model.izz(time)*self.dev.izz])     #Moments of inertia [ixx, iyy, izz]
+
         w_b=np.matmul(rot_matrix(positions[1]).transpose(),velocities[1])
         #print(w_b)
         wdot_b = np.array([(Q_b[0] + (i_b[1] - i_b[2])*w_b[1]*w_b[2]) / i_b[0]
@@ -730,7 +735,7 @@ class Rocket:
         if self.on_rail==True:
             flight_distance = np.linalg.norm(pos_inertial_to_launch(self.pos_i,self.launch_site,self.time))
             if flight_distance>=self.launch_site.rail_length:
-                print("Cleared rail at t=%ss with alt=%sm and TtW=%sG"%(self.time,
+                print("Cleared rail by t=%ss with alt=%sm and TtW=%sG"%(self.time,
                 self.altitude(self.pos_i),
                 np.linalg.norm(self.acceleration([self.pos_i,self.orientation], [self.v_i, self.w_i], self.time)[0])/9.81)
                 )
@@ -1244,4 +1249,16 @@ def animate(simulation_output):
                                    frames=frames, interval=20, blit=True)
     
     
+    plt.show()
+
+def plot_stats_position(save_loc,count):
+    for id in range(1,count+1):
+        results=pd.read_csv("%s/%s.csv"%(save_loc,id))
+        results["Range"]=np.sqrt(results["x_l"]**2+results["y_l"]**2)
+        plt.plot(results['Range'],results["z_l"])
+
+    plt.xlabel("Downrange distance/m")
+    plt.ylabel("Altitude/m")
+    plt.title("Monte Carlo results")
+
     plt.show()
