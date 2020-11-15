@@ -30,6 +30,7 @@ import matplotlib.pyplot as plt
 import scipy.interpolate
 import pandas as pd
 from matplotlib.animation import FuncAnimation
+from mpl_toolkits.mplot3d import Axes3D
 
 class Atmosphere:
     """Object holding atmospheric data
@@ -515,7 +516,6 @@ class Rocket:
             positions (Numpy Arrray): The translational and rotational positions in the inertial frame (position stacked with orientation)
             velocities (Numpy Arrray): The translational and rotational velocities in the inertial frame
             time (Float): Time since igition
-            w_b (Numpy Array): Angular velocity, in the body coordinate system
 
         Returns:
             [Numpy Array]: Translational accleration in inertial frame, and rotational acceleration using the body coordinate system
@@ -783,6 +783,9 @@ def run_simulation(rocket):
         #x_b_i = vel_inertial_to_launch(x_b_i, rocket.launch_site, rocket.time)
         lin_acc, rot_acc = rocket.acceleration([rocket.pos,rocket.orientation], [rocket.v, rocket.w], rocket.time)
         new_row={"Time":rocket.time,
+                        "x_i":rocket.pos[0],
+                        "y_i":rocket.pos[1],
+                        "z_i":rocket.pos[2],
                         "x":launch_position[0],
                         "y":launch_position[1],
                         "z":launch_position[2],
@@ -806,7 +809,7 @@ def run_simulation(rocket):
                         "h":rocket.h}
         record=record.append(new_row, ignore_index=True)
         if d==1000:
-            print(rocket.time,rocket.h)
+            print("t={} s (with h={} s)".format(rocket.time,rocket.h))
             d=0
         #print("alt={:.0f} time={:.1f}".format(rocket.altitude(rocket.pos), rocket.time))
 
@@ -910,17 +913,17 @@ def plot_orientation(simulation_output):
     fig, axs = plt.subplots(2, 2)
     
     axs[0, 0].plot(simulation_output["Time"], simulation_output["orientation_0"])
-    axs[0, 0].set_title('Rocket.orientation[0]')
+    axs[0, 0].set_title('Yaw')
     axs[0,0].set_xlabel("Time/s")
     axs[0,0].set_ylabel("Angles/ rad")
     
     axs[0, 1].plot(simulation_output["Time"], simulation_output["orientation_1"])
-    axs[0, 1].set_title('Rocket.orientation[1]')
+    axs[0, 1].set_title('Pitch')
     axs[0,1].set_xlabel("Time/s")
     axs[0,1].set_ylabel("Angles/ rad")
     
     axs[1, 0].plot(simulation_output["Time"], simulation_output["orientation_2"])
-    axs[1, 0].set_title('Rocket.orientation[2]')
+    axs[1, 0].set_title('Roll')
     axs[1,0].set_xlabel("Time/s")
     axs[1,0].set_ylabel("Angles/ rad")
 
@@ -961,13 +964,13 @@ def plot_trajectory_3d(simulation_output, show_orientation=False):
     fig = plt.figure()
     ax = plt.axes(projection="3d")
     
-    x=simulation_output["x"]
-    y=simulation_output["y"]
-    z=simulation_output["z"]
+    x=simulation_output["x_i"]
+    y=simulation_output["y_i"]
+    z=simulation_output["z_i"]
     
     #Plot rocket position and launch site position
     ax.plot3D(x,y,z)
-    ax.scatter(0,0,0,c='red', label="Launch site")
+    ax.scatter(x[0],y[0],z[0],c='red', label="Launch site")
     ax.set_xlabel('X Axes')
     ax.set_ylabel('Y Axes')
     ax.set_zlabel('Z Axes')  
@@ -975,9 +978,9 @@ def plot_trajectory_3d(simulation_output, show_orientation=False):
     
     #Plot the direction the rocket faces at each point (i.e. direction of x_b), using quivers
     if show_orientation==True:
-        u=simulation_output["attitude_iz"]
+        u=simulation_output["attitude_ix"]
         v=simulation_output["attitude_iy"]
-        w=simulation_output["attitude_ix"]
+        w=simulation_output["attitude_iz"]
         
         #Spaced out arrows, so it's not cluttered
         idx = np.round(np.linspace(0, len(u) - 1, int(len(u)/30))).astype(int)
@@ -1009,23 +1012,37 @@ def plot_trajectory_3d(simulation_output, show_orientation=False):
 def animate(simulation_output):
     fig, axs = plt.subplots(2, 2)
     
+    #Get data
     yaw=simulation_output["orientation_0"]
     pitch=simulation_output["orientation_1"]
     roll=simulation_output["orientation_2"]
     altitude = simulation_output["z"]
     time = simulation_output["Time"]
     
-    frames = 2000
+    #Set number of animation frames in total - less means that the animations runs faster
+    frames = 500
     
+    #Add titles
+    axs[0, 0].set_title('Yaw')
+    axs[0, 1].set_title('Pitch')
+    axs[1, 0].set_title('Roll')
+    axs[1, 1].set_title('Altitude / m')
+    axs[1, 1].set_xlabel('Time / s')
+    axs[0, 0].grid()
+    axs[0, 1].grid()
+    axs[1, 0].grid()
+    axs[1, 1].grid()    
+    
+    #Plot the initial directions
+    axs[0,0].plot(np.linspace(0,np.cos(yaw[0]), 100), np.linspace(0, np.sin(yaw[0]), 100), lw=3, color='black')
+    axs[0,1].plot(np.linspace(0,np.cos(pitch[0]), 100), np.linspace(0, np.sin(pitch[0]), 100), lw=3, color='black')
+    axs[1,0].plot(np.linspace(0,np.cos(roll[0]), 100), np.linspace(0, np.sin(roll[0]), 100), lw=3, color='black')
+
+    #Set up the lines that will be animated
     line1, = axs[0,0].plot([], [], lw=3, color='red')
     line2, = axs[0,1].plot([], [], lw=3, color='green')
     line3, = axs[1,0].plot([], [], lw=3, color='blue')
     line4, = axs[1,1].plot([], [], lw=3, color='orange')
-    
-    axs[0, 0].set_title('Yaw')
-    axs[0, 1].set_title('Pitch')
-    axs[1, 0].set_title('Roll')
-    axs[1, 1].set_title('Altitude')
     
     axs[0,0].set_xlim(-1,1)
     axs[0,0].set_ylim(-1,1)
@@ -1056,20 +1073,23 @@ def animate(simulation_output):
         return line1,
     
     def animate1(i):
-        x = np.linspace(0,np.cos(yaw[i]), 1000)
-        y = np.linspace(0, np.sin(yaw[i]), 1000)
+        j = int(i*len(yaw)/frames)
+        x = np.linspace(0,np.cos(yaw[j]), 100)
+        y = np.linspace(0, np.sin(yaw[j]), 100)
         line1.set_data(x, y)
         return line1,
     
     def animate2(i):
-        x = np.linspace(0,np.cos(pitch[i]), 1000)
-        y = np.linspace(0, np.sin(pitch[i]), 1000)
+        j = int(i*len(pitch)/frames)
+        x = np.linspace(0,np.cos(pitch[j]), 100)
+        y = np.linspace(0, np.sin(pitch[j]), 100)
         line2.set_data(x, y)
         return line2,
     
     def animate3(i):
-        x = np.linspace(0,np.cos(roll[i]), 1000)
-        y = np.linspace(0, np.sin(roll[i]), 1000)
+        j = int(i*len(roll)/frames)
+        x = np.linspace(0,np.cos(roll[j]), 100)
+        y = np.linspace(0, np.sin(roll[j]), 100)
         line3.set_data(x, y)
         return line3,
     
