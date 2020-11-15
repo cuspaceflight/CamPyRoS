@@ -1,5 +1,3 @@
-import main
-import pandas as pd
-data = pd.read_csv("results/stat_model_20201115/3.csv")
+from main import plot_stats_position
 
-main.plot_position(data)
+plot_stats_position("results/stat_model_20201115",50)

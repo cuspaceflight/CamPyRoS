@@ -1,3 +1,5 @@
-numpy==1.18.5
-matplotlib==3.3.0
+pandas==0.25.3
 scipy==1.5.2
+matplotlib==3.3.0
+numpy==1.18.5
+ray==1.0.1
