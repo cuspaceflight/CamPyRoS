@@ -319,7 +319,7 @@ class RasAeroData:
         self.CN = scipy.interpolate.interp2d(Mach, alpha, CN)
 
 class Deviation:
-    def __init__(self, cop=0.0, ca=0.0, cn=0.0, thrust=0.0, gravity=0.0, dry_mass=0.0, variable_mass=0.0, ixx=0.0, iyy=0.0, izz=0.0, thrust_alignment=np.array([0,0,0]), air_density=0.0, air_pressure=0.0, air_temp=0.0):
+    def __init__(self, cop=0.0, ca=0.0, cn=0.0, thrust=0.0, gravity=0.0, mass=0.0, ixx=0.0, iyy=0.0, izz=0.0, thrust_alignment=np.array([0,0,0]), air_density=0.0, air_pressure=0.0, air_temp=0.0, wind=np.array([0,0,0])):
         """[summary]
 
         Args:
@@ -328,8 +328,7 @@ class Deviation:
             cn (float): deviation of normal drag coefficient % Defaults to 0.0.
             thrust (float): deviation of engine thrust % Defaults to 0.0.
             gravity (float): deviation of gravitational force % Defaults to 0.0.
-            dry_mass (float): deviation of dry mass % Defaults to 0.0.
-            variable_mass (float): deviation from the mass model % Defaults to 0.0.
+            mass (float): deviation of mass % Defaults to 0.0.
             ixx (float): deviation of the moment of inertia in xx % Defaults to 0.0.
             iyy (float): deviation of the moment of inertia in yy % Defaults to 0.0.
             izz (float): deviation of the moment of inertia in zz % Defaults to 0.0.
@@ -337,14 +336,14 @@ class Deviation:
             air_density (float): deviation of air density % Defaults to 0.0.
             air_pressure (float): deviation of air pressure % Defaults to 0.0.
             air_temp (float): deviation of air temperature % Defaults to 0.0.
+            wind (numpy array): deviaiton of wind speed, vector%
         """        
         self.cop=cop
         self.ca=ca
         self.cn=cn
         self.thrust=thrust
         self.gravity=gravity
-        self.dry_mass=dry_mass
-        self.variable_mass=variable_mass
+        self.mass=mass
         self.ixx=ixx
         self.iyy=iyy
         self.izz=izz
@@ -352,11 +351,12 @@ class Deviation:
         self.air_density=air_density
         self.air_pressure=air_pressure
         self.air_temp=air_temp
+        self.wind=wind
 
 class StatisticalModel:
     """Class for monte carlo modeling of flights
     """    
-    def __init__(self, rail_yaw=0.0, rail_pitch=0.0, cop=0.0, ca=0.0, cn=0.0, thrust=0.0, gravity=0.0, dry_mass=0.0, variable_mass=0.0, ixx=0.0, iyy=0.0, izz=0.0, thrust_alignment=0.0, air_density=0.0, air_pressure=0.0, air_temp=0.0):
+    def __init__(self, rail_yaw=0.0, rail_pitch=0.0, cop=0.0, ca=0.0, cn=0.0, thrust=0.0, gravity=0.0, mass=0.0, ixx=0.0, iyy=0.0, izz=0.0, thrust_alignment=0.0, air_density=0.0, air_pressure=0.0, air_temp=0.0, wind=np.array([0,0,0])):
         """Creates the model, initialising the maximum deviation for the variable parameters. Initialise with no parameters to not vary.
 
         Args:
@@ -367,8 +367,7 @@ class StatisticalModel:
             cn (float): maximum deviation of normal drag coefficient %
             thrust (float): maximum deviation of engine thrust %
             gravity (float): maximum deviation of gravitational force %
-            dry_mass (float): maximum deviation of dry mass %
-            variable_mass (float): maximum deviation from the mass model %
+            mass (float): maximum deviation of mass %
             ixx (float): maximum deviation of the moment of inertia in xx %
             iyy (float): maximum deviation of the moment of inertia in yy %
             izz (float): maximum deviation of the moment of inertia in zz %
@@ -376,6 +375,7 @@ class StatisticalModel:
             air_density (float): maximum deviation of air density %
             air_pressure (float): maximum deviation of air pressure %
             air_temp (float): maximum deviation of air temperature %
+            wind (numpy array): maximum deviaiton of wind speed, vector%
         """     
         self.max_deviations={"rail_yaw":rail_yaw,
                             "rail_pitch":rail_pitch,
@@ -384,8 +384,7 @@ class StatisticalModel:
                             "cn":cn,
                             "thrust":thrust,
                             "gravity":gravity,
-                            "dry_mass":dry_mass,
-                            "variable_mass":variable_mass,
+                            "mass":mass,
                             "ixx":ixx,
                             "iyy":iyy,
                             "izz":izz,
@@ -427,6 +426,8 @@ class Rocket:
         self.v = vel_launch_to_inertial([0,0,0],launch_site.lat, launch_site.longi,0,0)                                  #Velocity in intertial coordinates [x',y',z'] m/s
         self.alt = launch_site.alt                                                              #Altitude
         self.on_rail=True
+
+        self.dev=dev
     
     def body_to_inertial(self,vector,orientation):
         """Converts a vector in the body frame to the inertial frame
@@ -472,7 +473,7 @@ class Rocket:
             Float: Centre of pressure m
         """             
 
-        wind_inertial = vel_launch_to_inertial(self.launch_site.wind,np.arctan(position[2]/np.sqrt(position[0]**2+position[1]**2))*180/np.pi,np.arctan(round(position[0],10)/round(position[1],10))*180/np.pi,time,self.altitude(position))
+        wind_inertial = vel_launch_to_inertial(self.launch_site.wind+self.dev.wind,np.arctan(position[2]/np.sqrt(position[0]**2+position[1]**2))*180/np.pi,np.arctan(round(position[0],10)/round(position[1],10))*180/np.pi,time,self.altitude(position))
         v_rel_wind = self.inertial_to_body(velocity-wind_inertial, orientation)
         v_a = np.linalg.norm(v_rel_wind)
         v_sound = np.interp(alt, self.launch_site.atmosphere.adat, self.launch_site.atmosphere.sdat)
@@ -494,15 +495,15 @@ class Rocket:
             print("WARNING: beta = {:.2f} (Large angle of attack)".format(360*beta/(2*np.pi)))
 """
         #Dynamic pressure at the current altitude and velocity - WARNING: Am I using the right density?
-        q = 0.5*np.interp(alt, self.launch_site.atmosphere.adat, self.launch_site.atmosphere.ddat)*(v_a**2)
+        q = self.dev.air_pressure*0.5*np.interp(alt, self.launch_site.atmosphere.adat, self.launch_site.atmosphere.ddat)*(v_a**2)
         
         #Characteristic area
         S = self.aero.area
         
         #Drag/Force coefficients
-        Cx = self.aero.CA(mach, abs(delta))[0]         #WARNING: Not sure if I'm using the right angles for these all
-        Cz = self.aero.CN(mach, abs(alpha_star))[0]    #Or if this is the correct way to use CN
-        Cy = self.aero.CN(mach, abs(beta))[0] 
+        Cx = self.dev.ca*self.aero.CA(mach, abs(delta))[0]         #WARNING: Not sure if I'm using the right angles for these all
+        Cz = self.dev.cn*self.aero.CN(mach, abs(alpha_star))[0]    #Or if this is the correct way to use CN
+        Cy = self.dev.cn*self.aero.CN(mach, abs(beta))[0] 
         
         #Forces
         Fx = -np.sign(v_rel_wind[0])*Cx*q*S                         
@@ -510,14 +511,14 @@ class Rocket:
         Fz = -np.sign(v_rel_wind[2])*Cz*q*S
         
         #Position where moments act:
-        COP = self.aero.COP(mach, abs(delta))[0]
+        COP = self.dev.cop*self.aero.COP(mach, abs(delta))[0]
         
         #Return the forces (note that they're given using the body coordinate system, [x_b, y_b, z_b]).
         #Also return the distance that the COP is from the front of the rocket.
         #print("Finished running Rocket.aero_forces()")
         return np.array([Fx,Fy,Fz]), COP
         
-    def thrust(self, time, alt, vector = [1,0,0]): 
+    def thrust(self, time, alt, vector = np.array([0,0,0])): 
         """  Returns thrust and moments generated by the motor, in body frame. Mainly derived from Joe Hunt's original trajectory_sim.py
 
         Args:
@@ -540,7 +541,7 @@ class Rocket:
             nozzle_area_ratio = np.interp(time, self.motor.motor_time_data, self.motor.area_ratio_data)
             
             #Get atmospheric pressure (to calculate pressure thrust)
-            pres_static = np.interp(alt, self.launch_site.atmosphere.adat, self.launch_site.atmosphere.padat)
+            pres_static = self.dev.air_pressure*np.interp(alt, self.launch_site.atmosphere.adat, self.launch_site.atmosphere.padat)
             
             #Calculate the thrust
             area_throat = ((dia_throat/2)**2)*np.pi
@@ -555,7 +556,7 @@ class Rocket:
             thrust = 0
         
         #Multiply the thrust by the direction it acts in, and return it.
-        return thrust*vector/np.linalg.norm(vector)
+        return self.dev.thrust*thrust*(vector+self.dev.thrust_alignment)/np.linalg.norm(vector+self.dev.thrust_alignment)
         
     def gravity(self, time, position):
         """ Returns the gravity force, as a vector in inertial coordinates.
@@ -573,7 +574,7 @@ class Rocket:
         Uses a spherical Earth gravity model
         '''
         # F = -GMm/r^2 = μm/r^2 where μ = 3.986004418e14 for Earth
-        return -3.986004418e14 * self.mass_model.mass(time) * position / np.linalg.norm(position)**3
+        return -self.dev.gravity*3.986004418e14 * self.mass_model.mass(time) * position / np.linalg.norm(position)**3
 
     
     def altitude(self, position):
@@ -623,15 +624,15 @@ class Rocket:
         Q_b = aero_moment_b + thrust_moment_b   #Keep the moments in the body coordinate system for now
         #F = ma in inertial coordinates
         #Q = Ig wdot in body coordinates (because then we're using principal moments of inertia)
-        rot_acc_b = np.array([Q_b[0]/self.mass_model.ixx(time),
-                           Q_b[1]/self.mass_model.iyy(time),
-                           Q_b[2]/self.mass_model.izz(time)])
+        rot_acc_b = np.array([Q_b[0]/(self.mass_model.ixx(time)*self.dev.ixx),
+                           (Q_b[1]/self.mass_model.iyy(time)*self.dev.iyy),
+                           (Q_b[2]/self.mass_model.izz(time)*self.dev.izz)])
 
         if self.on_rail==True:
             F=np.array([F[0],0,0])
             rot_acc_b=np.array([rot_acc_b[0],0,0])
 
-        lin_acc = F/self.mass_model.mass(time)
+        lin_acc = F/(self.dev.mass*self.mass_model.mass(time))
         #Convert rotational accelerations into inertial coordinates
         rot_acc = self.body_to_inertial(rot_acc_b,positions[1])
 
