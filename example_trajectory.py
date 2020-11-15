@@ -45,7 +45,7 @@ martlet4 = main.Rocket(mass_model, pulsar, aerodynamic_coefficients, launch_site
 
 simulation_output = main.run_simulation(martlet4)
 
-simulation_output.to_csv("results/results_%s.csv"%datetime.now().strftime("%m_%d_%Y_%H_%M_%S"), index=True, mode="w+")
+#simulation_output.to_csv("results/results_%s.csv"%datetime.now().strftime("%m_%d_%Y_%H_%M_%S"), index=True, mode="w+")
 
 print(min(simulation_output["h"]),max(simulation_output["h"]))
 

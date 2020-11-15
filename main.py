@@ -394,14 +394,14 @@ class Rocket:
             Numpy Array: Returns force in the x,y,z directions in the body frame N
             Float: Centre of pressure m
         """             
-
-        wind_inertial = vel_launch_to_inertial(self.launch_site.wind,np.arctan(position[2]/np.sqrt(position[0]**2+position[1]**2))*180/np.pi,np.arctan(round(position[0],10)/round(position[1],10))*180/np.pi,time,self.altitude(position))
+        #Use np.angle(ja + b) to replace np.arctan(a/b)
+        wind_inertial = vel_launch_to_inertial(self.launch_site.wind, np.angle(1j*position[2] + np.sqrt(position[0]**2+position[1]**2)) *180/np.pi, np.angle(1j* round(position[0],10) + round(position[1],10))*180/np.pi,time,self.altitude(position))
         v_rel_wind = self.inertial_to_body(velocity-wind_inertial, orientation)
         v_a = np.linalg.norm(v_rel_wind)
         v_sound = np.interp(alt, self.launch_site.atmosphere.adat, self.launch_site.atmosphere.sdat)
         mach = v_a/v_sound
         
-        #Angles - use np.angle(a + jb) to replace np.arctan(a/b) because the latter gave divide by zero errors, if b=0
+        #Angles - use np.angle(ja + b) to replace np.arctan(a/b) because the latter gave divide by zero errors, if b=0
         alpha = np.angle(1j*v_rel_wind[2] + v_rel_wind[0])
         beta = np.angle(1j*v_rel_wind[1] + (v_rel_wind[0]**2 + v_rel_wind[2]**2 )**0.5 )
         delta = np.angle( 1j*(v_rel_wind[2]**2 + v_rel_wind[1]**2)**0.5 + v_rel_wind[0])
