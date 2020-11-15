@@ -349,6 +349,7 @@ class Rocket:
         self.v_i = vel_launch_to_inertial([0,0,0],launch_site.lat, launch_site.longi,0,0)           #Velocity in intertial coordinates
         self.alt = launch_site.alt                                                                  #Altitude
         self.on_rail=True
+        self.burn_out=False
     
     def body_to_inertial(self,vector,orientation):
         """Converts a vector in the body frame to the inertial frame
@@ -474,6 +475,9 @@ class Rocket:
         else:
             #If the engine has finished burning, no thrust is produced
             thrust = 0
+            if self.burn_out==False:
+                print("Burnout at %s"%time)
+            self.burn_out=True
         
         #Multiply the thrust by the direction it acts in, and return it.
         return thrust*vector/np.linalg.norm(vector)
@@ -545,7 +549,7 @@ class Rocket:
         i_b = np.array([self.mass_model.ixx(time),
                         self.mass_model.iyy(time),
                         self.mass_model.izz(time)])     #Moments of inertia [ixx, iyy, izz]
-        w_b=np.matmul(rot_matrix(positions[1]),velocities[1])
+        w_b=np.matmul(rot_matrix(positions[1]).transpose(),velocities[1])
         wdot_b = np.array([(Q_b[0] + (i_b[1] - i_b[2])*w_b[1]*w_b[2]) / i_b[0]
                             ,(Q_b[1] + (i_b[2] - i_b[0])*w_b[2]*w_b[0]) / i_b[1]
                             ,(Q_b[2] + (i_b[0] - i_b[1])*w_b[0]*w_b[1]) / i_b[2]])                      #Initialise empty array
@@ -555,8 +559,8 @@ class Rocket:
         
         #F = ma in inertial coordinates
         lin_acc = F/self.mass_model.mass(time)
-
-        wdot_i=np.matmul(rot_matrix(positions[1]).transpose(),wdot_b)#https://www.astro.rug.nl/software/kapteyn-beta/_downloads/attitude.pdf
+        wdot_i=np.matmul(rot_matrix(positions[1]),wdot_b)#https://www.astro.rug.nl/software/kapteyn-beta/_downloads/attitude.pdf
+        #print(wdot_i,wdot_b)
         return np.stack([lin_acc, wdot_i])
     
     def step(self):
@@ -928,13 +932,10 @@ def plot_orientation(simulation_output):
     axs[1,0].set_xlabel("Time/s")
     axs[1,0].set_ylabel("Angles/ rad")
 
-    axs[1, 1].plot(simulation_output["Time"], simulation_output["orientation_0"])
-    axs[1, 1].plot(simulation_output["Time"], simulation_output["orientation_1"])
-    axs[1, 1].plot(simulation_output["Time"], simulation_output["orientation_2"])
-    axs[1, 1].set_title('Rocket.orientation[2]')
+    axs[1, 1].plot(simulation_output["Time"], simulation_output["z_l"])
+    axs[1, 1].set_title('Altitude')
     axs[1,1].set_xlabel("Time/s")
-    axs[1,1].set_ylabel("Angles/ rad")
-    axs[1,1].legend(["Z","Y","X"])
+    axs[1,1].set_ylabel("Altitude /m")
     
     plt.show()
 
@@ -1018,6 +1019,7 @@ def animate(simulation_output):
     pitch=simulation_output["orientation_1"]
     roll=simulation_output["orientation_2"]
     altitude = simulation_output["z_l"]
+
     time = simulation_output["Time"]
     burnout_time = simulation_output["burnout_time"]
     #Set number of animation frames in total - less means that the animations runs faster

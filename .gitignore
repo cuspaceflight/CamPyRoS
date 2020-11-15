@@ -8,3 +8,7 @@ main.pyc
 *.pyc
 *.pyc
 *.pyc
+*.pyc
+.DS_Store
+results/
+__pycache__/
