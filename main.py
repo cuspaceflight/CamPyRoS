@@ -24,14 +24,14 @@ Would be useful to define directions, e.g. maybe
 
 '''
 
-import csv
+import csv, random, os
 import numpy as np
 import matplotlib.pyplot as plt
 import scipy.interpolate
 import pandas as pd
 from matplotlib.animation import FuncAnimation
 from mpl_toolkits.mplot3d import Axes3D
-
+from datetime import datetime
 class Atmosphere:
     """Object holding atmospheric data
     """    
@@ -320,7 +320,22 @@ class RasAeroData:
         self.CN = scipy.interpolate.interp2d(Mach, alpha, CN)
 
 class Deviation:
-    def __init__(self, cop=0.0, ca=0.0, cn=0.0, thrust=0.0, gravity=0.0, mass=0.0, ixx=0.0, iyy=0.0, izz=0.0, thrust_alignment=np.array([0,0,0]), air_density=0.0, air_pressure=0.0, air_temp=0.0, wind=np.array([0,0,0])):
+    def __init__(self, devs={"rail_yaw":0.0,
+                            "rail_pitch":0.0,
+                            "cop":0.0,
+                            "ca":0.0,
+                            "cn":0.0,
+                            "thrust":0.0,
+                            "gravity":0.0,
+                            "mass":0.0,
+                            "ixx":0.0,
+                            "iyy":0.0,
+                            "izz":0.0,
+                            "thrust_alignment":np.array([0.0,0.0,0.0]),
+                            "air_density":0.0,
+                            "air_pressure":0.0,
+                            "air_temp":0.0,
+                            "wind":np.array([0.0,0.0,0.0])}):
         """[summary]
 
         Args:
@@ -339,25 +354,26 @@ class Deviation:
             air_temp (float): deviation of air temperature % Defaults to 0.0.
             wind (numpy array): deviaiton of wind speed, vector%
         """        
-        self.cop=cop
-        self.ca=ca
-        self.cn=cn
-        self.thrust=thrust
-        self.gravity=gravity
-        self.mass=mass
-        self.ixx=ixx
-        self.iyy=iyy
-        self.izz=izz
-        self.thrust_alignment=thrust_alignment
-        self.air_density=air_density
-        self.air_pressure=air_pressure
-        self.air_temp=air_temp
-        self.wind=wind
-
+        self.cop=devs["cop"]+1
+        self.ca=devs["ca"]+1
+        self.cn=devs["cn"]+1
+        self.thrust=devs["thrust"]+1
+        self.gravity=devs["gravity"]+1
+        self.mass=devs["mass"]+1
+        self.ixx=devs["ixx"]+1
+        self.iyy=devs["iyy"]+1
+        self.izz=devs["izz"]+1
+        self.thrust_alignment=devs["thrust_alignment"]
+        self.air_density=devs["air_density"]+1
+        self.air_pressure=devs["air_pressure"]+1
+        self.air_temp=devs["air_temp"]+1
+        self.wind=devs["wind"]
+        self.rail_yaw=devs["rail_yaw"]
+        self.rail_pitch=devs["rail_pitch"]
 class StatisticalModel:
     """Class for monte carlo modeling of flights
     """    
-    def __init__(self, rail_yaw=0.0, rail_pitch=0.0, cop=0.0, ca=0.0, cn=0.0, thrust=0.0, gravity=0.0, mass=0.0, ixx=0.0, iyy=0.0, izz=0.0, thrust_alignment=0.0, air_density=0.0, air_pressure=0.0, air_temp=0.0, wind=np.array([0,0,0])):
+    def __init__(self, mass_model, motor, aero_model, launch_site, h, variable=False, rail_yaw=0.0, rail_pitch=0.0, cop=0.0, ca=0.0, cn=0.0, thrust=0.0, gravity=0.0, mass=0.0, ixx=0.0, iyy=0.0, izz=0.0, thrust_alignment=np.array([0.0,0.0,0.0]), air_density=0.0, air_pressure=0.0, air_temp=0.0, wind=np.array([0.0,0.0,0.0])):
         """Creates the model, initialising the maximum deviation for the variable parameters. Initialise with no parameters to not vary.
 
         Args:
@@ -372,11 +388,11 @@ class StatisticalModel:
             ixx (float): maximum deviation of the moment of inertia in xx %
             iyy (float): maximum deviation of the moment of inertia in yy %
             izz (float): maximum deviation of the moment of inertia in zz %
-            thrust_alignment (numpy array): maximum deviation of thrust missalignment, vector %
+            thrust_alignment (numpy array): maximum deviation of thrust missalignment, vector pointing
             air_density (float): maximum deviation of air density %
             air_pressure (float): maximum deviation of air pressure %
             air_temp (float): maximum deviation of air temperature %
-            wind (numpy array): maximum deviaiton of wind speed, vector%
+            wind (numpy array): maximum deviaiton of wind speed, vector m/s
         """     
         self.max_deviations={"rail_yaw":rail_yaw,
                             "rail_pitch":rail_pitch,
@@ -392,10 +408,37 @@ class StatisticalModel:
                             "thrust_alignment":thrust_alignment,
                             "air_density":air_density,
                             "air_pressure":air_pressure,
-                            "air_temp":air_temp}
+                            "air_temp":air_temp,
+                            "wind":wind}
+        self.mass_model=mass_model
+        self.launch_site=launch_site
+        self.aero=aero_model
+        self.h=h
+        self.variable_time=variable
+        self.motor=motor
 
-    def run_itteration(self, mass_model, motor, aero, launch_site, h, variable=False):
-        pass
+    def run_itteration(self, id, save_loc):
+        rocket_devs=self.max_deviations
+        for key in rocket_devs:
+            rocket_devs[key]*=random.random()
+
+        rocket=Rocket(self.mass_model,self.motor,self.aero,self.launch_site,self.h,variable=self.variable_time,dev=Deviation(rocket_devs))
+        #print(rocket.dev.cop,rocket.dev.ca,rocket.dev.cn,rocket.dev.thrust,rocket.dev.gravity,rocket.dev.mass,rocket.dev.ixx,rocket.dev.iyy,rocket.dev.izz,rocket.dev.thrust_alignment,rocket.dev.air_density,rocket.dev.air_pressure,rocket.dev.air_temp,rocket.dev.wind,rocket.dev.rail_yaw,rocket.dev.rail_pitch)
+        results=run_simulation(rocket)
+        results=results[["Time","x_l","y_l","z_l","vx_l","vy_l","vz_l"]]
+
+        with open("%s/%s.csv"%(save_loc,id), "w+") as f:
+            results.to_csv(path_or_buf=f)
+
+    def run_model(self,itters):
+        save_loc=os.path.join(os.getcwd(),"results/stat_model_%s"%datetime.now().strftime("%Y%m%d"))
+        if not os.path.exists(save_loc):
+            os.makedirs(save_loc)
+        for run in range(1,itters+1):
+            self.run_itteration(run,save_loc)
+        return save_loc
+
+
 
 class Rocket:
     """Object that hold the rocket information and functions
@@ -421,7 +464,7 @@ class Rocket:
         self.time = 0                           #Time since ignition (seconds)
         self.h = h                              #Time step size (can evolve)
         self.variable_time = variable           #Vary timestep with error (option for ease of debugging)
-        self.orientation = np.array([launch_site.longi*np.pi/180,-launch_site.lat*np.pi/180,0])     #np.array([launch_site.rail_yaw*np.pi/180,(launch_site.rail_pitch)*np.pi/180+np.pi/2-launch_site.lat*np.pi/180,0]) #yaw pitch roll  of the body frame in the inertial frame rad
+        self.orientation = np.array([(launch_site.longi+launch_site.rail_yaw+dev.rail_yaw)*np.pi/180,(-launch_site.lat+launch_site.rail_pitch+dev.rail_pitch)*np.pi/180,0])     #np.array([launch_site.rail_yaw*np.pi/180,(launch_site.rail_pitch)*np.pi/180+np.pi/2-launch_site.lat*np.pi/180,0]) #yaw pitch roll  of the body frame in the inertial frame rad
         self.w_i = np.matmul(rot_matrix(self.orientation),np.array([ang_vel_earth,0,0]))            #Angular velocity in inertial coordinates
         self.pos_i = pos_launch_to_inertial(np.array([0,0,0]),launch_site,0)                        #Position in inertial coordinates
         self.v_i = vel_launch_to_inertial([0,0,0],launch_site.lat, launch_site.longi,0,0)           #Velocity in intertial coordinates
@@ -519,7 +562,7 @@ class Rocket:
         #Also return the distance that the COP is from the front of the rocket.
         return np.array([Fx,Fy,Fz]), COP
         
-    def thrust(self, time, alt, vector = np.array([0,0,0])): 
+    def thrust(self, time, alt, vector = np.array([1,0,0])): 
         """  Returns thrust and moments generated by the motor, in body frame. Mainly derived from Joe Hunt's original trajectory_sim.py
 
         Args:
@@ -627,13 +670,14 @@ class Rocket:
         Q_b = aero_moment_b + thrust_moment_b   
         
         #Calculate angular velocities using Euler's equations - IIA Engineering, Module 3C5, Rigid body dynamics handout (page 18)
-        i_b = np.array([self.mass_model.ixx(time),
-                        self.mass_model.iyy(time),
-                        self.mass_model.izz(time)])     #Moments of inertia [ixx, iyy, izz]
+        i_b = np.array([self.mass_model.ixx(time)*self.dev.ixx,
+                        self.mass_model.iyy(time)*self.dev.iyy,
+                        self.mass_model.izz(time)*self.dev.izz])     #Moments of inertia [ixx, iyy, izz]
         w_b=np.matmul(rot_matrix(positions[1]).transpose(),velocities[1])
-        wdot_b = np.array([(Q_b[0] + (i_b[1]*self.dev.iyy - i_b[2]*self.dev.izz)*w_b[1]*w_b[2]) / i_b[0]
-                            ,(Q_b[1] + (i_b[2]*self.dev.izz - i_b[0]*self.dev.ixx)*w_b[2]*w_b[0]) / i_b[1]
-                            ,(Q_b[2] + (i_b[0]*self.dev.ixx - i_b[1]*self.dev.iyy)*w_b[0]*w_b[1]) / i_b[2]])                      #Initialise empty array
+        #print(w_b)
+        wdot_b = np.array([(Q_b[0] + (i_b[1] - i_b[2])*w_b[1]*w_b[2]) / i_b[0]
+                            ,(Q_b[1] + (i_b[2] - i_b[0])*w_b[2]*w_b[0]) / i_b[1]
+                            ,(Q_b[2] + (i_b[0] - i_b[1])*w_b[0]*w_b[1]) / i_b[2]])                      #Initialise empty array
         if self.on_rail==True:
             F=np.array([F[0],0,0])
             wdot_b=np.array([wdot_b[0],0,0])
@@ -668,7 +712,7 @@ class Rocket:
         self.time+=self.h
         if(self.variable_time==True):
             v_=np.stack((self.v_i,self.w_i))+b_[0]*k_1+b_[1]*k_2+b_[2]*k_3+b_[3]*k_4+b_[4]*k_5+b_[5]*k_6 #+O(h^5)
-            r_=np.stack((self.pos,self.orientation))+b_[0]*l_1+b_[1]*l_2+b_[2]*l_3+b_[3]*l_4+b_[4]*l_5+b_[5]*l_6 #+O(h^5)
+            r_=np.stack((self.pos_i,self.orientation))+b_[0]*l_1+b_[1]*l_2+b_[2]*l_3+b_[3]*l_4+b_[4]*l_5+b_[5]*l_6 #+O(h^5)
 
             scale_v=atol_v+rtol_v*abs(np.maximum.reduce([v,np.stack((self.v_i,self.w))]))
             scale_r=atol_r+rtol_r*abs(np.maximum.reduce([r,np.stack((self.pos,self.orientation))]))
@@ -807,10 +851,8 @@ def vel_launch_to_inertial(velocity,launch_site_lat,launch_site_longi,time,alt):
         Numpy array: Velocity in inertial frame
     """    
     launch_site_velocity = np.array([0,ang_vel_earth*(r_earth+alt)*np.cos(launch_site_lat*np.pi/180),0])
-    ##inputlaunch_site_lat)
-    ##inputlaunch_site_velocity)
     launch_rot_inertial = np.matmul(rot_matrix([time*ang_vel_earth+launch_site_longi*np.pi/180,0,0]),velocity)
-    ##inputlaunch_rot_inertial)
+
     return launch_rot_inertial+launch_site_velocity
 
 def rot_matrix(orientation,inverse=False):
@@ -824,8 +866,10 @@ def rot_matrix(orientation,inverse=False):
     Returns:
         [type]: [description]
     """    
+    orientation=np.mod(orientation,2*np.pi)
     if inverse==True:
         orientation=[-inv for inv in orientation]
+    
     r_x=np.array([[1,0,0],
         [0,np.cos(orientation[2]),-np.sin(orientation[2])],
         [0,np.sin(orientation[2]),np.cos(orientation[2])]])
@@ -854,7 +898,7 @@ def run_simulation(rocket):
     """  
     print("Running simulation")
     record=pd.DataFrame({"Time":[],"x":[],"y":[],"z":[],"v_x":[],"v_y":[],"v_z":[]}) #time:[position,velocity,mass]
-    while (rocket.altitude(rocket.pos_i)>=0 and rocket.time<200):
+    while rocket.altitude(rocket.pos_i)>=0:
         rocket.check_phase()
         rocket.step()
         launch_position = pos_inertial_to_launch(rocket.pos_i,rocket.launch_site,rocket.time)
