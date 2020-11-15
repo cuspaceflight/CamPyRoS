@@ -3,24 +3,22 @@
 '''All units in SI unless otherwise stated'''
 
 '''
-Nomenclature is the mostly same as used in https://apps.dtic.mil/sti/pdfs/AD0642855.pdf
-
 COORDINATE SYSTEM NOMENCLATURE
 x_b,y_b,z_b = Body coordinate system (origin on rocket, rotates with the rocket)
 x_i,y_i,z_i = Inertial coordinate system (does not rotate, origin at centre of the Earth)
 x_l, y_l, z_l = Launch site coordinate system (origin on launch site, rotates with the Earth)
 
-
-Would be useful to define directions, e.g. maybe
+Directions are defined below.
 - Body:
-    y points east and z north at take off (before rail alignment is accounted for) x up
+    y points east and z north at take off (before rail alignment is accounted for) x up.
+    x is along the "long" axis of the rocket.
 
 - Launch site:
     z points perpendicular to the earth, y in the east direction and x tangential to the earth pointing south
     
 - Inertial:
     Origin at centre of the Earth
-    Z points to north from centre of earth, x aligned with launchsite at start and y orthogonal
+    z points to north from centre of earth, x aligned with launchsite at start and y orthogonal
 
 '''
 
@@ -329,7 +327,7 @@ class Rocket:
         Args:
             mass_model (MassModel): Model of mass development of the rocket, only current option is CylindricalMassModel
             motor (Motor Object): Motot objet
-            aero (Aeroo Object): Object holding the aerodynamic data 
+            aero (Aero Object): Object holding the aerodynamic data 
             launch_site (Launchsite Object): Launch site object
             h (float): Time step length
             variable (bool, optional): Adaptive timestep?. Defaults to False.
@@ -343,7 +341,7 @@ class Rocket:
         self.time = 0                           #Time since ignition (seconds)
         self.h = h                              #Time step size (can evolve)
         self.variable_time = variable           #Vary timestep with error (option for ease of debugging)
-        self.orientation = np.array([launch_site.longi*np.pi/180,-launch_site.lat*np.pi/180,0])     #np.array([launch_site.rail_yaw*np.pi/180,(launch_site.rail_pitch)*np.pi/180+np.pi/2-launch_site.lat*np.pi/180,0]) #yaw pitch roll  of the body frame in the inertial frame rad
+        self.orientation = np.array([launch_site.longi*np.pi/180,-launch_site.lat*np.pi/180,0])     +np.array([launch_site.rail_yaw, launch_site.rail_pitch, 0]) #yaw pitch roll  of the body frame in the inertial frame rad
         self.w_i = np.matmul(rot_matrix(self.orientation),np.array([ang_vel_earth,0,0]))            #Angular velocity in inertial coordinates
         self.pos_i = pos_launch_to_inertial(np.array([0,0,0]),launch_site,0)                        #Position in inertial coordinates
         self.v_i = vel_launch_to_inertial([0,0,0],launch_site.lat, launch_site.longi,0,0)           #Velocity in intertial coordinates
@@ -469,14 +467,14 @@ class Rocket:
             thrust = (area_throat*pres_cham*(((2*gamma**2/(gamma-1))
                                              *((2/(gamma+1))**((gamma+1)/(gamma-1)))
                                              *(1-(pres_exit/pres_cham)**((gamma-1)/gamma)))**0.5)
-                     +(pres_exit-pres_static)*area_throat*nozzle_area_ratio)
+                                             +(pres_exit-pres_static)*area_throat*nozzle_area_ratio)
     
             thrust *= nozzle_efficiency
         else:
             #If the engine has finished burning, no thrust is produced
             thrust = 0
             if self.burn_out==False:
-                print("Burnout at %s"%time)
+                print("Burnout at t=%s s"%time)
             self.burn_out=True
         
         #Multiply the thrust by the direction it acts in, and return it.
@@ -552,7 +550,7 @@ class Rocket:
         w_b=np.matmul(rot_matrix(positions[1]).transpose(),velocities[1])
         wdot_b = np.array([(Q_b[0] + (i_b[1] - i_b[2])*w_b[1]*w_b[2]) / i_b[0]
                             ,(Q_b[1] + (i_b[2] - i_b[0])*w_b[2]*w_b[0]) / i_b[1]
-                            ,(Q_b[2] + (i_b[0] - i_b[1])*w_b[0]*w_b[1]) / i_b[2]])                      #Initialise empty array
+                            ,(Q_b[2] + (i_b[0] - i_b[1])*w_b[0]*w_b[1]) / i_b[2]])
         if self.on_rail==True:
             F=np.array([F[0],0,0])
             wdot_b=np.array([wdot_b[0],0,0])
@@ -707,7 +705,7 @@ def vel_inertial_to_launch(velocity,launch_site,time):
     """Converts inertial velocity to velocity in launch frame
     Args:
         velocity (np.array): [x,y,z] Velocity in inertial frame
-        launch_site (LaunchSite): The relivant launch site
+        launch_site (LaunchSite): The relevant launch site
         time (float): Elapsed time from ignition
     Returns:
         Numpy array: Velocity in launch frame
@@ -720,7 +718,7 @@ def vel_launch_to_inertial(velocity,launch_site_lat,launch_site_longi,time,alt):
     """Converts launch frame velocity to velocity in inertial frame
     Args:
         velocity (Numpy array): [x,y,z] velocity in launch frame
-        launch_site (LaunchSite): The relivant launch site
+        launch_site (LaunchSite): The relevant launch site
         time (float): Elapsed time from ignition
     Returns:
         Numpy array: Velocity in inertial frame
@@ -731,6 +729,20 @@ def vel_launch_to_inertial(velocity,launch_site_lat,launch_site_longi,time,alt):
     launch_rot_inertial = np.matmul(rot_matrix([time*ang_vel_earth+launch_site_longi*np.pi/180,0,0]),velocity)
     ##inputlaunch_rot_inertial)
     return launch_rot_inertial+launch_site_velocity
+
+
+def direction_inertial_to_launch(vector,launch_site,time):
+    """Converts inertial direction vector to a direction vector in launch frame
+    Args:
+        vector (np.array): [x,y,z] vector in inertial frame
+        launch_site (LaunchSite): The relevant launch site
+        time (float): Elapsed time from ignition
+    Returns:
+        Numpy array: Vector in launch frame
+    """    
+    inertial_rot_launch = np.matmul(rot_matrix([time*ang_vel_earth+launch_site.longi*np.pi/180,launch_site.lat*np.pi/180+np.pi/2,0],True),vector)
+    return inertial_rot_launch
+
 
 def rot_matrix(orientation,inverse=False):
     """Generates a rotation matrix between frames which are rotated by yaw, pitch and roll specified by orientation
@@ -779,11 +791,11 @@ def run_simulation(rocket):
         launch_position = pos_inertial_to_launch(rocket.pos_i,rocket.launch_site,rocket.time)
         launch_velocity = vel_inertial_to_launch(rocket.v_i,rocket.launch_site,rocket.time)
         aero_forces, cop = rocket.aero_forces(rocket.altitude(rocket.pos_i), rocket.orientation, rocket.pos_i,rocket.v_i, rocket.time)
+        aero_forces_l = direction_inertial_to_launch(rocket.body_to_inertial(aero_forces,rocket.orientation), rocket.launch_site, rocket.time)
         cog = rocket.mass_model.cog(rocket.time)
         orientation = rocket.orientation
-        x_b_l = orientation+np.array([np.pi/2+rocket.launch_site.rail_yaw*np.pi/180+ang_vel_earth*rocket.time,rocket.launch_site.rail_pitch*np.pi/180+np.pi/2-rocket.launch_site.lat*np.pi/180,0])
         x_b_i = rocket.body_to_inertial([1,0,0],rocket.orientation)
-        #x_b_i = vel_inertial_to_launch(x_b_i, rocket.launch_site, rocket.time)
+        x_b_l = direction_inertial_to_launch(x_b_i, rocket.launch_site, rocket.time)
         lin_acc, rot_acc = rocket.acceleration([rocket.pos_i,rocket.orientation], [rocket.v_i, rocket.w_i], rocket.time)
         burnout_time = rocket.motor.motor_time_data[-1]
         new_row={"Time":rocket.time,
@@ -799,14 +811,20 @@ def run_simulation(rocket):
                         "aero_xb":aero_forces[0],
                         "aero_yb":aero_forces[1],
                         "aero_zb":aero_forces[2],
+                        "aero_xl":aero_forces_l[0],
+                        "aero_yl":aero_forces_l[1],
+                        "aero_zl":aero_forces_l[2],
                         "cop":cop,
                         "cog":cog,
                         "orientation_0":orientation[0],
                         "orientation_1":orientation[1],
                         "orientation_2":orientation[2],
-                        "attitude_ix":x_b_i[0],
-                        "attitude_iy":x_b_i[1],
-                        "attitude_iz":x_b_i[2],
+                        "attitude_xi":x_b_i[0],
+                        "attitude_yi":x_b_i[1],
+                        "attitude_zi":x_b_i[2],
+                        "attitude_xl":x_b_l[0],
+                        "attitude_yl":x_b_l[1],
+                        "attitude_zl":x_b_l[2],
                         "rot_acc_xi":rot_acc[0],
                         "rot_acc_yi":rot_acc[1],
                         "rot_acc_zi":rot_acc[2],
@@ -959,7 +977,7 @@ def plot_rot_acc(simulation_output):
     
     plt.show()
 
-def plot_trajectory_3d(simulation_output, show_orientation=False):
+def plot_inertial_trajectory_3d(simulation_output, show_orientation=False):
     '''
     Plots the trajectory in 3D, given the simulation_output
     '''
@@ -980,9 +998,9 @@ def plot_trajectory_3d(simulation_output, show_orientation=False):
     
     #Plot the direction the rocket faces at each point (i.e. direction of x_b), using quivers
     if show_orientation==True:
-        u=simulation_output["attitude_ix"]
-        v=simulation_output["attitude_iy"]
-        w=simulation_output["attitude_iz"]
+        u=simulation_output["attitude_xi"]
+        v=simulation_output["attitude_yi"]
+        w=simulation_output["attitude_zi"]
         
         #Spaced out arrows, so it's not cluttered
         idx = np.round(np.linspace(0, len(u) - 1, int(len(u)/30))).astype(int)
@@ -1010,8 +1028,70 @@ def plot_trajectory_3d(simulation_output, show_orientation=False):
     
     plt.show() 
     
+
+def plot_launch_trajectory_3d(simulation_output, show_orientation=False, show_aero=False, arrow_frequency = 0.02):
+    '''
+    Plots the trajectory in 3D, given the simulation_output
+    '''
+    fig = plt.figure()
+    ax = plt.axes(projection="3d")
     
-def animate(simulation_output):
+    x=simulation_output["x_l"]
+    y=simulation_output["y_l"]
+    z=simulation_output["z_l"]
+    
+    
+    #Plot rocket position and launch site position
+    ax.plot3D(x,y,z)
+    ax.scatter(x[0],y[0],z[0],c='red', label="Launch site")
+    ax.set_xlabel('X Axes')
+    ax.set_ylabel('Y Axes')
+    ax.set_zlabel('Z Axes')  
+
+    
+    #Indenxes to plot arrows at
+    idx = np.round(np.linspace(0, len(x) - 1, arrow_frequency*int(len(x)))).astype(int)
+    
+    #Plot the direction the rocket faces at each point (i.e. direction of x_b), using quivers
+    if show_orientation==True:
+        u=simulation_output["attitude_xl"]
+        v=simulation_output["attitude_yl"]
+        w=simulation_output["attitude_zl"]
+
+        ax.quiver(x[idx], y[idx], z[idx], u[idx], v[idx], w[idx], length=1000, normalize=True, color="red", label="Orientation")
+        
+    if show_aero ==True:
+        aero_x = simulation_output["aero_xl"]
+        aero_y = simulation_output["aero_yl"]
+        aero_z = simulation_output["aero_zl"]
+        
+        ax.quiver(x[idx], y[idx], z[idx], aero_x[idx], 0, 0, length=1000, normalize=True, color="black", label = "Aerodynamic forces")
+        ax.quiver(x[idx], y[idx], z[idx], 0, aero_y[idx], 0, length=1000, normalize=True, color="black")
+        ax.quiver(x[idx], y[idx], z[idx], 0, 0, aero_z[idx], length=1000, normalize=True, color="black")
+ 
+    #Make axes equal ratios - source: https://stackoverflow.com/questions/13685386/matplotlib-equal-unit-length-with-equal-aspect-ratio-z-axis-is-not-equal-to 
+    x_limits = ax.get_xlim3d()
+    y_limits = ax.get_ylim3d()
+    z_limits = ax.get_zlim3d()
+
+    x_range = abs(x_limits[1] - x_limits[0])
+    x_middle = np.mean(x_limits)
+    y_range = abs(y_limits[1] - y_limits[0])
+    y_middle = np.mean(y_limits)
+    z_range = abs(z_limits[1] - z_limits[0])
+    z_middle = np.mean(z_limits)
+
+    # The plot bounding box is a sphere in the sense of the infinity
+    # norm, hence call half the max range the plot radius.
+    plot_radius = 0.5*max([x_range, y_range, z_range])
+    ax.set_xlim3d([x_middle - plot_radius, x_middle + plot_radius])
+    ax.set_ylim3d([y_middle - plot_radius, y_middle + plot_radius])
+    ax.set_zlim3d([z_middle - plot_radius, z_middle + plot_radius])
+    
+    ax.legend()
+    plt.show()     
+     
+def animate_orientation(simulation_output):
     fig, axs = plt.subplots(2, 2)
     
     #Get data
