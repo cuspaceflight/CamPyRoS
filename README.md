@@ -15,7 +15,12 @@ DAVE-ML is a standard for data handeling in simulation software that we should p
 Used for integration algorithm
 
 ## Additional useful papers
+
+#### Dynamics:
+
 https://arxiv.org/pdf/1604.08139.pdf - Ways to integrate angular velocity to get an orientation - includes using quaternions
+
+#### Numerical methods:
 
 https://dl.acm.org/doi/abs/10.1145/2742854.2742894 about improving numerical integration accuracy (probably won't be the largest error - I'd guess the error on the vehicle parameters will be bigger)
 
