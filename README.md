@@ -13,16 +13,22 @@ DAVE-ML is a standard for data handeling in simulation software that we should p
 ### Paper F: [SIX DEGREE OF FREEDOM DIGITAL SIMULATION MODEL FOR UNGUIDED FIN-STABILIZED ROCKETS](https://apps.dtic.mil/dtic/tr/fulltext/u2/452106.pdf)
 ### [Numerical Recipies](https://cloudflare-ipfs.com/ipfs/bafykbzacebqr3dr5pl3o23plmtxhafrin65b2ysk6b4ettofftex5n5gp5efm?filename=William%20H.%20Press%2C%20Saul%20A.%20Teukolsky%2C%20William%20T.%20Vetterling%2C%20Brian%20P.%20Flannery%20-%20Numerical%20recipes_%20the%20art%20of%20scientific%20computing-Cambridge%20University%20Press%20%282007%29.pdf)
 Used for integration algorithm
-### Papers for later
+### Additional useful papers
 https://arxiv.org/pdf/1604.08139.pdf - Ways to integrate angular velocity to get an orientation - includes using quaternions
 
 https://dl.acm.org/doi/abs/10.1145/2742854.2742894 about improving numerical integration accuracy (probably won't be the largest error - I'd guess the error on the vehicle parameters will be bigger)
 
-Modelling varying moments of inertia:
+# Modelling varying moments of inertia:
 
 https://space.stackexchange.com/questions/41931/moment-of-inertia-of-rocket - For modelling how the moments of inertia change as the rocket consumes fuel 
+
 https://aip.scitation.org/doi/pdf/10.1063/1.1722736
+
 https://core.ac.uk/download/pdf/82326535.pdf - This paper says that liquids don't contribute to the roll moment of inertia I think
+
+# Slosh modelling :
+
+https://ntrs.nasa.gov/citations/19670006555 - Chapter 6
 
 We need to make sure to remove all the links to pirated books if we make the repository public. 
 ## Program Workflow
