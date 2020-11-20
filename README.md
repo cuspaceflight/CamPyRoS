@@ -20,6 +20,9 @@ Used for integration algorithm
 
 https://arxiv.org/pdf/1604.08139.pdf - Ways to integrate angular velocity to get an orientation - includes using quaternions
 
+https://www.tu-berlin.de/fileadmin/fg169/miscellaneous/Quaternions.pdf - Introduction into quaternions for spacecraft attitude
+representation
+
 #### Numerical methods:
 
 https://dl.acm.org/doi/abs/10.1145/2742854.2742894 about improving numerical integration accuracy (probably won't be the largest error - I'd guess the error on the vehicle parameters will be bigger)
