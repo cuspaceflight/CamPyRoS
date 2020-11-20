@@ -14,7 +14,7 @@ DAVE-ML is a standard for data handeling in simulation software that we should p
 ### [Numerical Recipies](https://cloudflare-ipfs.com/ipfs/bafykbzacebqr3dr5pl3o23plmtxhafrin65b2ysk6b4ettofftex5n5gp5efm?filename=William%20H.%20Press%2C%20Saul%20A.%20Teukolsky%2C%20William%20T.%20Vetterling%2C%20Brian%20P.%20Flannery%20-%20Numerical%20recipes_%20the%20art%20of%20scientific%20computing-Cambridge%20University%20Press%20%282007%29.pdf)
 Used for integration algorithm
 
-## Additional useful papers
+## Additional papers
 
 #### Dynamics:
 
