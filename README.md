@@ -45,6 +45,8 @@ https://ntrs.nasa.gov/citations/19670006555 - Chapter 6
 
 https://pdfs.semanticscholar.org/ace3/5a61803390b0e0b70f6ca34492ad20a03e03.pdf - Coupling a 6DOF simulation with CFD
 
+https://www.precice.org/ - Precise Code Interaction Coupling Environment - Can be used to couple Python to ANSYS Fluent
+
 http://ohllab.org/CFD_course/index.html - PyCFD
 
 ## Program Workflow
