@@ -14,6 +14,8 @@ DAVE-ML is a standard for data handeling in simulation software that we should p
 ### [Numerical Recipies](https://cloudflare-ipfs.com/ipfs/bafykbzacebqr3dr5pl3o23plmtxhafrin65b2ysk6b4ettofftex5n5gp5efm?filename=William%20H.%20Press%2C%20Saul%20A.%20Teukolsky%2C%20William%20T.%20Vetterling%2C%20Brian%20P.%20Flannery%20-%20Numerical%20recipes_%20the%20art%20of%20scientific%20computing-Cambridge%20University%20Press%20%282007%29.pdf)
 Used for integration algorithm
 
+We need to make sure to remove all the links to pirated books if we make the repository public. 
+
 ## Additional papers
 
 #### Dynamics:
@@ -39,7 +41,11 @@ https://core.ac.uk/download/pdf/82326535.pdf - This paper says that liquids don'
 
 https://ntrs.nasa.gov/citations/19670006555 - Chapter 6
 
-We need to make sure to remove all the links to pirated books if we make the repository public. 
+#### Aerodynamics
+
+https://pdfs.semanticscholar.org/ace3/5a61803390b0e0b70f6ca34492ad20a03e03.pdf - Coupling a 6DOF simulation with CFD
+
+
 ## Program Workflow
 ![Rough flowchart](img/flowchart1.jpeg)
 
