@@ -42,21 +42,9 @@ martlet4 = main.Rocket(mass_model, pulsar, aerodynamic_coefficients, launch_site
 
 '''Run the simulation'''
 simulation_output = main.run_simulation_euler(martlet4)
-#simulation_output.to_csv("results/results_%s.csv"%datetime.now().strftime("%m_%d_%Y_%H_%M_%S"), index=True, mode="w+")
-print(min(simulation_output["h"]),max(simulation_output["h"]))
 
 '''Plot the results'''
-#plot.plot_velocity(simulation_output)
-#plot.plot_altitude_time(simulation_output)
-#plot.plot_aero_forces(simulation_output)
-#plot.plot_orientation(simulation_output)
-#plot.plot_rot_acc(simulation_output)
-#plot.plot_position(simulation_output)
-
-plot.plot_orientation(simulation_output)
-plot.plot_inertial_trajectory_3d(simulation_output, show_orientation=True)
-plot.plot_launch_trajectory_3d(simulation_output, show_orientation=True, show_aero=False)
-
+plot.plot_launch_trajectory_3d(simulation_output, show_orientation=False, show_aero=False)
 plot.animate_orientation(simulation_output)
 
 
