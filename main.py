@@ -110,9 +110,8 @@ class Motor:
 class LaunchSite:
     """Object holding launch site information
     """
-    def __init__(self, rail_length, rail_yaw, rail_pitch,alt, longi, lat, wind=[0,0,0], atmosphere=StandardAtmosphere):
+    def __init__(self, rail_length, rail_north, rail_east,alt, longi, lat, wind=[0,0,0], atmosphere=StandardAtmosphere):
         """Sets up launch site
-
         Args:
             rail_length (float): Length of launch rail m
             rail_yaw (float): Angle of rotation about the z axis (north pointing) rad
@@ -124,8 +123,8 @@ class LaunchSite:
             atmosphere (Atmosphere Object, optional): Atmosphere object. Defaults to StandardAtmosphere.
         """        
         self.rail_length = rail_length
-        self.rail_yaw = rail_yaw 
-        self.rail_pitch = rail_pitch
+        self.rail_north = rail_north
+        self.rail_east = rail_east
         self.alt = alt
         self.longi = longi
         self.lat = lat
@@ -339,7 +338,12 @@ class Rocket:
         self.time = 0                           #Time since ignition (seconds)
         self.h = h                              #Time step size (can evolve)
         self.variable_time = variable           #Vary timestep with error (option for ease of debugging)
-        self.quat_b2i = np.array([0,1,0,0])     #Rotation quaternion for body to inertial frame
+        
+        #Rotation quaternion for body to inertial frame:
+        self.quat_b2i = np.array([np.cos((-launch_site.lat+launch_site.rail_north)*np.pi/180),
+                                  0,
+                                  np.sin(-(launch_site.lat+launch_site.rail_north)*np.pi/180),
+                                  0])     
         self.w_b = ([0,0,0])                                                                        #Angular velocity in inertial coordinates
         self.pos_i = pos_launch_to_inertial(np.array([0,0,0]),launch_site,0)                        #Position in inertial coordinates
         self.vel_i = vel_launch_to_inertial([0,0,0],launch_site.lat, launch_site.longi,0,0)         #Velocity in intertial coordinates
@@ -748,6 +752,18 @@ def direction_inertial_to_launch(vector,launch_site,time):
         Numpy array: Vector in launch frame
     """    
     inertial_rot_launch = np.matmul(rot_matrix([time*ang_vel_earth+launch_site.longi*np.pi/180,launch_site.lat*np.pi/180+np.pi/2,0],True),vector)
+    return inertial_rot_launch
+
+def direction_launch_to_inertial(vector,launch_site,time):
+    """Converts launch direction vector to a direction vector in inertial frame
+    Args:
+        vector (np.array): [x,y,z] vector in inertial frame
+        launch_site (LaunchSite): The relevant launch site
+        time (float): Elapsed time from ignition
+    Returns:
+        Numpy array: Vector in launch frame
+    """    
+    inertial_rot_launch = np.matmul(rot_matrix([time*ang_vel_earth+launch_site.longi*np.pi/180,launch_site.lat*np.pi/180+np.pi/2,0],False),vector)
     return inertial_rot_launch
 
 def rot_matrix(orientation,inverse=False):
