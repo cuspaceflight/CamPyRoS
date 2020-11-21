@@ -216,7 +216,6 @@ def plot_inertial_trajectory_3d(simulation_output, show_orientation=False):
     
     plt.show() 
     
-
 def plot_launch_trajectory_3d(simulation_output, show_orientation=False, show_aero=False, arrow_frequency = 0.02):
     '''
     Plots the trajectory in 3D, given the simulation_output
@@ -283,9 +282,9 @@ def animate_orientation(simulation_output):
     fig, axs = plt.subplots(2, 2)
     
     #Get data
-    yaw=simulation_output["orientation_0"]
-    pitch=simulation_output["orientation_1"]
-    roll=simulation_output["orientation_2"]
+    yaw=simulation_output["yaw"]
+    pitch=simulation_output["pitch"]
+    roll=simulation_output["roll"]
     altitude = simulation_output["z_l"]
 
     time = simulation_output["Time"]
