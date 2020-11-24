@@ -348,7 +348,9 @@ def plot_launch_trajectory_3d(simulation_output, show_orientation=False, show_ae
     ax.legend()
     plt.show()     
      
-def animate_orientation(simulation_output):
+def animate_orientation(simulation_output, frames=500):
+    '''frames : number of animation frames in total - less means that the animations runs faster'''
+
     fig, axs = plt.subplots(2, 2)
     
     #Get data
@@ -359,8 +361,8 @@ def animate_orientation(simulation_output):
 
     time = simulation_output["time"]
     burnout_time = simulation_output["burnout_time"]
-    #Set number of animation frames in total - less means that the animations runs faster
-    frames = 500
+    
+
     
     #Add titles
     axs[0, 0].set_title('Yaw')
