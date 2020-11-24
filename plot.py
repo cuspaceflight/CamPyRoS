@@ -39,17 +39,17 @@ def plot_altitude_time(simulation_output):
     axs[0,0].set_xlabel("East/m")
     axs[0,0].set_ylabel("North/m")
     #plt.text(0,-simulation_output["x"].max(),'$^*$ This is in the fixed cartesian launch frame so will not be actual ground position over large distances',horizontalalignment='left', verticalalignment='center')
-    axs[0, 1].plot(simulation_output["Time"],simulation_output["z_l"], 'tab:orange')
+    axs[0, 1].plot(simulation_output["time"],simulation_output["z_l"], 'tab:orange')
     axs[0, 1].set_title('Altitude')
-    axs[0,1].set_xlabel("Time/s")
+    axs[0,1].set_xlabel("time/s")
     axs[0,1].set_ylabel("Altitude/m")
-    axs[1, 0].plot(simulation_output["Time"],simulation_output.apply(get_velocity_magnitude,axis=1), 'tab:green')
+    axs[1, 0].plot(simulation_output["time"],simulation_output.apply(get_velocity_magnitude,axis=1), 'tab:green')
     axs[1, 0].set_title('Speed')
-    axs[1,0].set_xlabel("Time/s")
+    axs[1,0].set_xlabel("time/s")
     axs[1,0].set_ylabel("Speed/m/s")
-    axs[1, 1].plot(simulation_output["Time"],-simulation_output["vz_l"], 'tab:red')
+    axs[1, 1].plot(simulation_output["time"],simulation_output["vz_l"], 'tab:red')
     axs[1, 1].set_title('Vertical Velocity')
-    axs[1,1].set_xlabel("Time/s")
+    axs[1,1].set_xlabel("time/s")
     axs[1,1].set_ylabel("Velocity/m/s")
     fig.tight_layout()
 
@@ -57,25 +57,25 @@ def plot_altitude_time(simulation_output):
 
 def plot_aero_forces(simulation_output):
     fig, axs = plt.subplots(2, 2)
-    axs[0, 0].plot(simulation_output["Time"], simulation_output["aero_xb"])
+    axs[0, 0].plot(simulation_output["time"], simulation_output["aero_xb"])
     axs[0, 0].set_title('aero_x_b')
-    axs[0,0].set_xlabel("Time/s")
+    axs[0,0].set_xlabel("time/s")
     axs[0,0].set_ylabel("Force/N")
     
-    axs[0, 1].plot(simulation_output["Time"], simulation_output["aero_yb"])
+    axs[0, 1].plot(simulation_output["time"], simulation_output["aero_yb"])
     axs[0, 1].set_title('aero_y_b')
-    axs[0,1].set_xlabel("Time/s")
+    axs[0,1].set_xlabel("time/s")
     axs[0,1].set_ylabel("Force/N")
     
-    axs[1, 0].plot(simulation_output["Time"], simulation_output["aero_zb"])
+    axs[1, 0].plot(simulation_output["time"], simulation_output["aero_zb"])
     axs[1, 0].set_title('aero_z_b')
-    axs[1,0].set_xlabel("Time/s")
+    axs[1,0].set_xlabel("time/s")
     axs[1,0].set_ylabel("Force/N")
     
-    axs[1, 1].plot(simulation_output["Time"], -simulation_output["cop"], label="CoP")
-    axs[1, 1].plot(simulation_output["Time"], -simulation_output["cog"], label="CoG")
-    axs[1, 1].set_title('Centre of Pressure (distance from nose tip)')
-    axs[1,1].set_xlabel("Time/s")
+    axs[1, 1].plot(simulation_output["time"], -simulation_output["cop"], label="CoP")
+    axs[1, 1].plot(simulation_output["time"], -simulation_output["cog"], label="CoG")
+    axs[1, 1].set_title('Centre of Pressure (positive relative to nose tip)')
+    axs[1,1].set_xlabel("time/s")
     axs[1,1].set_ylabel("Distance/m")
     
     axs[1,1].legend()
@@ -85,83 +85,153 @@ def plot_aero_forces(simulation_output):
 def plot_velocity(simulation_output):
     fig, axs = plt.subplots(2, 2)
     
-    axs[0, 0].plot(simulation_output["Time"], simulation_output["vx_l"])
+    axs[0, 0].plot(simulation_output["time"], simulation_output["vx_l"])
     axs[0, 0].set_title('V_x')
-    axs[0,0].set_xlabel("Time/s")
+    axs[0,0].set_xlabel("time/s")
     axs[0,0].set_ylabel("Velocity/m/s")
     
-    axs[0, 1].plot(simulation_output["Time"], simulation_output["vy_l"])
+    axs[0, 1].plot(simulation_output["time"], simulation_output["vy_l"])
     axs[0, 1].set_title('V_y')
-    axs[0,1].set_xlabel("Time/s")
+    axs[0,1].set_xlabel("time/s")
     axs[0,1].set_ylabel("Velocity/m/s")
     
-    axs[1, 0].plot(simulation_output["Time"], simulation_output["vz_l"])
+    axs[1, 0].plot(simulation_output["time"], simulation_output["vz_l"])
     axs[1, 0].set_title('V_z')
-    axs[1,0].set_xlabel("Time/s")
+    axs[1,0].set_xlabel("time/s")
     axs[1,0].set_ylabel("Velocity/m/s")
     plt.show()
 
 def plot_position(simulation_output):
     fig, axs = plt.subplots(2, 2)
     
-    axs[0, 0].plot(simulation_output["Time"], simulation_output["x_l"])
+    axs[0, 0].plot(simulation_output["time"], simulation_output["x_l"])
     axs[0, 0].set_title('x')
-    axs[0,0].set_xlabel("Time/s")
+    axs[0,0].set_xlabel("time/s")
     axs[0,0].set_ylabel("Distance/m")
     
-    axs[0, 1].plot(simulation_output["Time"], simulation_output["y_l"])
+    axs[0, 1].plot(simulation_output["time"], simulation_output["y_l"])
     axs[0, 1].set_title('y')
-    axs[0,1].set_xlabel("Time/s")
+    axs[0,1].set_xlabel("time/s")
     axs[0,1].set_ylabel("Distance/m")
     
-    axs[1, 0].plot(simulation_output["Time"], simulation_output["z_l"])
+    axs[1, 0].plot(simulation_output["time"], simulation_output["z_l"])
     axs[1, 0].set_title('z')
-    axs[1,0].set_xlabel("Time/s")
+    axs[1,0].set_xlabel("time/s")
     axs[1,0].set_ylabel("Distance/m")
     plt.show()
 
-def plot_orientation(simulation_output):
+def plot_ypr(simulation_output):
     fig, axs = plt.subplots(2, 2)
     
-    axs[0, 0].plot(simulation_output["Time"], simulation_output["orientation_0"])
+    axs[0, 0].plot(simulation_output["time"], simulation_output["yaw"])
     axs[0, 0].set_title('Yaw')
-    axs[0,0].set_xlabel("Time/s")
+    axs[0,0].set_xlabel("time/s")
     axs[0,0].set_ylabel("Angles/ rad")
     
-    axs[0, 1].plot(simulation_output["Time"], simulation_output["orientation_1"])
+    axs[0, 1].plot(simulation_output["time"], simulation_output["pitch"])
     axs[0, 1].set_title('Pitch')
-    axs[0,1].set_xlabel("Time/s")
+    axs[0,1].set_xlabel("time/s")
     axs[0,1].set_ylabel("Angles/ rad")
     
-    axs[1, 0].plot(simulation_output["Time"], simulation_output["orientation_2"])
+    axs[1, 0].plot(simulation_output["time"], simulation_output["roll"])
     axs[1, 0].set_title('Roll')
-    axs[1,0].set_xlabel("Time/s")
+    axs[1,0].set_xlabel("time/s")
     axs[1,0].set_ylabel("Angles/ rad")
 
-    axs[1, 1].plot(simulation_output["Time"], simulation_output["z_l"])
+    axs[1, 1].plot(simulation_output["time"], simulation_output["z_l"])
     axs[1, 1].set_title('Altitude')
-    axs[1,1].set_xlabel("Time/s")
+    axs[1,1].set_xlabel("time/s")
     axs[1,1].set_ylabel("Altitude /m")
     
     plt.show()
 
-def plot_rot_acc(simulation_output):
+def plot_w_b(simulation_output):
     fig, axs = plt.subplots(2, 2)
     
-    axs[0, 0].plot(simulation_output["Time"], simulation_output["rot_acc_zi"])
-    axs[0, 0].set_title('rot_acc_xi')
-    axs[0,0].set_xlabel("Time/s")
-    axs[0,0].set_ylabel("Acceleration/ rad s^-2")
+    axs[0, 0].plot(simulation_output["time"], simulation_output["w_bx"])
+    axs[0, 0].set_title('w_bx')
+    axs[0,0].set_xlabel("time/s")
+    axs[0,0].set_ylabel("Angular velocity/ rad s^-1")
     
-    axs[0, 1].plot(simulation_output["Time"], simulation_output["rot_acc_yi"])
-    axs[0, 1].set_title('rot_acc_yi')
-    axs[0,1].set_xlabel("Time/s")
-    axs[0,1].set_ylabel("Acceleration/ rad s^-2")
+    axs[0, 1].plot(simulation_output["time"], simulation_output["w_by"])
+    axs[0, 1].set_title('w_by')
+    axs[0,1].set_xlabel("time/s")
+    axs[0,1].set_ylabel("Angular velocity/ rad s^-1")
     
-    axs[1, 0].plot(simulation_output["Time"], simulation_output["rot_acc_xi"])
-    axs[1, 0].set_title('rot_acc_zi')
-    axs[1,0].set_xlabel("Time/s")
-    axs[1,0].set_ylabel("Acceleration/ rad s^-2")
+    axs[1, 0].plot(simulation_output["time"], simulation_output["w_bz"])
+    axs[1, 0].set_title('w_bz')
+    axs[1,0].set_xlabel("time/s")
+    axs[1,0].set_ylabel("Angular velocity/ rad s^-1")
+    
+    plt.show()
+
+def plot_quat_i2b(simulation_output):
+    fig, axs = plt.subplots(2, 2)
+    
+    axs[0, 0].plot(simulation_output["time"], simulation_output["quat_i2b[0]"])
+    axs[0, 0].set_title('quat_i2b[0]')
+    axs[0,0].set_xlabel("time/s")
+    axs[0,0].set_ylabel("Value")
+    
+    axs[0, 1].plot(simulation_output["time"], simulation_output["quat_i2b[1]"])
+    axs[0, 1].set_title('quat_i2b[1]')
+    axs[0,1].set_xlabel("time/s")
+    axs[0,1].set_ylabel("Value")
+    
+    axs[1, 0].plot(simulation_output["time"], simulation_output["quat_i2b[2]"])
+    axs[1, 0].set_title('quat_i2b[2]')
+    axs[1,0].set_xlabel("time/s")
+    axs[1,0].set_ylabel("Value")
+
+    axs[1, 1].plot(simulation_output["time"], simulation_output["quat_i2b[3]"])
+    axs[1, 1].set_title('quat_i2b[3]')
+    axs[1,1].set_xlabel("time/s")
+    axs[1,1].set_ylabel("Value")
+    
+    plt.show()
+
+def plot_quat_i2bdot(simulation_output):
+    fig, axs = plt.subplots(2, 2)
+    
+    axs[0, 0].plot(simulation_output["time"], simulation_output["quat_i2bdot[0]"])
+    axs[0, 0].set_title('quat_i2bdot[0]')
+    axs[0,0].set_xlabel("time/s")
+    axs[0,0].set_ylabel("Value")
+    
+    axs[0, 1].plot(simulation_output["time"], simulation_output["quat_i2bdot[1]"])
+    axs[0, 1].set_title('quat_i2bdot[1]')
+    axs[0,1].set_xlabel("time/s")
+    axs[0,1].set_ylabel("Value")
+    
+    axs[1, 0].plot(simulation_output["time"], simulation_output["quat_i2bdot[2]"])
+    axs[1, 0].set_title('quat_i2bdot[2]')
+    axs[1,0].set_xlabel("time/s")
+    axs[1,0].set_ylabel("Value")
+
+    axs[1, 1].plot(simulation_output["time"], simulation_output["quat_i2bdot[3]"])
+    axs[1, 1].set_title('quat_i2bdot[3]')
+    axs[1,1].set_xlabel("time/s")
+    axs[1,1].set_ylabel("Value")
+    
+    plt.show()
+
+def plot_wdot_b(simulation_output):
+    fig, axs = plt.subplots(2, 2)
+    
+    axs[0, 0].plot(simulation_output["time"], simulation_output["wdot_bx"])
+    axs[0, 0].set_title('wdot_bx')
+    axs[0,0].set_xlabel("time/s")
+    axs[0,0].set_ylabel("Angular acceleration/ rad s^-2")
+    
+    axs[0, 1].plot(simulation_output["time"], simulation_output["wdot_by"])
+    axs[0, 1].set_title('wdot_by')
+    axs[0,1].set_xlabel("time/s")
+    axs[0,1].set_ylabel("Angular acceleration/ rad s^-2")
+    
+    axs[1, 0].plot(simulation_output["time"], simulation_output["wdot_bz"])
+    axs[1, 0].set_title('wdot_bz')
+    axs[1,0].set_xlabel("time/s")
+    axs[1,0].set_ylabel("Angular acceleration/ rad s^-2")
     
     plt.show()
 
@@ -230,10 +300,10 @@ def plot_launch_trajectory_3d(simulation_output, show_orientation=False, show_ae
     
     #Plot rocket position and launch site position
     ax.plot3D(x,y,z)
-    ax.scatter(x[0],y[0],z[0],c='red', label="Launch site")
-    ax.set_xlabel('X Axes')
-    ax.set_ylabel('Y Axes')
-    ax.set_zlabel('Z Axes')  
+    ax.scatter(x[0],y[0],z[0],c='red', label="Launch site", linewidths="10")
+    ax.set_xlabel('Positive = South')
+    ax.set_ylabel('Positive = East')
+    ax.set_zlabel('Altitude')  
 
     
     #Indenxes to plot arrows at
@@ -287,7 +357,7 @@ def animate_orientation(simulation_output):
     roll=simulation_output["roll"]
     altitude = simulation_output["z_l"]
 
-    time = simulation_output["Time"]
+    time = simulation_output["time"]
     burnout_time = simulation_output["burnout_time"]
     #Set number of animation frames in total - less means that the animations runs faster
     frames = 500
@@ -297,7 +367,7 @@ def animate_orientation(simulation_output):
     axs[0, 1].set_title('Pitch')
     axs[1, 0].set_title('Roll')
     axs[1, 1].set_title('Altitude / m')
-    axs[1, 1].set_xlabel('Time / s')
+    axs[1, 1].set_xlabel('time / s')
     axs[0, 0].grid()
     axs[0, 1].grid()
     axs[1, 0].grid()
