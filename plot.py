@@ -381,7 +381,7 @@ def animate_orientation(simulation_output, frames=500):
     axs[1,0].plot(np.linspace(0,np.cos(roll[0]), 100), np.linspace(0, np.sin(roll[0]), 100), lw=3, color='black')
 
     #Plot the point of engine burnout on the altitude-time graph
-    burnout_index = (np.abs(time - burnout_time)).argmin()
+    burnout_index = (np.abs(time - burnout_time)).idxmin()
     axs[1,1].scatter(time[burnout_index], altitude[burnout_index], color="red", label="Engine burnout")
     axs[1,1].legend()
     
