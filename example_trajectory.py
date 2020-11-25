@@ -3,6 +3,8 @@ from datetime import datetime
 from main import StandardAtmosphere
 import numpy as np
 import matplotlib.pyplot as plt
+import time
+
 
 '''Import data from CSV files'''
 
@@ -35,21 +37,23 @@ radius = 98.5e-3
 '''Create the objects needed to initialise the Rocket object'''
 mass_model = main.CylindricalMassModel(dry_mass + np.array(prop_mass_data), motor_time_data, length, radius)
 pulsar = main.Motor(motor_time_data, prop_mass_data, cham_pres_data, throat_data, gamma_data, nozzle_efficiency_data, exit_pres_data, area_ratio_data)
-launch_site = main.LaunchSite(rail_length=5, rail_yaw=0, rail_pitch=0, alt=0, longi=0, lat=0, wind=[0,0,0], atmosphere=StandardAtmosphere)
+launch_site = main.LaunchSite(rail_length=5, rail_yaw=0, rail_pitch=0, alt=20, long=30, lat=30, wind=[0,0,0], atmosphere=StandardAtmosphere)
 
 '''Create the Rocket object'''
-martlet4 = main.Rocket(mass_model, pulsar, aerodynamic_coefficients, launch_site, 0.05, False)
+martlet4 = main.Rocket(mass_model, pulsar, aerodynamic_coefficients, launch_site, 0.1, False)
 
 '''Run the simulation'''
-simulation_output = main.run_simulation_RK4_debug(martlet4, max_time=30)
+start_time = time.time()
+simulation_output = main.run_simulation_RK4_debug(martlet4, max_time=200)
+print("Simulation run time = {:.2f} s".format(time.time() - start_time))
 
 '''Plot the results'''
 plot.plot_launch_trajectory_3d(simulation_output, show_orientation=True, show_aero=False)
 plot.animate_orientation(simulation_output)
-plot.plot_altitude_time(simulation_output)
+#plot.plot_altitude_time(simulation_output)
 
-plot.plot_w_b(simulation_output)
-plot.plot_wdot_b(simulation_output)
-plot.plot_ypr(simulation_output)
+#plot.plot_w_b(simulation_output)
+#plot.plot_wdot_b(simulation_output)
+#plot.plot_ypr(simulation_output)
 
 
