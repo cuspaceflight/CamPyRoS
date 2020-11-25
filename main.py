@@ -61,7 +61,7 @@ StandardAtmosphere = Atmosphere(adat,ddat,sdat,padat)       #Built-in Standard A
 r_earth = 6378137 #(earth's semimarjor axis in meters)
 #e_earth = 0.081819191 #earth ecentricity
 e_earth = 0 #for simplicity of other calculations for now - if changed need to update the launchsite orientation and velocity transforms
-ang_vel_earth=7.292115090e-5
+ang_vel_earth=7.292115090e-5 #rads / s
 
 class Motor:
     """Object holding the pefoemance data for the engine
@@ -310,8 +310,7 @@ class Rocket:
             launch_site (Launchsite Object): Launch site object
             h (float): Time step length
             variable (bool, optional): Adaptive timestep?. Defaults to False.
-        """        
-
+        """       
         self.launch_site = launch_site                  #LaunchSite object
         self.motor = motor                              #Motor object containing motor data
         self.aero = aero                                #object containing aerodynamic information
@@ -346,7 +345,7 @@ class Rocket:
         self.alt = launch_site.alt                                                   #Altitude
         self.on_rail=True
         self.burn_out=False
-    
+
     def aero_forces(self, b2i, pos_i, velocity, time):
         """Returns aerodynamic forces (in the body reference frame and the distance of the centre of pressure (COP) from the front of the vehicle.)
          Note that:
@@ -650,10 +649,9 @@ class Rocket:
                 )
                 self.on_rail=False
 
-        
+#pos_l2i and pos_i2l HAVE BEEN CHANGED BUT HAS NOT BEEN TESTED        
 def pos_l2i(position,launch_site,time):
     """Converts position in launch frame to position in inertial frame
-    Adapted from https://gist.github.com/mpkuse/d7e2f29952b507921e3da2d7a26d1d93 
 
     Args:
         position (Numpy Array): Position in launch frame
@@ -663,22 +661,20 @@ def pos_l2i(position,launch_site,time):
     Returns:
         Numpy array: Velocity in inertial frame
     """
-    phi = launch_site.lat / 180. * np.pi
-    lambada = (launch_site.longi) / 180. * np.pi
-    h = launch_site.alt
+    #Converting spherical coordinates to Cartesian:
+    #https://math.libretexts.org/Bookshelves/Calculus/Book%3A_Calculus_(OpenStax)/12%3A_Vectors_in_Space/12.7%3A_Cylindrical_and_Spherical_Coordinates#:~:text=To%20convert%20a%20point%20from,y2%2Bz2).
+    
+    pos_launch_site_i = [r_earth * np.sin((90 - launch_site.lat) * np.pi / 180.0) * np.cos(launch_site.longi * np.pi / 180.0 + ang_vel_earth*time),
+                        r_earth * np.sin((90 - launch_site.lat) * np.pi / 180.0) * np.sin(launch_site.longi* np.pi / 180.0 + ang_vel_earth*time),
+                        r_earth * np.cos((90 - launch_site.lat) * np.pi / 180.0)]
 
-    position_rotated = np.matmul(rot_matrix(np.array([0,np.pi/2-phi,lambada]),True),position)
-    e=e_earth
-    q = np.sin( phi )
-    N = r_earth / np.sqrt( 1 - e*e * q*q )
-    X = (N + h) * np.cos( phi ) * np.cos( lambada )+position_rotated[0]
-    Y = (N + h) * np.cos( phi ) * np.sin( lambada )+position_rotated[1]
-    Z = (N*(1-e*e) + h) * np.sin( phi )-position_rotated[2]
-    return np.matmul(rot_matrix(np.array([time*ang_vel_earth,0,0])),np.array([X,Y,Z]))
+    pos_rocket_l = position
+    pos_rocket_i = pos_launch_site_i + direction_l2i(pos_rocket_l, launch_site, time)
+
+    return pos_rocket_i
 
 def pos_i2l(position,launch_site,time):
     """Converts position in inertial frame to position in launch frame
-    Adapted from https://gist.github.com/mpkuse/d7e2f29952b507921e3da2d7a26d1d93 
 
     Args:
         position (Numpy Array): Position in inertial frame
@@ -688,18 +684,19 @@ def pos_i2l(position,launch_site,time):
     Returns:
         Numpy array: Velocity in launch frame
     """
-    phi = launch_site.lat / 180. * np.pi
-    lambada = (launch_site.longi) / 180. * np.pi+time*ang_vel_earth
-    h = launch_site.alt
+    #Converting spherical coordinates to Cartesian:
+    #https://math.libretexts.org/Bookshelves/Calculus/Book%3A_Calculus_(OpenStax)/12%3A_Vectors_in_Space/12.7%3A_Cylindrical_and_Spherical_Coordinates#:~:text=To%20convert%20a%20point%20from,y2%2Bz2).
 
-    e=e_earth
-    q = np.sin( phi )
-    N = r_earth / np.sqrt( 1 - e*e * q*q )
-    X = position[0]-(N + h) * np.cos( phi ) * np.cos( lambada )
-    Y = position[1]-(N + h) * np.cos( phi ) * np.sin( lambada )
-    Z = position[2]-(N*(1-e*e) + h) * np.sin( phi )
-    return np.matmul(rot_matrix(np.array([time*ang_vel_earth,np.pi/2-phi,lambada-time*ang_vel_earth]),True),np.array([X,Y,Z]))
+    pos_launch_site_i = [r_earth * np.sin((90 - launch_site.lat) * np.pi / 180.0) * np.cos(launch_site.longi * np.pi / 180.0 + ang_vel_earth*time),
+                        r_earth * np.sin((90 - launch_site.lat) * np.pi / 180.0) * np.sin(launch_site.longi* np.pi / 180.0 + ang_vel_earth*time),
+                        r_earth * np.cos((90 - launch_site.lat) * np.pi / 180.0)]
 
+    pos_rocket_i = position
+    pos_rocket_l =  direction_i2l(pos_rocket_i - pos_launch_site_i, launch_site, time)
+
+    return pos_rocket_l
+
+#Where is this used?? ("inertial_to_inertial_long_lat")
 def inertial_to_inertial_long_lat(position):
     """ ECEF --> lat (PHI), long (LAMBDA)
     algorithm2 https://hal.archives-ouvertes.fr/hal-01704943v2/document
