@@ -30,14 +30,14 @@ with open('Motor/motor_out.csv') as csvfile:
         exit_pres_data.append(float(row[6]))
         area_ratio_data.append(float(row[7]))      
 
-dry_mass = 60
-length = 6.529
-radius = 98.5e-3
+dry_mass = 60       # kg
+length = 6.529      # m
+radius = 98.5e-3    # m
 
 '''Create the objects needed to initialise the Rocket object'''
 mass_model = main.CylindricalMassModel(dry_mass + np.array(prop_mass_data), motor_time_data, length, radius)
 pulsar = main.Motor(motor_time_data, prop_mass_data, cham_pres_data, throat_data, gamma_data, nozzle_efficiency_data, exit_pres_data, area_ratio_data)
-launch_site = main.LaunchSite(rail_length=5, rail_yaw=0, rail_pitch=0, alt=20, long=30, lat=30, wind=[0,0,0], atmosphere=StandardAtmosphere)
+launch_site = main.LaunchSite(rail_length=5, rail_yaw=20, rail_pitch=10, alt=10, long=44, lat=32, wind=[5,0,0], atmosphere=StandardAtmosphere)
 
 '''Create the Rocket object'''
 martlet4 = main.Rocket(mass_model, pulsar, aerodynamic_coefficients, launch_site, 0.1, False)

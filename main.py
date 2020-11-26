@@ -6,7 +6,7 @@
 COORDINATE SYSTEM NOMENCLATURE
 x_b,y_b,z_b = Body coordinate system (origin on rocket, rotates with the rocket)
 x_i,y_i,z_i = Inertial coordinate system (does not rotate, origin at centre of the Earth)
-x_l, y_l, z_l = Launch site coordinate system - the origin is on launch site but dropped down to a position of ZERO ALTITUDE, rotates with the Earth)
+x_l, y_l, z_l = Launch site coordinate system - the origin is on launch site but dropped down to a position of zero altitude (whilst keeping the same long and lat). Rotates with the Earth.
 
 Directions are defined below.
 - Body:
@@ -58,10 +58,12 @@ with open('atmosphere_data.csv') as csvfile:
 
 StandardAtmosphere = Atmosphere(adat,ddat,sdat,padat)       #Built-in Standard Atmosphere data that you can use
 
-r_earth = 6378137 #(earth's semimarjor axis in meters)
+r_earth = 6378137               #(Earth's semimajor axis in meters)
+ang_vel_earth=7.292115090e-5    #rads / s
+
 #e_earth = 0.081819191 #earth ecentricity
 e_earth = 0 #for simplicity of other calculations for now - if changed need to update the launchsite orientation and velocity transforms
-ang_vel_earth=7.292115090e-5 #rads / s
+
 
 class Motor:
     """Object holding the pefoemance data for the engine
@@ -96,8 +98,8 @@ class LaunchSite:
         """Sets up launch site
         Args:
             rail_length (float): Length of launch rail m
-            rail_yaw (float): Angle of rotation about the z axis (north pointing) rad
-            rail_pitch (float): Angle of rotation about "East" pointing y axis - in order to simplify calculations below this needs to be measured in the yaw then pitch order rad
+            rail_yaw (float): Angle of rotation (using a right hand rule) about the zl axis (i.e. "up") degrees. rail_yaw = 0 points South, rail_yaw = 90 points East.
+            rail_pitch (float): Angle between the rail and the zl axis (i.e. angle to the vertical) degrees. rail_pitch = 0 points up.
             alt (float): Altitude m
             long (float): Longditude degrees
             lat (float): Latitude degrees
@@ -319,26 +321,25 @@ class Rocket:
         self.h = h                              #Time step size (can evolve)
         self.variable_time = variable           #Vary timestep with error (option for ease of debugging)
         
+        #Get the additional bit due to the angling of the rail
+        rail_rotation = Rotation.from_euler('yz', [self.launch_site.rail_pitch, self.launch_site.rail_yaw], degrees=True)
+    
         #Initialise the rocket's orientation - store it in a scipy.spatial.transform.Rotation object 
-        #Remember that the body's x-direction will be in the launch frame's z-direction
-        xb = direction_l2i([0,0,1], self.launch_site, self.time)     #x = where the rocket's 'x' points in the inertial frame
-        yb = direction_l2i([0,1,0], self.launch_site, self.time)     #y for the body is aligned with y for the launch site
-        zb = direction_l2i([1,0,0], self.launch_site, self.time)     #z = where the rocket's 'z' points in the inertial frame
-        #WARNING: IT SEEMS THAT THE ABOVE EQUATIONS DON'T PRODUCE A RIGHT HAND COORDINATE SYSTEM
-        #THIS MEANS "Rotation.from_matrix(mat_b2i)" TRIES TO AUTOCORRECT, BUT DOES IT WRONG
-        
-        zb = np.cross(xb, yb)       #WARNING: THIS IS A STOP GAP SOLUTION TO THE ABOVE PROBLEM - I SUSPECT WE SHOULD CHECK "direction_l2i" TO SEE IF IT WORKS RIGHT
+        xb_l = rail_rotation.apply([0,0,1])
+        yb_l = rail_rotation.apply([0,1,0])
+        zb_l = rail_rotation.apply([-1,0,0])
+
+        xb_i = direction_l2i(xb_l, self.launch_site, self.time)     #xb should point up, and zl points up
+        yb_i = direction_l2i(yb_l, self.launch_site, self.time)     #y for the body is aligned with y for the launch site (both point East)
+        zb_i = direction_l2i(zb_l, self.launch_site, self.time)     #xl points South, zb should point North
 
         mat_b2i = np.zeros([3,3])
-        mat_b2i[:,0] = xb
-        mat_b2i[:,1] = yb
-        mat_b2i[:,2] = zb
+        mat_b2i[:,0] = xb_i
+        mat_b2i[:,1] = yb_i
+        mat_b2i[:,2] = zb_i
         self.b2i = Rotation.from_matrix(mat_b2i)     
 
-        #Get the additional bit due to the angling of the rail
-        #WARNING: I BELIEVE THE "rail_rotation" LINE IS NOT CORRECT
-        rail_rotation = Rotation.from_euler('zy', [self.launch_site.rail_yaw, self.launch_site.rail_pitch], degrees=True)
-        self.b2i = rail_rotation*self.b2i       #Body-to-Inertial Rotation - you can apply it to a vector with self.b2i.apply(vector)
+        self.b2i = self.b2i                     #Body-to-Inertial Rotation - you can apply it to a vector with self.b2i.apply(vector)
         self.i2b = self.b2i.inv()               #Inertial-to-Body Rotation
 
         #Initialise angular positions and angular velocities
@@ -476,7 +477,6 @@ class Rocket:
         """        
         return np.linalg.norm(pos_i)-r_earth
 
-
     def accelerations(self, pos_i, vel_i, w_b, b2i, time):
         """Returns translational and rotational accelerations on the rocket, given the applied forces
 
@@ -500,7 +500,7 @@ class Rocket:
         r_engine_cog_b = (self.mass_model.l - cog)*np.array([-1,0,0])   #Vector (in body coordinates) of nozzle exit, relative to CoG
         r_cop_cog_b = (cop - cog)*np.array([-1,0,0])                    #Vector (in body coordinates) of CoP, relative to CoG
         
-        #Calculate moments in body coordinates using moment = r x F    
+        #Calculate moments in body coordinates using (moment = r x F)    
         aero_moment_b = np.cross(r_cop_cog_b, aero_force_b)
         thrust_moment_b = np.cross(r_engine_cog_b, thrust_b)
         
@@ -511,7 +511,6 @@ class Rocket:
         #Get total force and moment
         F = thrust_i + aero_force_i + self.gravity(time, pos_i)
         Q_b = aero_moment_b + thrust_moment_b   
-        
 
         #Calculate angular velocities using Euler's equations - IIA Engineering, Module 3C5, Rigid body dynamics handout (page 18)
         i_b = np.array([self.mass_model.ixx(time),
@@ -525,12 +524,22 @@ class Rocket:
         #F = ma in inertial coordinates
         lin_acc = F/self.mass_model.mass(time)     
 
-        #WARNING: THE LINES BELOW HAVEN'T BEEN TESTED
+        #If on the rail:
         if self.on_rail==True:
-            xb = b2i.apply([1,0,0])
-            xb = xb/np.linalg.norm(xb)                  #Normalise it just in case (but this step should be unnecessary)
-            lin_acc = np.dot(lin_acc, xb)*xb
+            xb_i = b2i.apply([1,0,0])
+            xb_i = xb_i/np.linalg.norm(xb_i)            #Normalise it just in case (but this step should be unnecessary)
+            lin_acc = np.dot(lin_acc, xb_i)*xb_i        #Make it so we only keep the acceleration along the body's x-direction (i.e. in the forwards direction)
             wdot_b = np.array([0,0,0])                  #Assume no rotational acceleration on the rail
+
+        #For debugging:
+        #vel_l = vel_i2l(self.vel_i, self.launch_site, self.time)
+        #print("vel_l angle to zl = {}".format(180/np.pi * np.arccos(np.dot([0,0,1], vel_l / np.linalg.norm(vel_l)) )))
+
+        #pos_l = pos_i2l(self.pos_i, self.launch_site, self.time)
+        #print("pos_l angle to zl = {}".format(180/np.pi * np.arccos(np.dot([0,0,1], pos_l / np.linalg.norm(pos_l)) )))
+
+        #lin_acc_l = direction_i2l(lin_acc, self.launch_site, self.time)
+        #print("lin_acc angle to zl = {}".format(180/np.pi * np.arccos(np.dot([0,0,1], lin_acc_l / np.linalg.norm(lin_acc_l)) )))
 
         return np.stack([lin_acc, wdot_b])
 
@@ -641,8 +650,11 @@ class Rocket:
 
     def check_phase(self):
         if self.on_rail==True:
-            flight_distance = np.linalg.norm(pos_i2l(self.pos_i,self.launch_site,self.time))
-            if flight_distance>=self.launch_site.rail_length + self.launch_site.alt:
+            #Remember that the launch site's origin is at altitude=0, so the rocket's initial position is [0, 0, self.launch_site.alt] in launch site coordinates
+            flight_distance = np.linalg.norm(pos_i2l(self.pos_i, self.launch_site, self.time) - np.array([0, 0, self.launch_site.alt]))  
+
+            if flight_distance>=self.launch_site.rail_length:            
+
                 print("Cleared rail at t={:.2f} s with alt={:.2f} m and TtW={:.2f}".format(self.time,
                 self.altitude(self.pos_i),
                 np.linalg.norm(self.accelerations(self.pos_i, self.vel_i, self.w_b, self.b2i, self.time)[0])/9.81)
