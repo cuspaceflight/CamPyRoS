@@ -22,12 +22,13 @@ Directions are defined below.
 
 '''
 
-import csv, warnings
+import csv, warnings, os
 import numpy as np
 import scipy.interpolate
 from scipy.spatial.transform import Rotation
 import pandas as pd
 import scipy.integrate as integrate
+from datetime import datetime
 
 def warning_on_one_line(message, category, filename, lineno, file=None, line=None):
     return ' %s:%s: %s:%s' % (filename, lineno, category.__name__, message)
@@ -345,28 +346,32 @@ class Rocket:
         self.atol = atol
         self.rtol = rtol
         
+        #Get the additional bit due to the angling of the rail
+        rail_rotation = Rotation.from_euler('yz', [self.launch_site.rail_pitch, self.launch_site.rail_yaw], degrees=True)
+    
         #Initialise the rocket's orientation - store it in a scipy.spatial.transform.Rotation object 
-        #Remember that the body's x-direction will be in the launch frame's z-direction
-        x = direction_l2i([0,0,1], self.launch_site, self.time)     #x = where the rocket's 'x' points in the inertial frame
-        y = direction_l2i([0,1,0], self.launch_site, self.time)     #y for the body is aligned with y for the launch site
-        z = direction_l2i([1,0,0], self.launch_site, self.time)     #z = where the rocket's 'z' points in the inertial frame
+        xb_l = rail_rotation.apply([0,0,1])
+        yb_l = rail_rotation.apply([0,1,0])
+        zb_l = rail_rotation.apply([-1,0,0])
+
+        xb_i = direction_l2i(xb_l, self.launch_site, self.time)     #xb should point up, and zl points up
+        yb_i = direction_l2i(yb_l, self.launch_site, self.time)     #y for the body is aligned with y for the launch site (both point East)
+        zb_i = direction_l2i(zb_l, self.launch_site, self.time)     #xl points South, zb should point North
 
         mat_b2i = np.zeros([3,3])
-        mat_b2i[:,0] = x
-        mat_b2i[:,1] = y
-        mat_b2i[:,2] = z
-        self.b2i = Rotation.from_matrix(mat_b2i)                            
+        mat_b2i[:,0] = xb_i
+        mat_b2i[:,1] = yb_i
+        mat_b2i[:,2] = zb_i
+        self.b2i = Rotation.from_matrix(mat_b2i)     
 
-        #Get the additional bit due to the angling of the rail
-        rail_rotation = Rotation.from_euler('zy', [self.launch_site.rail_yaw, self.launch_site.rail_pitch], degrees=True)
-        self.b2i = rail_rotation*self.b2i       #Body-to-Inertial Rotation - you can apply it to a vector with self.b2i.apply(vector)
+        self.b2i = self.b2i                     #Body-to-Inertial Rotation - you can apply it to a vector with self.b2i.apply(vector)
         self.i2b = self.b2i.inv()               #Inertial-to-Body Rotation
 
         #Initialise angular positions and angular velocities
         self.pos_i = pos_l2i(np.array([0, 0, launch_site.alt]), launch_site, 0)                      #Position in inertial coordinates - defining the launch site origin as at an altitude of zero
-        self.vel_i = vel_l2i([0,0,0], launch_site, 0)          #Velocity in intertial coordinates
+        self.vel_i = vel_l2i([0,0,0], launch_site, 0)                                                #Velocity in intertial coordinates
 
-        self.w_b = ([0,0,0])                                                         #Angular velocity in body coordinates
+        self.w_b = np.array([0,0,0])                                                 #Angular velocity in body coordinates
         self.alt = launch_site.alt                                                   #Altitude
         self.on_rail=True
         self.burn_out=False
@@ -542,18 +547,14 @@ class Rocket:
             parachute_force=self.parachute_force(q,vel_i-vel_l2i(self.launch_site.wind, self.launch_site, time),self.altitude(pos_i))
             r_parachute_cog_b=(-cog+self.parachute.attatch_distance)*np.array([1,0,0])
             parachute_moments = np.cross(r_parachute_cog_b,parachute_force)
-            F = thrust_i + self.gravity(time, pos_i) + parachute_force
-            Q_b = parachute_moments +thrust_moment_b
         else:
             parachute_force = parachute_moments = np.array([0,0,0])
             r_parachute_cog_b=np.array([0,0,0])
-            F = thrust_i + aero_force_i + self.gravity(time, pos_i)
-            Q_b = aero_moment_b + thrust_moment_b
 
         
         #Get total force and moment
-        #F = thrust_i + aero_force_i + self.gravity(time, pos_i) + parachute_force
-        #Q_b = aero_moment_b + thrust_moment_b + parachute_moments
+        F = thrust_i + aero_force_i + self.gravity(time, pos_i) + parachute_force
+        Q_b = aero_moment_b + thrust_moment_b + parachute_moments
         
         #Calculate angular velocities using Euler's equations - IIA Engineering, Module 3C5, Rigid body dynamics handout (page 18)
         i_b = np.array([self.mass_model.ixx(time),
@@ -630,7 +631,7 @@ class Rocket:
 
         return np.array([vel_i[0],vel_i[1],vel_i[2], acc_i[0],acc_i[1],acc_i[2], w_bdot[0],w_bdot[1],w_bdot[2], xbdot[0],xbdot[1],xbdot[2], ybdot[0],ybdot[1],ybdot[2], zbdot[0],zbdot[1],zbdot[2]])
 
-    def run(self,max_time=300,verbose_log=False,debug=False,):
+    def run(self,max_time=300,verbose_log=False,debug=False,store=False):
         print("Running simulation")
 
         xb = self.b2i.as_matrix()[:,0]
@@ -741,6 +742,11 @@ class Rocket:
             if (c%100==0 and debug==True):
                 print("t={:.2f} s alt={:.2f} km (h={} s). Step number {}".format(self.time, self.altitude(self.pos_i)/1000, integrator.h_abs, c))
             c+=1
+        
+        if store == True:
+            file_name=os.path.join(os.getcwd(),"results/%s.csv"%datetime.now().strftime("%Y%m%d"))
+            with open(file_name, "w+") as f:
+                record.to_csv(path_or_buf=f)
         return record
 
     def check_phase(self):
