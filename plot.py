@@ -121,11 +121,11 @@ def plot_position(simulation_output):
     plt.show()
 
 def fix_ypr(point):
-    if point<0:
+    """if point<0:
         point = 2*np.pi-abs(point)
     point = round(point,5)
     if point==round(2*np.pi,5):
-        point=0
+        point=0"""
     return point
 
 def plot_ypr(simulation_output):
