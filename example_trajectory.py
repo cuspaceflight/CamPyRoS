@@ -38,18 +38,18 @@ radius = 98.5e-3    # m
 mass_model = main.CylindricalMassModel(dry_mass + np.array(prop_mass_data), motor_time_data, length, radius)
 pulsar = main.Motor(motor_time_data, prop_mass_data, cham_pres_data, throat_data, gamma_data, nozzle_efficiency_data, exit_pres_data, area_ratio_data)
 launch_site = main.LaunchSite(rail_length=5, rail_yaw=20, rail_pitch=0, alt=0, longi=0, lat=0, wind=[0,0,0], atmosphere=StandardAtmosphere)
-parachute=main.Parachute(13.9,0.78,1.13,0.78,1000,5)
+parachute=main.Parachute(13.9,0.78,1.13,0.78,1000,0)
 
 '''Create the Rocket object'''
 martlet4 = main.Rocket(mass_model, pulsar, aerodynamic_coefficients, launch_site, h=0.05, variable=True,parachute=parachute,alt_poll_interval=1)
 
 '''Run the simulation'''
-simulation_output = martlet4.run(verbose_log=True, debug=True)
+simulation_output = martlet4.run(verbose_log=True, debug=True, store=True)
 
 '''Plot the results'''
-#plot.plot_launch_trajectory_3d(simulation_output, show_orientation=True, show_aero=False)
+plot.plot_launch_trajectory_3d(simulation_output, show_orientation=True, show_aero=False)
 #plot.animate_orientation(simulation_output)
-plot.plot_altitude_time(simulation_output)
+#plot.plot_altitude_time(simulation_output)
 #plot.plot_w_b(simulation_output)
 #plot.plot_wdot_b(simulation_output)
 plot.plot_ypr(simulation_output)

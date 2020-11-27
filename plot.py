@@ -120,20 +120,28 @@ def plot_position(simulation_output):
     axs[1,0].set_ylabel("Distance/m")
     plt.show()
 
+def fix_ypr(point):
+    if point<0:
+        point = 2*np.pi-abs(point)
+    point = round(point,5)
+    if point==round(2*np.pi,5):
+        point=0
+    return point
+
 def plot_ypr(simulation_output):
     fig, axs = plt.subplots(2, 2)
     
-    axs[0, 0].plot(simulation_output["time"], simulation_output["yaw"])
+    axs[0, 0].plot(simulation_output["time"], [fix_ypr(n) for n in simulation_output["yaw"]])
     axs[0, 0].set_title('Yaw')
     axs[0,0].set_xlabel("time/s")
     axs[0,0].set_ylabel("Angles/ rad")
     
-    axs[0, 1].plot(simulation_output["time"], simulation_output["pitch"])
+    axs[0, 1].plot(simulation_output["time"], [fix_ypr(n) for n in simulation_output["pitch"]])
     axs[0, 1].set_title('Pitch')
     axs[0,1].set_xlabel("time/s")
     axs[0,1].set_ylabel("Angles/ rad")
     
-    axs[1, 0].plot(simulation_output["time"], simulation_output["roll"])
+    axs[1, 0].plot(simulation_output["time"], [fix_ypr(n) for n in simulation_output["roll"]])
     axs[1, 0].set_title('Roll')
     axs[1,0].set_xlabel("time/s")
     axs[1,0].set_ylabel("Angles/ rad")
@@ -292,7 +300,7 @@ def plot_launch_trajectory_3d(simulation_output, show_orientation=False, show_ae
     '''
     fig = plt.figure()
     ax = plt.axes(projection="3d")
-    
+    arrow_frequency_=1/arrow_frequency
     x=simulation_output["x_l"]
     y=simulation_output["y_l"]
     z=simulation_output["z_l"]
@@ -307,7 +315,8 @@ def plot_launch_trajectory_3d(simulation_output, show_orientation=False, show_ae
 
     
     #Indenxes to plot arrows at
-    idx = np.round(np.linspace(0, len(x) - 1, arrow_frequency*int(len(x)))).astype(int)
+
+    idx = np.round(np.linspace(0, len(x) - 1, int(len(x)//arrow_frequency_))).astype(int)
     
     #Plot the direction the rocket faces at each point (i.e. direction of x_b), using quivers
     if show_orientation==True:
