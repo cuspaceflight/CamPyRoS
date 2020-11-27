@@ -347,8 +347,7 @@ class Rocket:
         self.rtol = rtol
         
         #Get the additional bit due to the angling of the rail
-        rail_rotation = Rotation.from_euler('yz', [self.launch_site.rail_pitch, self.launch_site.rail_yaw], degrees=True)
-    
+        rail_rotation = Rotation.from_euler('zyx', [self.launch_site.rail_yaw,self.launch_site.rail_pitch,0], degrees=True)
         #Initialise the rocket's orientation - store it in a scipy.spatial.transform.Rotation object 
         xb_l = rail_rotation.apply([0,0,1])
         yb_l = rail_rotation.apply([0,1,0])
