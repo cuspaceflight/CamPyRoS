@@ -43,7 +43,7 @@ launch_site = main.LaunchSite(rail_length=5, rail_yaw=20, rail_pitch=0, alt=0, l
 martlet4 = main.Rocket(mass_model, pulsar, aerodynamic_coefficients, launch_site, 0.05, True)
 
 '''Run the simulation'''
-simulation_output = martlet4.run(verbose_log=True)
+simulation_output = martlet4.run(verbose_log=True, debug=True)
 
 '''Plot the results'''
 #plot.plot_launch_trajectory_3d(simulation_output, show_orientation=True, show_aero=False)
