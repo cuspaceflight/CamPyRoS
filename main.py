@@ -547,14 +547,22 @@ class Rocket:
         #F = ma in inertial coordinates
         lin_acc = F/self.mass_model.mass(time)
 
-        if abs(wdot_b[0]) > 3:
-            wdot_b[0] = 3*np.sign(wdot_b[0])
-            
-        if abs(wdot_b[1]) > 3:
-            wdot_b[1] = 3*np.sign(wdot_b[1])
-            
-        if abs(wdot_b[2]) > 3:
-            wdot_b[2] = 3*np.sign(wdot_b[2])
+        #If on the rail:
+        if self.on_rail==True:
+            xb_i = b2i.apply([1,0,0])
+            xb_i = xb_i/np.linalg.norm(xb_i)            #Normalise it just in case (but this step should be unnecessary)
+            lin_acc = np.dot(lin_acc, xb_i)*xb_i        #Make it so we only keep the acceleration along the body's x-direction (i.e. in the forwards direction)
+            wdot_b = np.array([0,0,0])                  #Assume no rotational acceleration on the rail
+
+        #For debugging:
+        #vel_l = vel_i2l(self.vel_i, self.launch_site, self.time)
+        #print("vel_l angle to zl = {}".format(180/np.pi * np.arccos(np.dot([0,0,1], vel_l / np.linalg.norm(vel_l)) )))
+
+        #pos_l = pos_i2l(self.pos_i, self.launch_site, self.time)
+        #print("pos_l angle to zl = {}".format(180/np.pi * np.arccos(np.dot([0,0,1], pos_l / np.linalg.norm(pos_l)) )))
+
+        #lin_acc_l = direction_i2l(lin_acc, self.launch_site, self.time)
+        #print("lin_acc angle to zl = {}".format(180/np.pi * np.arccos(np.dot([0,0,1], lin_acc_l / np.linalg.norm(lin_acc_l)) )))
         
         return np.stack([lin_acc, wdot_b])
 
