@@ -95,7 +95,7 @@ class Motor:
 class LaunchSite:
     """Object holding launch site information
     """
-    def __init__(self, rail_length, rail_yaw, rail_pitch, alt, long, lat, wind=[0,0,0], atmosphere=StandardAtmosphere):
+    def __init__(self, rail_length, rail_yaw, rail_pitch, alt, longi, lat, wind=[0,0,0], atmosphere=StandardAtmosphere):
         """Sets up launch site
         Args:
             rail_length (float): Length of launch rail m
@@ -111,7 +111,7 @@ class LaunchSite:
         self.rail_yaw = rail_yaw
         self.rail_pitch = rail_pitch
         self.alt = alt
-        self.long = long
+        self.longi = longi
         self.lat = lat
         self.wind = np.array(wind)
         self.atmosphere = atmosphere
@@ -716,22 +716,20 @@ class Rocket:
 
 
 #pos_l2i and pos_i2l HAVE BEEN CHANGED BUT HAS NOT BEEN TESTED        
-def pos_l2i(position,launch_site,time):
+def pos_l2i(pos_l, launch_site,time):
     """Converts position in launch frame to position in inertial frame
-
     Args:
         position (Numpy Array): Position in launch frame
         launch_site (LaunchSite): The relivant launch site
         time (float): Elapsed time from ignition
-
     Returns:
         Numpy array: Velocity in inertial frame
     """
     #Converting spherical coordinates to Cartesian:
     #https://math.libretexts.org/Bookshelves/Calculus/Book%3A_Calculus_(OpenStax)/12%3A_Vectors_in_Space/12.7%3A_Cylindrical_and_Spherical_Coordinates#:~:text=To%20convert%20a%20point%20from,y2%2Bz2).
 
-    pos_launch_site_i = [r_earth * np.sin((90 - launch_site.lat) * np.pi / 180.0) * np.cos(launch_site.long * np.pi / 180.0 + ang_vel_earth*time),
-                        r_earth * np.sin((90 - launch_site.lat) * np.pi / 180.0) * np.sin(launch_site.long* np.pi / 180.0 + ang_vel_earth*time),
+    pos_launch_site_i = [r_earth * np.sin((90 - launch_site.lat) * np.pi / 180.0) * np.cos(launch_site.longi * np.pi / 180.0 + ang_vel_earth*time),
+                        r_earth * np.sin((90 - launch_site.lat) * np.pi / 180.0) * np.sin(launch_site.longi* np.pi / 180.0 + ang_vel_earth*time),
                         r_earth * np.cos((90 - launch_site.lat) * np.pi / 180.0)]
     
     #print("r_launch_site - r_earth = {}".format(np.linalg.norm(pos_launch_site_i) - r_earth))
@@ -744,20 +742,18 @@ def pos_l2i(position,launch_site,time):
 
 def pos_i2l(position,launch_site,time):
     """Converts position in inertial frame to position in launch frame
-
     Args:
         position (Numpy Array): Position in inertial frame
         launch_site (LaunchSite): The relivant launch site
         time (float): Elapsed time from ignition
-
     Returns:
         Numpy array: Velocity in launch frame
     """
     #Converting spherical coordinates to Cartesian:
     #https://math.libretexts.org/Bookshelves/Calculus/Book%3A_Calculus_(OpenStax)/12%3A_Vectors_in_Space/12.7%3A_Cylindrical_and_Spherical_Coordinates#:~:text=To%20convert%20a%20point%20from,y2%2Bz2).
 
-    pos_launch_site_i = [r_earth * np.sin((90 - launch_site.lat) * np.pi / 180.0) * np.cos(launch_site.long * np.pi / 180.0 + ang_vel_earth*time),
-                        r_earth * np.sin((90 - launch_site.lat) * np.pi / 180.0) * np.sin(launch_site.long* np.pi / 180.0 + ang_vel_earth*time),
+    pos_launch_site_i = [r_earth * np.sin((90 - launch_site.lat) * np.pi / 180.0) * np.cos(launch_site.longi * np.pi / 180.0 + ang_vel_earth*time),
+                        r_earth * np.sin((90 - launch_site.lat) * np.pi / 180.0) * np.sin(launch_site.longi* np.pi / 180.0 + ang_vel_earth*time),
                         r_earth * np.cos((90 - launch_site.lat) * np.pi / 180.0)]
 
     pos_rocket_i = position
@@ -765,7 +761,7 @@ def pos_i2l(position,launch_site,time):
 
     return pos_rocket_l
 
-def vel_i2l(velocity, launch_site, time):
+def vel_i2l(vel_i, launch_site, time):
     """Converts inertial velocity to velocity in launch frame
     Args:
         velocity (np.array): [x,y,z] Velocity in inertial frame
@@ -776,8 +772,8 @@ def vel_i2l(velocity, launch_site, time):
     """    
     
     w_earth = np.array([0, 0, ang_vel_earth])
-    pos_launch_site_i = [r_earth * np.sin((90 - launch_site.lat) * np.pi / 180.0) * np.cos(launch_site.long * np.pi / 180.0 + ang_vel_earth*time),
-                    r_earth * np.sin((90 - launch_site.lat) * np.pi / 180.0) * np.sin(launch_site.long* np.pi / 180.0 + ang_vel_earth*time),
+    pos_launch_site_i = [r_earth * np.sin((90 - launch_site.lat) * np.pi / 180.0) * np.cos(launch_site.longi * np.pi / 180.0 + ang_vel_earth*time),
+                    r_earth * np.sin((90 - launch_site.lat) * np.pi / 180.0) * np.sin(launch_site.longi* np.pi / 180.0 + ang_vel_earth*time),
                     r_earth * np.cos((90 - launch_site.lat) * np.pi / 180.0)]
 
     # v = w x r for a rigid body, where v, w and r are vectors
@@ -795,8 +791,8 @@ def vel_l2i(vel_l, launch_site, time):
         Numpy array: Velocity in inertial frame
     """    
     w_earth = np.array([0, 0, ang_vel_earth])
-    pos_launch_site_i = [r_earth * np.sin((90 - launch_site.lat) * np.pi / 180.0) * np.cos(launch_site.long * np.pi / 180.0 + ang_vel_earth*time),
-                        r_earth * np.sin((90 - launch_site.lat) * np.pi / 180.0) * np.sin(launch_site.long* np.pi / 180.0 + ang_vel_earth*time),
+    pos_launch_site_i = [r_earth * np.sin((90 - launch_site.lat) * np.pi / 180.0) * np.cos(launch_site.longi * np.pi / 180.0 + ang_vel_earth*time),
+                        r_earth * np.sin((90 - launch_site.lat) * np.pi / 180.0) * np.sin(launch_site.longi* np.pi / 180.0 + ang_vel_earth*time),
                         r_earth * np.cos((90 - launch_site.lat) * np.pi / 180.0)]
 
     # v = w x r for a rigid body, where v, w and r are vectors
@@ -816,7 +812,7 @@ def direction_i2l(vector, launch_site, time):
     """   
 
     #I have no idea why we need the negatives in front of the yaw and pitch - but it seems to give the right answers
-    return Rotation.from_euler('zy', [-launch_site.long - (180/np.pi)*ang_vel_earth*time, -90 + launch_site.lat], degrees=True).apply(vector)
+    return Rotation.from_euler('zy', [-launch_site.longi - (180/np.pi)*ang_vel_earth*time, -90 + launch_site.lat], degrees=True).apply(vector)
 
 def direction_l2i(vector, launch_site, time):
     """Converts launch direction vector to a direction vector in inertial frame
@@ -827,8 +823,9 @@ def direction_l2i(vector, launch_site, time):
     Returns:
         Numpy array: Vector in launch frame
     """    
-    inertial_rot_launch = np.matmul(rot_matrix([time*ang_vel_earth+launch_site.longi*np.pi/180,launch_site.lat*np.pi/180+np.pi/2,0],False),vector)
-    return inertial_rot_launch
+    #I have no idea why we need the negatives in front of the yaw and pitch
+    return Rotation.from_euler('zy', [-launch_site.longi - (180/np.pi)*ang_vel_earth*time, -90 + launch_site.lat], degrees=True).inv().apply(vector)
+
 
 def rot_matrix(ypr, inverse=False):
     """Generates a rotation matrix between frames which are rotated by yaw, pitch and roll specified by orientation
