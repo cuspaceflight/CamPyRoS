@@ -29,7 +29,10 @@ from scipy.spatial.transform import Rotation
 import pandas as pd
 import scipy.integrate as integrate
 
+def warning_on_one_line(message, category, filename, lineno, file=None, line=None):
+    return ' %s:%s: %s:%s' % (filename, lineno, category.__name__, message)
 
+warnings.formatwarning = warning_on_one_line
 class Atmosphere:
     """Object holding atmospheric data
     """    
@@ -374,13 +377,13 @@ class Rocket:
         beta_star = np.angle(1j*v_rel_wind[1] + v_rel_wind[0])
         
         #If the angle of attack is too high, our linearised model will be inaccurate
-        """if delta>2*np.pi*6/360:
-            print("WARNING: delta = {:.2f} (Large angle of attack)".format(360*delta/(2*np.pi)))
+        if delta>2*np.pi*6/360:
+            warnings.warn("delta = {:.2f} (Large angle of attack)".format(360*delta/(2*np.pi)))
         if alpha_star>2*np.pi*6/360:
-            print("WARNING: alpha* = {:.2f} (Large angle of attack)".format(360*alpha_star/(2*np.pi)))
+            warnings.warn("alpha* = {:.2f} (Large angle of attack)".format(360*alpha_star/(2*np.pi)))
         if beta>2*np.pi*6/360:
-            print("WARNING: beta = {:.2f} (Large angle of attack)".format(360*beta/(2*np.pi)))
-        """
+            warnings.warn("beta = {:.2f} (Large angle of attack)".format(360*beta/(2*np.pi)))
+        
         #Dynamic pressure at the current altitude and velocity - WARNING: Am I using the right density?
         q = 0.5*np.interp(alt, self.launch_site.atmosphere.adat, self.launch_site.atmosphere.ddat)*(v_a**2)
         
@@ -587,7 +590,6 @@ class Rocket:
         return np.array([vel_i[0],vel_i[1],vel_i[2], acc_i[0],acc_i[1],acc_i[2], w_bdot[0],w_bdot[1],w_bdot[2], xbdot[0],xbdot[1],xbdot[2], ybdot[0],ybdot[1],ybdot[2], zbdot[0],zbdot[1],zbdot[2]])
 
     def run(self,max_time=300,verbose_log=False,debug=False,):
-        d,c=0,0
         print("Running simulation")
 
         xb = self.b2i.as_matrix()[:,0]
@@ -598,7 +600,7 @@ class Rocket:
         integrator = integrate.DOP853(self.fdot,0,fn,1000,atol=self.atol,rtol=self.rtol)
 
         record=pd.DataFrame({})
-
+        c=0
         while (self.altitude(self.pos_i)>=0 and self.time<max_time):
             if self.variable_time==False:
                 integrator.h_abs=self.h
@@ -695,11 +697,9 @@ class Rocket:
                 new_row.update(verbose_info)
 
             record=record.append(new_row, ignore_index=True)
-            if d==1000:
-                print("t={:.2f} s alt={:.2f} km (h={} s)".format(self.time, self.altitude(self.pos_i)/1000, integrator.h_abs))
-                d=0
+            if (c%100==0 and debug==True):
+                print("t={:.2f} s alt={:.2f} km (h={} s). Step number {}".format(self.time, self.altitude(self.pos_i)/1000, integrator.h_abs, c))
             c+=1
-            d+=1
         return record
 
     def check_phase(self):
