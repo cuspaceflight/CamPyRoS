@@ -6,7 +6,7 @@
 COORDINATE SYSTEM NOMENCLATURE
 x_b,y_b,z_b = Body coordinate system (origin on rocket, rotates with the rocket)
 x_i,y_i,z_i = Inertial coordinate system (does not rotate, origin at centre of the Earth)
-x_l, y_l, z_l = Launch site coordinate system (origin on launch site, rotates with the Earth)
+x_l, y_l, z_l = Launch site coordinate system - the origin is on launch site but dropped down to a position of zero altitude (whilst keeping the same long and lat). Rotates with the Earth.
 
 Directions are defined below.
 - Body:
@@ -301,8 +301,8 @@ def plot_launch_trajectory_3d(simulation_output, show_orientation=False, show_ae
     #Plot rocket position and launch site position
     ax.plot3D(x,y,z)
     ax.scatter(x[0],y[0],z[0],c='red', label="Launch site", linewidths="10")
-    ax.set_xlabel('Positive = South')
-    ax.set_ylabel('Positive = East')
+    ax.set_xlabel('South')
+    ax.set_ylabel('East')
     ax.set_zlabel('Altitude')  
 
     
