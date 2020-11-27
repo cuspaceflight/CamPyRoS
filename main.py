@@ -327,28 +327,32 @@ class Rocket:
         self.atol = atol
         self.rtol = rtol
         
+        #Get the additional bit due to the angling of the rail
+        rail_rotation = Rotation.from_euler('yz', [self.launch_site.rail_pitch, self.launch_site.rail_yaw], degrees=True)
+    
         #Initialise the rocket's orientation - store it in a scipy.spatial.transform.Rotation object 
-        #Remember that the body's x-direction will be in the launch frame's z-direction
-        x = direction_l2i([0,0,1], self.launch_site, self.time)     #x = where the rocket's 'x' points in the inertial frame
-        y = direction_l2i([0,1,0], self.launch_site, self.time)     #y for the body is aligned with y for the launch site
-        z = direction_l2i([1,0,0], self.launch_site, self.time)     #z = where the rocket's 'z' points in the inertial frame
+        xb_l = rail_rotation.apply([0,0,1])
+        yb_l = rail_rotation.apply([0,1,0])
+        zb_l = rail_rotation.apply([-1,0,0])
+
+        xb_i = direction_l2i(xb_l, self.launch_site, self.time)     #xb should point up, and zl points up
+        yb_i = direction_l2i(yb_l, self.launch_site, self.time)     #y for the body is aligned with y for the launch site (both point East)
+        zb_i = direction_l2i(zb_l, self.launch_site, self.time)     #xl points South, zb should point North
 
         mat_b2i = np.zeros([3,3])
-        mat_b2i[:,0] = x
-        mat_b2i[:,1] = y
-        mat_b2i[:,2] = z
-        self.b2i = Rotation.from_matrix(mat_b2i)                            
+        mat_b2i[:,0] = xb_i
+        mat_b2i[:,1] = yb_i
+        mat_b2i[:,2] = zb_i
+        self.b2i = Rotation.from_matrix(mat_b2i)     
 
-        #Get the additional bit due to the angling of the rail
-        rail_rotation = Rotation.from_euler('zy', [self.launch_site.rail_yaw, self.launch_site.rail_pitch], degrees=True)
-        self.b2i = rail_rotation*self.b2i       #Body-to-Inertial Rotation - you can apply it to a vector with self.b2i.apply(vector)
+        self.b2i = self.b2i                     #Body-to-Inertial Rotation - you can apply it to a vector with self.b2i.apply(vector)
         self.i2b = self.b2i.inv()               #Inertial-to-Body Rotation
 
         #Initialise angular positions and angular velocities
         self.pos_i = pos_l2i(np.array([0, 0, launch_site.alt]), launch_site, 0)                      #Position in inertial coordinates - defining the launch site origin as at an altitude of zero
-        self.vel_i = vel_l2i([0,0,0], launch_site, 0)          #Velocity in intertial coordinates
+        self.vel_i = vel_l2i([0,0,0], launch_site, 0)                                                #Velocity in intertial coordinates
 
-        self.w_b = ([0,0,0])                                                         #Angular velocity in body coordinates
+        self.w_b = np.array([0,0,0])                                                 #Angular velocity in body coordinates
         self.alt = launch_site.alt                                                   #Altitude
         self.on_rail=True
         self.burn_out=False
@@ -376,13 +380,13 @@ class Rocket:
         alpha_star = np.angle(1j*v_rel_wind[2] + (v_rel_wind[0]**2 + v_rel_wind[1]**2 )**0.5 )
         beta_star = np.angle(1j*v_rel_wind[1] + v_rel_wind[0])
         
-        #If the angle of attack is too high, our linearised model will be inaccurate
+        """#If the angle of attack is too high, our linearised model will be inaccurate
         if delta>2*np.pi*6/360:
             warnings.warn("delta = {:.2f} (Large angle of attack)".format(360*delta/(2*np.pi)))
         if alpha_star>2*np.pi*6/360:
             warnings.warn("alpha* = {:.2f} (Large angle of attack)".format(360*alpha_star/(2*np.pi)))
         if beta>2*np.pi*6/360:
-            warnings.warn("beta = {:.2f} (Large angle of attack)".format(360*beta/(2*np.pi)))
+            warnings.warn("beta = {:.2f} (Large angle of attack)".format(360*beta/(2*np.pi)))"""
         
         #Dynamic pressure at the current altitude and velocity - WARNING: Am I using the right density?
         q = 0.5*np.interp(alt, self.launch_site.atmosphere.adat, self.launch_site.atmosphere.ddat)*(v_a**2)
