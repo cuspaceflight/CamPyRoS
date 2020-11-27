@@ -1,12 +1,10 @@
-"""6DOF Martlet trajectory simulator"""
-'''Contains classes and functions used to run trajectory simulations'''
-'''All units in SI unless otherwise stated'''
-
-'''
+"""6DOF Martlet trajectory simulator
+Contains classes and functions used to run trajectory simulations
+All units in SI unless otherwise stated
 COORDINATE SYSTEM NOMENCLATURE
 x_b,y_b,z_b = Body coordinate system (origin on rocket, rotates with the rocket)
 x_i,y_i,z_i = Inertial coordinate system (does not rotate, origin at centre of the Earth)
-x_l, y_l, z_l = Launch site coordinate system (origin on launch site, rotates with the Earth)
+x_l, y_l, z_l = Launch site coordinate system - the origin is on launch site but dropped down to a position of zero altitude (whilst keeping the same long and lat). Rotates with the Earth.
 
 Directions are defined below.
 - Body:
@@ -19,8 +17,7 @@ Directions are defined below.
 - Inertial:
     Origin at centre of the Earth
     z points to north from centre of earth, x aligned with launchsite at start and y orthogonal
-
-'''
+"""
 
 import csv, warnings, os
 import numpy as np
@@ -347,7 +344,8 @@ class Rocket:
         self.rtol = rtol
         
         #Get the additional bit due to the angling of the rail
-        rail_rotation = Rotation.from_euler('zyx', [self.launch_site.rail_yaw,self.launch_site.rail_pitch,0], degrees=True)
+        rail_rotation = Rotation.from_euler('yz', [self.launch_site.rail_pitch, self.launch_site.rail_yaw], degrees=True)
+    
         #Initialise the rocket's orientation - store it in a scipy.spatial.transform.Rotation object 
         xb_l = rail_rotation.apply([0,0,1])
         yb_l = rail_rotation.apply([0,1,0])
