@@ -3,6 +3,8 @@ from datetime import datetime
 from main import StandardAtmosphere
 import numpy as np
 import matplotlib.pyplot as plt
+import time
+
 
 '''Import data from CSV files'''
 
@@ -28,9 +30,9 @@ with open('Motor/motor_out.csv') as csvfile:
         exit_pres_data.append(float(row[6]))
         area_ratio_data.append(float(row[7]))      
 
-dry_mass = 60
-length = 6.529
-radius = 98.5e-3
+dry_mass = 60       # kg
+length = 6.529      # m
+radius = 98.5e-3    # m
 
 '''Create the objects needed to initialise the Rocket object'''
 mass_model = main.CylindricalMassModel(dry_mass + np.array(prop_mass_data), motor_time_data, length, radius)
