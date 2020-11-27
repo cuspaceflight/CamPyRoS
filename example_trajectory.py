@@ -49,8 +49,8 @@ simulation_output = martlet4.run(verbose_log=True)
 #plot.plot_launch_trajectory_3d(simulation_output, show_orientation=True, show_aero=False)
 #plot.animate_orientation(simulation_output)
 plot.plot_altitude_time(simulation_output)
-plot.plot_w_b(simulation_output)
-plot.plot_wdot_b(simulation_output)
+#plot.plot_w_b(simulation_output)
+#plot.plot_wdot_b(simulation_output)
 plot.plot_ypr(simulation_output)
 
 
