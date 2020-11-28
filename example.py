@@ -1,6 +1,7 @@
-import main,plot,csv
+import trajectory.main as main
+import plot,csv
 from datetime import datetime
-from main import StandardAtmosphere
+from trajectory.main import StandardAtmosphere
 import numpy as np
 import matplotlib.pyplot as plt
 import time
