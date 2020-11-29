@@ -50,7 +50,7 @@ class Atmosphere:
         self.sdat = sdat
         self.padat = padat
 
-with open('atmosphere_data.csv') as csvfile:
+with open('data/atmosphere_data.csv') as csvfile:
     standard_atmo_data = csv.reader(csvfile)
     adat, ddat, sdat, padat = [], [], [], []
     next(standard_atmo_data)
