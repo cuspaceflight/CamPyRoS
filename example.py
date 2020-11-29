@@ -1,5 +1,5 @@
 import trajectory.main as main
-import plot,csv
+import trajectory.plot,csv
 from datetime import datetime
 from trajectory.main import StandardAtmosphere
 import numpy as np
@@ -10,7 +10,7 @@ import time
 '''Import data from CSV files'''
 
 #Import drag coefficients from RasAero II
-aerodynamic_coefficients = main.RasAeroData("Martlet4 RasAeroII.CSV")
+aerodynamic_coefficients = main.RasAeroData("data/Martlet4RasAeroII.CSV")
 
 #Import motor data - copied from Joe Hunt's simulation
 with open('Motor/motor_out.csv') as csvfile:
@@ -49,9 +49,9 @@ simulation_output = martlet4.run(verbose_log=True, debug=True)
 '''Plot the results'''
 #plot.plot_launch_trajectory_3d(simulation_output, show_orientation=True, show_aero=False)
 #plot.animate_orientation(simulation_output)
-plot.plot_altitude_time(simulation_output)
+trajectory.plot.plot_altitude_time(simulation_output)
 #plot.plot_w_b(simulation_output)
 #plot.plot_wdot_b(simulation_output)
-plot.plot_ypr(simulation_output)
+trajectory.plot.plot_ypr(simulation_output)
 
 

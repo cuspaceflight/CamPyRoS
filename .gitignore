@@ -3,3 +3,5 @@
 *.pyc
 results/
 __pycache__/
+documentation/Moment of Inertia Liquid Calculation.pdn
+documentation/Cylinder Definitions.pdn
