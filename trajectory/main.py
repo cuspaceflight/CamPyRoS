@@ -1,28 +1,47 @@
-"""6DOF Martlet trajectory simulator"""
-'''Contains classes and functions used to run trajectory simulations'''
-'''All units in SI unless otherwise stated'''
+"""6DOF Trajectory Simulator
 
-'''
-COORDINATE SYSTEM NOMENCLATURE
-x_b,y_b,z_b = Body coordinate system (origin on rocket, rotates with the rocket)
-x_i,y_i,z_i = Inertial coordinate system (does not rotate, origin at centre of the Earth)
-x_l, y_l, z_l = Launch site coordinate system (origin on launch site, rotates with the Earth)
+Contains the classes and functions for the core trajectory simulation
 
-Directions are defined below.
-- Body:
-    y points east and z north at take off (before rail alignment is accounted for) x up.
-    x is along the "long" axis of the rocket.
+Example
+-------
+Example of a small, single stage rocket can be found in examples, to run
+        $ python example/example.py
 
-- Launch site:
-    z points perpendicular to the earth, y in the east direction and x tangential to the earth pointing south
-    
-- Inertial:
-    Origin at centre of the Earth
-    z points to north from centre of earth, x aligned with launchsite at start and y orthogonal
+Notes
+-----
+    SI units unless stated otherwise
+    Coordinate systems:
+    x_b,y_b,z_b = Body coordinate system (origin on rocket, rotates with the rocket)
+    x_i,y_i,z_i = Inertial coordinate system (does not rotate, origin at centre of the Earth)
+    x_l, y_l, z_l = Launch site coordinate system (origin on launch site, rotates with the Earth)
 
-'''
+    Directions are defined below.
+    - Body:
+        y points east and z north at take off (before rail alignment is accounted for) x up.
+        x is along the "long" axis of the rocket.
 
-import csv, warnings
+    - Launch site:
+        z points perpendicular to the earth, y in the east direction and x tangential to the earth pointing south
+        
+    - Inertial:
+        Origin at centre of the Earth
+        z points to north from centre of earth, x aligned with launchsite at start and y orthogonal
+
+
+Attributes
+----------
+StandardAtmosphere : Atmospher Object
+    Stores the profile of the 1973 standard atmosphere
+r_earth : float
+    Radius of Earth/m
+e_earth : float
+    Eccentricitu of the Earth, currently set to zero to simplify calculations (i.e. spherical Earth model is being used)
+ang_vel_earth : float
+    The angular velocity of the Earth
+
+"""
+
+import csv, warnings, os, sys
 import numpy as np
 import scipy.interpolate
 from scipy.spatial.transform import Rotation
@@ -30,27 +49,42 @@ import pandas as pd
 import scipy.integrate as integrate
 
 def warning_on_one_line(message, category, filename, lineno, file=None, line=None):
-    return ' %s:%s: %s:%s' % (filename, lineno, category.__name__, message)
+    return ' %s:%s: %s:%s\n' % (filename, lineno, category.__name__, message)
 
 warnings.formatwarning = warning_on_one_line
 class Atmosphere:
-    """Object holding atmospheric data
-    """    
-    def __init__(self, adat, ddat, sdat, padat): 
-        """[summary]
+    """Object storing the parameters of an atmosphere
 
-        Args:
-            adat (list): Altitude m
-            ddat (list): Density kg/m^3
-            sdat (list): Speed of Sound m/s
-            padat (list): Pressure Pa
-        """        
+    Parameters
+    ----------
+    adat : list
+        Altitude /m
+    ddat : list
+        Density /kg/m^3
+    sdat : list
+        Speed of sound /m/s
+    padat : list
+        Pressure /Pa
+
+    Attributes
+    ----------
+    adat : list
+        Altitude /m
+    ddat : list
+        Density /kg/m^3
+    sdat : list
+        Speed of sound /m/s
+    padat : list
+        Pressure /Pa
+
+    """  
+    def __init__(self, adat, ddat, sdat, padat):               
         self.adat = adat
         self.ddat = ddat
         self.sdat = sdat
         self.padat = padat
 
-with open('data/atmosphere_data.csv') as csvfile:
+with open(os.path.abspath("..")+'/data/atmosphere_data.csv') as csvfile:
     standard_atmo_data = csv.reader(csvfile)
     adat, ddat, sdat, padat = [], [], [], []
     next(standard_atmo_data)
@@ -60,7 +94,7 @@ with open('data/atmosphere_data.csv') as csvfile:
         sdat.append(float(row[2]))
         padat.append(float(row[3]))
 
-StandardAtmosphere = Atmosphere(adat,ddat,sdat,padat)       #Built-in Standard Atmosphere data that you can use
+StandardAtmosphere = Atmosphere(adat,ddat,sdat,padat)
 
 r_earth = 6378137 #(earth's semimarjor axis in meters)
 #e_earth = 0.081819191 #earth ecentricity
@@ -94,20 +128,48 @@ class Motor:
         self.area_ratio_data = area_ratio_data
 
 class LaunchSite:
-    """Object holding launch site information
+    """Object holding the launch site information
+
+    Parameters
+    ----------
+    rail_length : float
+        Length of launch rail /m
+    rail_yaw : float
+        Angle of rotation about the z axis (north pointing) /rad
+    rail_pitch : float
+        Angle of rotation about "East" pointing y axis - in order to simplify calculations below this needs to be measured in the yaw then pitch order rad
+    alt : float
+        Altitude /m
+    longi : float
+        Londditude /degrees
+    lat : float
+        Latitude /degrees
+    wind : list, optional
+        Wind vector at launch site. Defaults to [0,0,0]. Will increase completness/complexity at some point to include at least altitude variation.
+    atmosphere : Atmosphere object, optional
+        Defaults to StandardAtmsophere
+
+    Attributes
+    ----------
+    rail_length : float
+        Length of launch rail /m
+    rail_yaw : float
+        Angle of rotation about the z axis (north pointing) /rad
+    rail_pitch : float
+        Angle of rotation about "East" pointing y axis - in order to simplify calculations below this needs to be measured in the yaw then pitch order rad
+    alt : float
+        Altitude /m
+    longi : float
+        Londditude /degrees
+    lat : float
+        Latitude /degrees
+    wind : list, optional
+        Wind vector at launch site. Defaults to [0,0,0]. Will increase completness/complexity at some point to include at least altitude variation.
+    atmosphere : Atmosphere object, optional
+        Defaults to StandardAtmsophere
+
     """
     def __init__(self, rail_length, rail_yaw, rail_pitch, alt, longi, lat, wind=[0,0,0], atmosphere=StandardAtmosphere):
-        """Sets up launch site
-        Args:
-            rail_length (float): Length of launch rail m
-            rail_yaw (float): Angle of rotation about the z axis (north pointing) rad
-            rail_pitch (float): Angle of rotation about "East" pointing y axis - in order to simplify calculations below this needs to be measured in the yaw then pitch order rad
-            alt (float): Altitude m
-            longi (float): Longditude degrees
-            lat (float): Latitude degrees
-            wind (list, optional): Wind vector at launch site. Defaults to [0,0,0]. Will increase completness/complexity at some point to include at least altitude variation.
-            atmosphere (Atmosphere Object, optional): Atmosphere object. Defaults to StandardAtmosphere.
-        """        
         self.rail_length = rail_length
         self.rail_yaw = rail_yaw
         self.rail_pitch = rail_pitch
@@ -118,34 +180,59 @@ class LaunchSite:
         self.atmosphere = atmosphere
         
 class CylindricalMassModel:
-    """Simple cylindrical model of the rockets mass and moments of inertia.  Assumes the rocket is a solid cylinder, constant volume, which has a mass that reduces with time (i.e. the density of the cylinder reducs)
-    """    
-    def __init__(self, mass, time, l, r):
-        """[summary]
+    """Simple cylindrical model of the rockets mass and moments of inertia.
 
-        Args:
-            mass (list): A list of masses, at each moment in time (after ignition) kg
-            time (list): A list of times, corresponding to the masses in the 'mass' list s
-            l (float): length of the cylinder m
-            r (float): radius of the cylinder m
-        """        
+    Note
+    ----
+    Assumes the rocket is a solid cylinder, constant volume, which has a mass that reduces with time (i.e. the density of the cylinder reducs)
+
+    Parameters
+    ----------
+    mass : list
+        Masses of the rocket at time after ignition /kg
+    time : list
+        Corresponding time for the mass /s
+    l : float
+        Length of rocket (cylinder) /m
+    r : float
+        Radius of rocket (cylinder) /m
+
+    Attributes
+    ----------
+    mass : Scipy Interpolation Function
+        Masses of the rocket at time after ignition, when called interpolates to desired time /kg
+    time : list
+        Corresponding time for the mass /s
+    l : float
+        Length of rocket (cylinder) /m
+    r : float
+        Radius of rocket (cylinder) /m
+
+    """
+    def __init__(self, mass, time, l, r):    
         self.mass_interp = scipy.interpolate.interp1d(time, mass)
         self.time = time
         self.l = l
         self.r = r
 
-    def mass(self, time):
+    def mass(self, time):  
         """Returns the mass at some time after igition
 
-        Args:
-            time (float): Time since ignition
+        Note
+        ----
+        Do not include the `self` parameter in the ``Parameters`` section.
 
-        Raises:
-            ValueError: Raised if time is negative
+        Parameters
+        ----------
+        time : float
+            Time since ignition /s
 
-        Returns:
-            Float: The mass
-        """        
+        Returns
+        -------
+        float
+            Mass interpolated at time /lg
+
+        """     
         if time<0:
             raise ValueError("Tried to input negative time when using CylindricalMassModel.ixx()")
         elif time < self.time[0]:
@@ -158,15 +245,17 @@ class CylindricalMassModel:
     def ixx(self, time):
         """Returns the xx moment of inertia at some time after igition
 
-        Args:
-            time (float): Time since ignition
+        Parameters
+        ----------
+        time : float
+            Time since ignition /s
 
-        Raises:
-            ValueError: Raised if time is negative
+        Returns
+        -------
+        float
+            xx moment of inertia /kgm^2
 
-        Returns:
-            Float: The moment of inertia
-        """       
+        """      
         if time<0:
             raise ValueError("Tried to input negative time when using CylindricalMassModel.ixx()")
         elif time < self.time[0]:
@@ -180,14 +269,16 @@ class CylindricalMassModel:
     def iyy(self, time):
         """Returns the yy moment of inertia at some time after igition
 
-        Args:
-            time (float): Time since ignition
+        Parameters
+        ----------
+        time : float
+            Time since ignition /s
 
-        Raises:
-            ValueError: Raised if time is negative
+        Returns
+        -------
+        float
+            yy moment of inertia /kgm^2
 
-        Returns:
-            Float: The moment of inertia 
         """    
         if time < 0:
             raise ValueError("Tried to input negative time when using CylindricalMassModel.ixx()")
@@ -201,39 +292,62 @@ class CylindricalMassModel:
     def izz(self, time):
         """Returns the zz moment of inertia at some time after igition
 
-        Args:
-            time (float): Time since ignition
+        Parameters
+        ----------
+        time : float
+            Time since ignition /s
 
-        Raises:
-            ValueError: Raised if time is negative
+        Returns
+        -------
+        float
+            zz moment of inertia /kgm^2
 
-        Returns:
-            Float: The moment of inertia
         """    
         return self.iyy(time)
     
     def cog(self, time):
-        """Returns the center of gravity, as a distance from the tip of the nose.
+        """Returns the centre of gravity at some time after igition
 
-        Args:
-            time (float): Time since ignition
+        Parameters
+        ----------
+        time : float
+            Time since ignition /s
 
-        Returns:
-            float: The centre of gravity m
-        """        
+        Returns
+        -------
+        float
+            Centre of gravity /m
+
+        """         
         return self.l/2
 
-class RasAeroData:
+class RasAeroData: 
     """Object holding aerodynamic data from a RasAero II 'Aero Plots' export file
-    """    
+
+    Note
+    ----
+    Relies on an axially symetric body
+
+    Parameters
+    ----------
+    file_location_string : string
+        Location of RASAero file
+    area : float, optional
+        Referance area used to normalise coefficients, defaults to 0.0305128422 /m^2
+
+    Attributes
+    ----------
+    area : float, optional
+        Referance area used to normalise coefficients, /m^2
+    COP : Scipy Interpolation Function
+        Centre of pressure at time after ignition, when called interpolates to desired time /m
+    CA : Scipy Interpolation Function
+       Axial coefficient of drag, when called interpolates to desired time /
+    CN : Scipy Interpolation Function
+        Normal coefficient of drag, when called interpolates to desired time /
+    
+    """ 
     def __init__(self, file_location_string, area = 0.0305128422): 
-        """Loads the RasAero data
-
-        Args:
-            file_location_string (string): Route to data file
-            area (float, optional): Area used to normalise coefficients. Defaults to 0.0305128422. m^2
-
-        """
         self.area = area
         
         with open(file_location_string) as csvfile:
@@ -302,28 +416,73 @@ class RasAeroData:
             
             
 class Rocket:
-    """Object that hold the rocket information and functions
-    """    
-    def __init__(self, mass_model, motor, aero, launch_site, h, variable=False, rtol=1e-7, atol=1e-14):
-        """Sets up the rocket object
+    """The rocket and key simulation components
 
-        Args:
-            mass_model (MassModel): Model of mass development of the rocket, only current option is CylindricalMassModel
-            motor (Motor Object): Motot objet
-            aero (Aero Object): Object holding the aerodynamic data 
-            launch_site (Launchsite Object): Launch site object
-            h (float): Time step length
-            variable (bool, optional): Adaptive timestep?. Defaults to False.
-        """       
-        self.launch_site = launch_site                  #LaunchSite object
-        self.motor = motor                              #Motor object containing motor data
-        self.aero = aero                                #object containing aerodynamic information
-        self.mass_model = mass_model                    #Object used to model the mass of the rocket
-        
-        self.time = 0                           #Time since ignition (seconds)
-        self.h = h                              #Time step size (can evolve)
+    Parameters
+    ----------
+    mass_model : Mass Model Object
+        Mass model object, must have mass, ixx, iyy, izz, cog class methods which return them at time 
+    motor : Motor Object
+        Motor object that stores peformace parameters over time
+    aero : Aero Object
+        Most have area, cop, cn and ca class methods which return that at time
+    launch_site : Launch site object
+        Stores launch site parameters
+    h : float, optional
+        Timestep for integration (only required when variable is off), defaults ot 0.01 /s
+    variable : bool, optional
+        Adaptive timesteps?, defaults to False
+    rtol : float
+        Relative error tollerance for integration /
+    atol : float
+        Absolute error tollerance for integration /
 
-        self.variable_time = variable           #Vary timestep with error (option for ease of debugging)
+    Attributes
+    ----------
+    mass_model : Mass Model Object
+        Mass model object, must have mass, ixx, iyy, izz, cog class methods which return them at time 
+    motor : Motor Object
+        Motor object that stores peformace parameters over time
+    aero : Aero Object
+        Most have area, cop, cn and ca class methods which return that at time
+    launch_site : Launch site object
+        Stores launch site parameters
+    h : float, optional
+        Timestep for integration (only required when variable is off) /s
+    variable : bool, optional
+        Adaptive timesteps?, defaults to False
+    rtol : float
+        Relative error tollerance for integration /
+    atol : float
+        Absolute error tollerance for integration /
+    b2i : Scipy Rotation Object
+        Specifies the rotation from the body to inertial frame
+    i2b : Scipy Rotation Object
+        Specifies the rotation from the inertial to body frame
+    pos_i : numpy array
+        Position of the rocket in the inertial coordinate system [x,y,z] /m
+    vel_i : numpy array
+        Velocity of the rocket in the inertial coordinate system [x,y,z] /m/s
+    w_b : numpy array
+        Angular velocity of the body coordinate system in the inertial frame [x,y,z]/rad/s
+    alt : float
+        Altitude of the rocket (height abover surface in the launchsite frame) /m
+    on_rail : bool
+        Rocket still on rail? Initialises to True
+    burn_out : bool
+        Engine burned out? Initialises to False
+    
+    """   
+    def __init__(self, mass_model, motor, aero, launch_site, h=0.01, variable=False, rtol=1e-7, atol=1e-14):   
+        self.launch_site = launch_site
+        self.motor = motor
+        self.aero = aero
+        self.mass_model = mass_model
+
+        self.time = 0
+        self.h = h
+
+        self.variable_time = variable
         self.atol = atol
         self.rtol = rtol
         
@@ -357,14 +516,34 @@ class Rocket:
         self.on_rail=True
         self.burn_out=False
 
-    def aero_forces(self, b2i, pos_i, velocity, time):
+    def aero_forces(self, b2i, pos_i, velocity, time):  
         """Returns aerodynamic forces (in the body reference frame and the distance of the centre of pressure (COP) from the front of the vehicle.)
-         Note that:
-         -This currently ignores the damping moment generated by the rocket is rotating about its long axis
-         -Unsure if the right angles for calculating CN as the angles of attack vary
-             (same for CA as angles of attack vary)
-         -Not sure if using the right density for converting between force coefficients and forces
-        """             
+
+        Note
+        ----
+        -This currently ignores the damping moment generated by the rocket is rotating about its long axis
+        -Unsure if the right angles for calculating CN as the angles of attack vary (same for CA as angles of attack vary)
+        -Not sure if using the right density for converting between force coefficients and forces
+
+        Parameters
+        ----------
+        b2i : scipy rotation object
+            Defines the orientation of the body frame to the inertial frame
+        pos_i : numpy array
+            Position of the rocket in the inertial coordinate system [x,y,z] /m
+        velocity : numpy array
+            Velocity of the rocket in the inertial coordinate system [x,y,z] /m/s
+        time : float
+            Time since ignition /s
+
+        Returns
+        -------
+        numpy array
+            Aerodynamic forces on the rocket in the body frame [x,y,z] /N
+        float
+            Distance from the front of the rocket that the forces act through /m
+
+        """        
         #Use np.angle(ja + b) to replace np.arctan(a/b)
         alt = self.altitude(pos_i)
         wind_inertial =  vel_l2i(self.launch_site.wind, self.launch_site, time)
@@ -374,19 +553,11 @@ class Rocket:
         mach = v_a/v_sound
         
         #Angles - use np.angle(ja + b) to replace np.arctan(a/b) because the latter gave divide by zero errors, if b=0
-        alpha = np.angle(1j*v_rel_wind[2] + v_rel_wind[0])
+        #alpha = np.angle(1j*v_rel_wind[2] + v_rel_wind[0])
         beta = np.angle(1j*v_rel_wind[1] + (v_rel_wind[0]**2 + v_rel_wind[2]**2 )**0.5 )
         delta = np.angle( 1j*(v_rel_wind[2]**2 + v_rel_wind[1]**2)**0.5 + v_rel_wind[0])
         alpha_star = np.angle(1j*v_rel_wind[2] + (v_rel_wind[0]**2 + v_rel_wind[1]**2 )**0.5 )
-        beta_star = np.angle(1j*v_rel_wind[1] + v_rel_wind[0])
-        
-        """#If the angle of attack is too high, our linearised model will be inaccurate
-        if delta>2*np.pi*6/360:
-            warnings.warn("delta = {:.2f} (Large angle of attack)".format(360*delta/(2*np.pi)))
-        if alpha_star>2*np.pi*6/360:
-            warnings.warn("alpha* = {:.2f} (Large angle of attack)".format(360*alpha_star/(2*np.pi)))
-        if beta>2*np.pi*6/360:
-            warnings.warn("beta = {:.2f} (Large angle of attack)".format(360*beta/(2*np.pi)))"""
+        #beta_star = np.angle(1j*v_rel_wind[1] + v_rel_wind[0])
         
         #Dynamic pressure at the current altitude and velocity - WARNING: Am I using the right density?
         q = 0.5*np.interp(alt, self.launch_site.atmosphere.adat, self.launch_site.atmosphere.ddat)*(v_a**2)
@@ -412,15 +583,26 @@ class Rocket:
         return np.array([Fx,Fy,Fz]), COP
         
     def thrust(self, time, alt, vector = [1,0,0]): 
-        """  Returns thrust and moments generated by the motor, in body frame. Mainly derived from Joe Hunt's original trajectory_sim.py
+        """Returns thrust and moments generated by the motor, in body frame.
 
-        Args:
-            time (float): Time since ignition s
-            alt (float): Altitude, used to recover atmospheric information
-            vector (list, optional): Thrust direction - models miss alignment or thrust vector control. Defaults to [1,0,0].
+        Note
+        ----
+        -Mainly derived from Joe Hunt's NOVIS Simulation
 
-        Returns:
-            Numpy Array: Force on rocket x,y,z N
+        Parameters
+        ----------
+        time : float
+            Time since ignition /s
+        alt : float
+            Altitude of the rocket /m
+        vector : numpy array, optional
+            Thrust direction - models miss alignment or thrust vector control. Defaults to [1,0,0]
+
+        Returns
+        -------
+        numpy array
+            Thrust forces on the rocket in the body frame [x,y,z] /N
+
         """        
         vector = np.array(vector)
         
@@ -454,48 +636,72 @@ class Rocket:
         #Multiply the thrust by the direction it acts in, and return it.
         return thrust*vector/np.linalg.norm(vector)
         
-    def gravity(self, time, pos_i):
-        """ Returns the gravity force, as a vector in inertial coordinates.
+    def gravity(self, time, pos_i): 
+        """Returns the gravity force, as a vector in inertial coordinates.
 
-        Args:
-            time (float): Time since ignition, used to recover mass
-            position (Numpy Array): Position in the inertial frame
+        Note
+        ----
+        -Uses a spherical Earth gravity model
 
-        Returns:
-            Numpy Array: Force on the body in the inertial frame
-        """        
-        '''
-        Returns the gravity force, as a vector in inertial coordinates
+        Parameters
+        ----------
+        time : float
+            Time since ignition /s
+        pos_i : numpy array
+            Position of the rocket in the inertial coordinate system [x,y,z] /m
+
+        Returns
+        -------
+        numpy array
+            Gravitational force on rocket in inertial frame [x,y,z] /N
+
+        """   
         
-        Uses a spherical Earth gravity model
-        '''
         # F = -GMm/r^2 = μm/r^2 where μ = 3.986004418e14 for Earth
         return -3.986004418e14 * self.mass_model.mass(time) * pos_i / np.linalg.norm(pos_i)**3
     
     def altitude(self, pos_i):
-        """Returns the altitude corresponding to a position in the inertial frame, can be complicated in the future to account for non spherical nature of Earth
+        """Returns the altitude (height from surface in launch frame)
 
-        Args:
-            position (Numpy Array): Position in the inertial frame m
+        Note
+        ----
+        -Uses a spherical Earth model
 
-        Returns:
-            Float: Altitude m
-        """        
+        Parameters
+        ----------
+        pos_i : numpy array
+            Position of the rocket in the inertial coordinate system [x,y,z] /m
+
+        Returns
+        -------
+        float
+            Altitude /m
+
+        """         
         return np.linalg.norm(pos_i)-r_earth
     
     def accelerations(self, pos_i, vel_i, w_b, b2i, time):
-        """Returns translational and rotational accelerations on the rocket, given the applied forces
+        """Gathers the foces on the rocket and returns translational and rotational accelerations on the rocket
 
-        Args:
-            pos_i (Numpy Arrray): Inertial position
-            ypr (Numpy Array): Yaw-pitch-roll array
-            v_i (Numpy Arrray): Inertial velocity
-            w_b (Numpy Arrray): Angular velocity in body coordinates
-            time (Float): Time since igition
+        Parameters
+        ----------
+        pos_i : numpy array
+            Position of the rocket in the inertial coordinate system [x,y,z] /m
+        vel_i : numpy array
+            Velocity of the rocket in the inertial coordinate system [x,y,z] /m/s
+        w_b : numpy array
+            Angular velocity of the body in the body frame [x,y,z] /rad/s
+        b2i : scipy rotation object
+            Defines the rotation from the body to the intertial frame 
+        time : float
+            Time since ignition /s
 
-        Returns:
-            [Numpy Array]: Translational accleration in inertial frame, and rotational acceleration using the body coordinate system
-        """        
+        Returns
+        -------
+        numpy array
+            Translational accleration in inertial frame, and rotational acceleration using the body coordinate system
+
+        """   
         
         #Get all the forces in body coordinates
         thrust_b = self.thrust(time,self.altitude(pos_i))
@@ -567,15 +773,26 @@ class Rocket:
         return np.stack([lin_acc, wdot_b])
 
     def fdot(self, time, fn):
-        '''
-        f contains everything needed to full define the rocket
-        'fdot' here is the same as 'ydot' in the 2P1 (2nd Year) Engineering Lagrangian dynamics notes RK4 section
+        """Makes the integrated parameters into one function
 
-        f = [pos_i, vel_i, w_b, xb, yb, zb]
-        fdot = [vel_i, acc_i, w_bdot, xbdot, ybdot, zbdot]
+        Notes
+        -----
+        -'fdot' here is the same as 'ydot' in the 2P1 (2nd Year) Engineering Lagrangian dynamics notes RK4 section
+        -f = [pos_i, vel_i, w_b, xb, yb, zb], fdot = [vel_i, acc_i, w_bdot, xbdot, ybdot, zbdot]
 
-        This returns fdot
-        '''
+        Parameters
+        ----------
+        time : float
+            Time since ignition /s
+        fn : list
+            [pos_i, vel_i, w_b, xb, yb, zb]
+
+        Returns
+        -------
+        list
+            [vel_i, acc_i, w_bdot, xbdot, ybdot, zbdot] (for the current step)
+
+        """   
 
         pos_i = np.array([fn[0],fn[1],fn[2]])
         vel_i = np.array([fn[3],fn[4],fn[5]])
@@ -601,8 +818,31 @@ class Rocket:
 
         return np.array([vel_i[0],vel_i[1],vel_i[2], acc_i[0],acc_i[1],acc_i[2], w_bdot[0],w_bdot[1],w_bdot[2], xbdot[0],xbdot[1],xbdot[2], ybdot[0],ybdot[1],ybdot[2], zbdot[0],zbdot[1],zbdot[2]])
 
-    def run(self,max_time=300,verbose_log=False,debug=False,):
-        print("Running simulation")
+    def run(self,max_time=300,verbose_log=False,debug=False):
+        """Runs the rocekt simulaiton
+
+        Notes
+        -----
+        -Uses the scipy DOP853 O(h^8) integrator
+
+        Parameters
+        ----------
+        max_time : int, optional
+            Maximum simulation runtime, defaults to 300 /s
+        verbose_log : bool, optional
+            Log extra information? Will make simulation slightly slower, defaults to False
+        debug : bool, optional
+            Output more progress messages/warnings, defaults ot False
+
+        Returns
+        -------
+        pandas array
+            Record of simulaiton, varies in content depending on verbosity. Default contains interial position and velocity, angular velocity, orientation and events (e.g. parachute). 
+            Most information can be derived from this in post processing.
+
+        """
+        if debug == True:
+            print("Running simulation")
 
         xb = self.b2i.as_matrix()[:,0]
         yb = self.b2i.as_matrix()[:,1]
@@ -714,12 +954,31 @@ class Rocket:
             c+=1
         return record
 
-    def check_phase(self):
+    def check_phase(self, verbose=False):
+        """Checks phase of flight between steps
+
+        Notes
+        -----
+        -Since this only checks between steps there may be a very short period where the rocket is still orientated as if its still on the rail when it is not
+        -May look like the rocket leaves the rail at an altitude greater than the rail length for this reason
+
+        Parameters
+        ----------
+        verbose : bool, optional
+            Outputs progress messages if True
+
+        Returns
+        -------
+        list
+            List of events that happened in this step for log
+
+        """
         events=[]
         if self.on_rail==True:
             flight_distance = np.linalg.norm(pos_i2l(self.pos_i,self.launch_site,self.time))
             if flight_distance>=self.launch_site.rail_length:
-                print("Cleared rail at t={:.2f} s with alt={:.2f} m and TtW={:.2f}".format(self.time,
+                if verbose == True:
+                    print("Cleared rail at t={:.2f} s with alt={:.2f} m and TtW={:.2f}".format(self.time,
                 self.altitude(self.pos_i),
                 np.linalg.norm(self.accelerations(self.pos_i, self.vel_i, self.w_b, self.b2i, self.time)[0])/9.81)
                 )
@@ -729,19 +988,28 @@ class Rocket:
 
 
 #pos_l2i and pos_i2l HAVE BEEN CHANGED BUT HAS NOT BEEN TESTED        
-def pos_l2i(pos_l, launch_site,time):
-    """Converts position in launch frame to position in inertial frame
+def pos_l2i(pos_l, launch_site, time):
+    """Converts position in launch frame to position in inertial frame.
 
-    Args:
-        position (Numpy Array): Position in launch frame
-        launch_site (LaunchSite): The relivant launch site
-        time (float): Elapsed time from ignition
+    Note
+    ----
+    -Converting spherical coordinates to Cartesian
+    -https://math.libretexts.org/Bookshelves/Calculus/Book%3A_Calculus_(OpenStax)/12%3A_Vectors_in_Space/12.7%3A_Cylindrical_and_Spherical_Coordinates#:~:text=To%20convert%20a%20point%20from,y2%2Bz2)
 
-    Returns:
-        Numpy array: Velocity in inertial frame
+    Parameters
+    ----------
+    pos_l : numpy array
+        Position in the launch site frame [x,y,z] /m
+    launch_site : LaunchSite object
+        Holds the launch site parameters
+    time : float
+        Time since ignition /s
+
+    Returns
+    -------
+    numpy array
+        Position in the inertial frame
     """
-    #Converting spherical coordinates to Cartesian:
-    #https://math.libretexts.org/Bookshelves/Calculus/Book%3A_Calculus_(OpenStax)/12%3A_Vectors_in_Space/12.7%3A_Cylindrical_and_Spherical_Coordinates#:~:text=To%20convert%20a%20point%20from,y2%2Bz2).
     
     pos_launch_site_i = [r_earth * np.sin((90 - launch_site.lat) * np.pi / 180.0) * np.cos(launch_site.longi * np.pi / 180.0 + ang_vel_earth*time),
                         r_earth * np.sin((90 - launch_site.lat) * np.pi / 180.0) * np.sin(launch_site.longi* np.pi / 180.0 + ang_vel_earth*time),
@@ -752,19 +1020,27 @@ def pos_l2i(pos_l, launch_site,time):
     return pos_rocket_i
 
 def pos_i2l(position,launch_site,time):
-    """Converts position in inertial frame to position in launch frame
+    """Converts position in launch frame to position in inertial frame.
 
-    Args:
-        position (Numpy Array): Position in inertial frame
-        launch_site (LaunchSite): The relivant launch site
-        time (float): Elapsed time from ignition
+    Note
+    ----
+    -Converting spherical coordinates to Cartesian
+    -https://math.libretexts.org/Bookshelves/Calculus/Book%3A_Calculus_(OpenStax)/12%3A_Vectors_in_Space/12.7%3A_Cylindrical_and_Spherical_Coordinates#:~:text=To%20convert%20a%20point%20from,y2%2Bz2)
 
-    Returns:
-        Numpy array: Velocity in launch frame
+    Parameters
+    ----------
+    position : numpy array
+        Position in the inertial frame [x,y,z] /m
+    launch_site : LaunchSite object
+        Holds the launch site parameters
+    time : float
+        Time since ignition /s
+
+    Returns
+    -------
+    numpy array
+        Position in the launch frame
     """
-    #Converting spherical coordinates to Cartesian:
-    #https://math.libretexts.org/Bookshelves/Calculus/Book%3A_Calculus_(OpenStax)/12%3A_Vectors_in_Space/12.7%3A_Cylindrical_and_Spherical_Coordinates#:~:text=To%20convert%20a%20point%20from,y2%2Bz2).
-
     pos_launch_site_i = [r_earth * np.sin((90 - launch_site.lat) * np.pi / 180.0) * np.cos(launch_site.longi * np.pi / 180.0 + ang_vel_earth*time),
                         r_earth * np.sin((90 - launch_site.lat) * np.pi / 180.0) * np.sin(launch_site.longi* np.pi / 180.0 + ang_vel_earth*time),
                         r_earth * np.cos((90 - launch_site.lat) * np.pi / 180.0)]
@@ -774,82 +1050,107 @@ def pos_i2l(position,launch_site,time):
 
     return pos_rocket_l
 
-def vel_i2l(vel_i, launch_site, time):
-    """Converts inertial velocity to velocity in launch frame
-    Args:
-        velocity (np.array): [x,y,z] Velocity in inertial frame
-        launch_site (LaunchSite): The relevant launch site
-        time (float): Elapsed time from ignition
-    Returns:
-        Numpy array: Velocity in launch frame
-    """    
+def vel_i2l(vel_i, launch_site, time): 
+    """Converts position in launch frame to position in inertial frame.
+
+    Note
+    ----
+    -v = w x r for a rigid body, where v, w and r are vectors
+
+    Parameters
+    ----------
+    vel_i : numpy array
+        Velocity in the inertial frame [x,y,z] /m/s
+    launch_site : LaunchSite object
+        Holds the launch site parameters
+    time : float
+        Time since ignition /s
+
+    Returns
+    -------
+    numpy array
+        Velocity in the launch frame
+    """  
     w_earth = np.array([0, 0, ang_vel_earth])
     pos_launch_site_i = [r_earth * np.sin((90 - launch_site.lat) * np.pi / 180.0) * np.cos(launch_site.longi * np.pi / 180.0 + ang_vel_earth*time),
                     r_earth * np.sin((90 - launch_site.lat) * np.pi / 180.0) * np.sin(launch_site.longi* np.pi / 180.0 + ang_vel_earth*time),
                     r_earth * np.cos((90 - launch_site.lat) * np.pi / 180.0)]
 
-    # v = w x r for a rigid body, where v, w and r are vectors
     launch_site_velocity_i = np.cross(w_earth, pos_launch_site_i)
 
     return direction_i2l(vel_i - launch_site_velocity_i, launch_site, time) 
 def vel_l2i(vel_l, launch_site, time):
-    """Converts launch frame velocity to velocity in inertial frame
-    Args:
-        velocity (Numpy array): [x,y,z] velocity in launch frame
-        launch_site (LaunchSite): The relevant launch site
-        time (float): Elapsed time from ignition
-    Returns:
-        Numpy array: Velocity in inertial frame
+    """Converts position in launch frame to position in inertial frame.
+
+    Note
+    ----
+    -v = w x r for a rigid body, where v, w and r are vectors
+
+    Parameters
+    ----------
+    vel_i : numpy array
+        Velocity in the launch frame [x,y,z] /m/s
+    launch_site : LaunchSite object
+        Holds the launch site parameters
+    time : float
+        Time since ignition /s
+
+    Returns
+    -------
+    numpy array
+        Velocity in the inertial frame
     """ 
     w_earth = np.array([0, 0, ang_vel_earth])
     pos_launch_site_i = [r_earth * np.sin((90 - launch_site.lat) * np.pi / 180.0) * np.cos(launch_site.longi * np.pi / 180.0 + ang_vel_earth*time),
                         r_earth * np.sin((90 - launch_site.lat) * np.pi / 180.0) * np.sin(launch_site.longi* np.pi / 180.0 + ang_vel_earth*time),
                         r_earth * np.cos((90 - launch_site.lat) * np.pi / 180.0)]
 
-    # v = w x r for a rigid body, where v, w and r are vectors
     launch_site_velocity_i = np.cross(w_earth, pos_launch_site_i)
 
     return direction_l2i(vel_l, launch_site, time) + launch_site_velocity_i
 
 def direction_i2l(vector, launch_site, time):
-    """Converts inertial direction vector to a direction vector in launch frame
-    Args:
-        vector (np.array): [x,y,z] vector in inertial frame
-        launch_site (LaunchSite): The relevant launch site
-        time (float): Elapsed time from ignition
-    Returns:
-        Numpy array: Vector in launch frame
-    """    
-    #I have no idea why we need the negatives in front of the yaw and pitch - but it seems to give the right answers
+    """Converts position in launch frame to position in inertial frame.
+
+    Note
+    ----
+    -Problem in the yaw pitch conversions, unexplained negative sign needed
+
+    Parameters
+    ----------
+    vector : numpy array
+        Vector in the inertial frame [x,y,z] /m/s
+    launch_site : LaunchSite object
+        Holds the launch site parameters
+    time : float
+        Time since ignition /s
+
+    Returns
+    -------
+    numpy array
+        Vector in the launch frame
+    """ 
     return Rotation.from_euler('zy', [-launch_site.longi - (180/np.pi)*ang_vel_earth*time, -90 + launch_site.lat], degrees=True).apply(vector)
 
 def direction_l2i(vector, launch_site, time):
-    """Converts launch direction vector to a direction vector in inertial frame
-    Args:
-        vector (np.array): [x,y,z] vector in inertial frame
-        launch_site (LaunchSite): The relevant launch site
-        time (float): Elapsed time from ignition
-    Returns:
-        Numpy array: Vector in launch frame
-    """    
-    #I have no idea why we need the negatives in front of the yaw and pitch
+    """Converts position in launch frame to position in inertial frame.
+
+    Note
+    ----
+    -Problem in the yaw pitch conversions, unexplained negative sign needed
+
+    Parameters
+    ----------
+    vector : numpy array
+        Vector in the launch frame [x,y,z] /m/s
+    launch_site : LaunchSite object
+        Holds the launch site parameters
+    time : float
+        Time since ignition /s
+
+    Returns
+    -------
+    numpy array
+        Vector in the launch frame
+    """ 
     return Rotation.from_euler('zy', [-launch_site.longi - (180/np.pi)*ang_vel_earth*time, -90 + launch_site.lat], degrees=True).inv().apply(vector)
-
-def rot_matrix(ypr, inverse=False):
-    """Generates a rotation matrix between frames which are rotated by yaw, pitch and roll specified by orientation
-    Left hand matrix multiply this by the relivant vector (i.e. np.matmul(rotation_matrix(....),vec))
-
-    Args:
-        orientation (np.array): The rotation of the frames relative to eachother as yaw, pitch and roll (about z, about y, about x)
-        inverse (bool, optional): If the inverse is required (i.e. when transforming from the frame which is rotated by orientation). Defaults to False.
-
-    Returns:
-        [type]: [description]
-    """    
-
-    rot = Rotation.from_euler('zyx', ypr)
-
-    if inverse==True:
-        rot = rot.inv()
-
-    return rot.as_matrix()
