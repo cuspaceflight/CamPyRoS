@@ -5,3 +5,18 @@ results/
 __pycache__/
 documentation/Moment of Inertia Liquid Calculation.pdn
 documentation/Cylinder Definitions.pdn
+*.aux
+*.bbl
+*.blg
+*.fdb_latexmk
+*.fls
+*.idx
+*.ilg
+*.ind
+*.lof
+*.log
+*.lot
+*.nlo
+*.out
+*.gz
+*.toc
