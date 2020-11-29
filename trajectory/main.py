@@ -35,7 +35,7 @@ StandardAtmosphere : Atmospher Object
 r_earth : float
     Radius of Earth/m
 e_earth : float
-    Eccentricitu of the Earth, currently set to zero to simplify calculations (i.e. spherical Earth model is being used)
+    Eccentricity of the Earth, currently set to zero to simplify calculations (i.e. spherical Earth model is being used)
 ang_vel_earth : float
     The angular velocity of the Earth
 
@@ -100,22 +100,51 @@ with open('trajectory/atmosphere_data.csv') as csvfile:
 StandardAtmosphere = Atmosphere(adat,ddat,sdat,padat)
 
 class Motor:
-    """Object holding the pefoemance data for the engine
-    """    
+    """Object holding the performance data for the engine
+
+    Parameters
+    ----------
+    motor_time_data : list
+        Time since ignition (with times corresponding to the other input lists) /s
+    prop_mass_data : list
+        Propellant mass /kg
+    cham_pres_data : list
+        Chamber Pressure /Pa
+    throat_data : list
+        Throat diameter /m
+    gamma_data : list
+        Nozzle inlet gamma (ratio of specific heats)
+    nozzle_efficiency_data : list
+        Nozzle efficiency
+    exit_pres_data : list 
+        Exit pressure /Pa
+    area_ratio_data : list 
+        Area ratio
+
+    Attributes
+    ----------
+    motor_time_data : list
+        Time since ignition (with times corresponding to the other input lists) /s
+    prop_mass_data : list
+        Propellant mass /kg
+    cham_pres_data : list
+        Chamber Pressure /Pa
+    throat_data : list
+        Throat diameter /m
+    gamma_data : list
+        Nozzle inlet gamma (ratio of specific heats)
+    nozzle_efficiency_data : list
+        Nozzle efficiency
+    exit_pres_data : list 
+        Exit pressure /Pa
+    area_ratio_data : list 
+        Area ratio
+    """   
+      
     def __init__(self, motor_time_data, prop_mass_data, cham_pres_data, throat_data,
                  gamma_data, nozzle_efficiency_data, exit_pres_data, area_ratio_data):
-        """Set up motor
-
-        Args:
-            motor_time_data (list): Time since ignition s
-            prop_mass_data (list): Mass remaning kg
-            cham_pres_data (list): Chamber Pressure Pa
-            throat_data (list): Throat diameter m
-            gamma_data (list): Nozzle inlet gamma (ratio of specific heats)
-            nozzle_efficiency_data (list): Nozzle efficiency
-            exit_pres_data (list): Exit pressure Pa
-            area_ratio_data (list): Area ratio 
-        """        
+        
+     
         self.motor_time_data = motor_time_data
         self.prop_mass_data = prop_mass_data
         self.cham_pres_data = cham_pres_data
@@ -383,12 +412,14 @@ class Rocket:
 
         Parameters
         ----------
-        b2i : scipy rotation object
-            Defines the orientation of the body frame to the inertial frame
         pos_i : numpy array
             Position of the rocket in the inertial coordinate system [x,y,z] /m
-        velocity : numpy array
+        vel_i : numpy array
             Velocity of the rocket in the inertial coordinate system [x,y,z] /m/s
+        b2i : scipy rotation object
+            Defines the orientation of the body frame to the inertial frame
+        w_b : numpy array
+            Angular velocity of the body in the body frame [x,y,z] /rad/s
         time : float
             Time since ignition /s
 
@@ -447,12 +478,18 @@ class Rocket:
 
         Parameters
         ----------
+        pos_i : numpy array
+            Position of the rocket in the inertial coordinate system [x,y,z] /m
+        vel_i : numpy array
+            Velocity of the rocket in the inertial coordinate system [x,y,z] /m/s
+        b2i : scipy rotation object
+            Defines the orientation of the body frame to the inertial frame
+        w_b : numpy array
+            Angular velocity of the body in the body frame [x,y,z] /rad/s
         time : float
             Time since ignition /s
-        alt : float
-            Altitude of the rocket /m
         vector : numpy array, optional
-            Thrust direction - models miss alignment or thrust vector control. Defaults to [1,0,0]
+            Thrust direction in the body coordinate system - models misalignment or thrust vector control. Defaults to [1,0,0]
 
         Returns
         -------
@@ -502,10 +539,16 @@ class Rocket:
 
         Parameters
         ----------
-        time : float
-            Time since ignition /s
         pos_i : numpy array
             Position of the rocket in the inertial coordinate system [x,y,z] /m
+        vel_i : numpy array
+            Velocity of the rocket in the inertial coordinate system [x,y,z] /m/s
+        b2i : scipy rotation object
+            Defines the orientation of the body frame to the inertial frame
+        w_b : numpy array
+            Angular velocity of the body in the body frame [x,y,z] /rad/s
+        time : float
+            Time since ignition /s
 
         Returns
         -------
@@ -546,10 +589,10 @@ class Rocket:
             Position of the rocket in the inertial coordinate system [x,y,z] /m
         vel_i : numpy array
             Velocity of the rocket in the inertial coordinate system [x,y,z] /m/s
+        b2i : scipy rotation object
+            Defines the orientation of the body frame to the inertial frame
         w_b : numpy array
             Angular velocity of the body in the body frame [x,y,z] /rad/s
-        b2i : scipy rotation object
-            Defines the rotation from the body to the intertial frame 
         time : float
             Time since ignition /s
 
@@ -609,25 +652,33 @@ class Rocket:
         return np.stack([lin_acc, wdot_b])
 
     def fdot(self, time, fn):
-        """Makes the integrated parameters into one function
+        """Returns the rate of change of the Rocket's state array, f
 
         Notes
         -----
         -'fdot' here is the same as 'ydot' in the 2P1 (2nd Year) Engineering Lagrangian dynamics notes RK4 section
-        -f = [pos_i, vel_i, w_b, xb, yb, zb], fdot = [vel_i, acc_i, w_bdot, xbdot, ybdot, zbdot]
 
         Parameters
         ----------
         time : float
             Time since ignition /s
         fn : list
-            [pos_i, vel_i, w_b, xb, yb, zb]
+            [pos_i[0], pos_i[1], pos_i[2],
+             vel_i[0], vel_i[1], vel_i[2],  
+             w_b[0], w_b[1], w_b[2], 
+             xb[0], xb[1], xb[2], 
+             yb[0], yb[1], yb[2], 
+             zb[0],zb[1],zb[2]]
 
         Returns
         -------
-        list
-            [vel_i, acc_i, w_bdot, xbdot, ybdot, zbdot] (for the current step)
-
+        numpy array
+            [vel_i[0], vel_i[1], vel_i[2], 
+            acc_i[0], acc_i[1], acc_i[2], 
+            w_bdot[0], w_bdot[1], w_bdot[2], 
+            xbdot[0], xbdot[1], xbdot[2], 
+            ybdot[0], ybdot[1], ybdot[2], 
+            zbdot[0], zbdot[1], zbdot[2]]
         """   
 
         pos_i = np.array([fn[0],fn[1],fn[2]])
@@ -673,7 +724,7 @@ class Rocket:
         Returns
         -------
         pandas array
-            Record of simulaiton, varies in content depending on verbosity. Default contains interial position and velocity, angular velocity, orientation and events (e.g. parachute). 
+            Record of simulation, varies in content depending on verbosity. Default contains interial position and velocity, angular velocity, orientation and events (e.g. parachute). 
             Most information can be derived from this in post processing.
 
         """
