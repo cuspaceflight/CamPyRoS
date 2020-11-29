@@ -13,7 +13,7 @@ import time
 aerodynamic_coefficients = main.RasAeroData("data/Martlet4RasAeroII.CSV")
 
 #Import motor data - copied from Joe Hunt's simulation
-with open('Motor/motor_out.csv') as csvfile:
+with open('novus_sim_6/motor_out.csv') as csvfile:
     motor_out = csv.reader(csvfile)
 
     (motor_time_data, prop_mass_data, cham_pres_data,
