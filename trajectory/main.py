@@ -13,7 +13,7 @@ Notes
     Coordinate systems:
     x_b,y_b,z_b = Body coordinate system (origin on rocket, rotates with the rocket)
     x_i,y_i,z_i = Inertial coordinate system (does not rotate, origin at centre of the Earth)
-    x_l, y_l, z_l = Launch site coordinate system (origin on launch site, rotates with the Earth)
+    x_l, y_l, z_l = Launch site coordinate system (origin has the launch site's longitude and latitude, but is at altitude = 0). Rotates with the Earth.
 
     Directions are defined below.
     - Body:
@@ -135,9 +135,9 @@ class LaunchSite:
     rail_length : float
         Length of launch rail /m
     rail_yaw : float
-        Angle of rotation about the z axis (north pointing) /rad
+        Angle of rotation (using a right hand rule) about the launch site z-axis /degrees. Examples: rail_yaw = 0 points South, rail_yaw = 90 points East.
     rail_pitch : float
-        Angle of rotation about "East" pointing y axis - in order to simplify calculations below this needs to be measured in the yaw then pitch order rad
+        Angle between the rail and the launch site z-axis (i.e. angle to the vertical) /degrees. Example: rail_pitch = 0 points up.
     alt : float
         Altitude /m
     longi : float
