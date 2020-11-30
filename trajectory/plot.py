@@ -153,6 +153,31 @@ def plot_ypr(simulation_output):
     
     plt.show()
 
+def plot_attitude(simulation_output):
+    fig, axs = plt.subplots(2, 2)
+    
+    axs[0, 0].plot(simulation_output["time"], simulation_output["attitude_xl"])
+    axs[0, 0].set_title('X')
+    axs[0,0].set_xlabel("time/s")
+    axs[0,0].set_ylabel("Distance/m")
+    
+    axs[0, 1].plot(simulation_output["time"], simulation_output["attitude_yl"])
+    axs[0, 1].set_title('Y')
+    axs[0,1].set_xlabel("time/s")
+    axs[0,1].set_ylabel("Distance/m")
+    
+    axs[1, 0].plot(simulation_output["time"], simulation_output["attitude_zl"])
+    axs[1, 0].set_title('Z')
+    axs[1,0].set_xlabel("time/s")
+    axs[1,0].set_ylabel("Distance/m")
+
+    axs[1, 1].plot(simulation_output["time"], simulation_output["z_l"])
+    axs[1, 1].set_title('Altitude')
+    axs[1,1].set_xlabel("time/s")
+    axs[1,1].set_ylabel("Altitude /m")
+    
+    plt.show()
+
 def plot_w_b(simulation_output):
     fig, axs = plt.subplots(2, 2)
     

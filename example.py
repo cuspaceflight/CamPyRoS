@@ -41,17 +41,17 @@ pulsar = main.Motor(motor_time_data, prop_mass_data, cham_pres_data, throat_data
 launch_site = main.LaunchSite(rail_length=5, rail_yaw=45, rail_pitch=20, alt=0, longi=0, lat=0, wind=[0,0,0], atmosphere=StandardAtmosphere)
 parachute=main.Parachute(13.9,0.78,1.13,0.78,1000,0)
 """Create the Rocket object"""
-martlet4 = main.Rocket(mass_model, pulsar, aerodynamic_coefficients, launch_site, h=0.05, variable=True,alt_poll_interval=20,parachute=parachute)
+martlet4 = main.Rocket(mass_model, pulsar, aerodynamic_coefficients, launch_site, h=0.05, variable=True,alt_poll_interval=1,parachute=parachute)
 
 """Run the simulation"""
 simulation_output = martlet4.run(verbose_log=True, debug=True, store=True)
 
 """Plot the results"""
-trajectory.plot.plot_launch_trajectory_3d(simulation_output, show_orientation=True, show_aero=False)
+trajectory.plot.plot_inertial_trajectory_3d(simulation_output, show_orientation=True)
 trajectory.plot.animate_orientation(simulation_output)
 trajectory.plot.plot_altitude_time(simulation_output)
 #plot.plot_w_b(simulation_output)
 #plot.plot_wdot_b(simulation_output)
-trajectory.plot.plot_ypr(simulation_output)
+trajectory.plot.plot_attitude(simulation_output)
 
 
