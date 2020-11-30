@@ -13,7 +13,7 @@
 import os
 import sys
 import sphinx_rtd_theme
-sys.path.insert(0, os.path.split(os.path.abspath(".."))[0]+"/trajectory")
+sys.path.insert(0, os.path.split(os.path.abspath(".."))[0])
 
 # -- Project information -----------------------------------------------------
 
@@ -38,7 +38,8 @@ exclude_patterns = []
 extensions = [
     "sphinx_rtd_theme",
     "sphinx.ext.autodoc",
-    "sphinx.ext.napoleon"
+    "sphinx.ext.napoleon",
+    "rst2pdf.pdfbuilder"
 ]
 
 html_theme = "sphinx_rtd_theme"
@@ -47,3 +48,5 @@ html_theme = "sphinx_rtd_theme"
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = ['_static']
+
+pdf_documents = [('index', u'rst2pdf', u'Trajectory Simulation Package', u'Jago Strong-Wright & Daniel Gibbons'),]

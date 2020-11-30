@@ -1,8 +1,7 @@
-Trajectory
-==========
+Trajectory Package
+==================
 
 .. toctree::
    :maxdepth: 4
 
-   main
-   plot
+   trajectory
