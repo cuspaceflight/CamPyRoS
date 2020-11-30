@@ -30,7 +30,7 @@ Notes
 
 Attributes
 ----------
-StandardAtmosphere : Atmospher Object
+StandardAtmosphere : Atmosphere Object
     Stores the profile of the 1973 standard atmosphere
 r_earth : float
     Radius of Earth/m
@@ -89,7 +89,55 @@ class Atmosphere:
         self.sdat = sdat
         self.padat = padat
 
-with open('trajectory/atmosphere_data.csv') as csvfile:
+    def speedofsound(self, alt):
+        """Returns the speed of sound for a given altitude
+
+        Parameters
+        ----------
+        alt : float
+            Altitude /m
+
+        Returns
+        ----------
+        float
+            Speed of sound /m/s
+
+        """  
+        return np.interp(alt, self.adat, self.sdat)
+
+    def density(self, alt):
+        """Returns the air density for a given altitude
+
+        Parameters
+        ----------
+        alt : float
+            Altitude /m
+
+        Returns
+        ----------
+        float
+            Density /kg/m^3
+
+        """  
+        return np.interp(alt, self.adat, self.ddat)
+
+    def pressure(self, alt):
+        """Returns the static pressure for a given altitude
+
+        Parameters
+        ----------
+        alt : float
+            Altitude /m
+
+        Returns
+        ----------
+        float
+            Pressure /Pa
+
+        """  
+        return np.interp(alt, self.adat, self.padat)
+
+with open('trajectory/standard_atmosphere.csv') as csvfile:
     standard_atmo_data = csv.reader(csvfile)
     adat, ddat, sdat, padat = [], [], [], []
     next(standard_atmo_data)
@@ -98,7 +146,6 @@ with open('trajectory/atmosphere_data.csv') as csvfile:
         ddat.append(float(row[1]))
         sdat.append(float(row[2]))
         padat.append(float(row[3]))
-
 StandardAtmosphere = Atmosphere(adat,ddat,sdat,padat)
 
 class Motor:
@@ -437,8 +484,7 @@ class Rocket:
         wind_inertial =  vel_l2i(self.launch_site.wind, self.launch_site, time)
         v_rel_wind = b2i.inv().apply(vel_i - wind_inertial)
         v_a = np.linalg.norm(v_rel_wind)
-        v_sound = np.interp(alt, self.launch_site.atmosphere.adat, self.launch_site.atmosphere.sdat)
-        mach = v_a/v_sound
+        mach = v_a/self.launch_site.atmosphere.speedofsound(alt)
         
         #Angles - use np.angle(ja + b) to replace np.arctan(a/b) because the latter gave divide by zero errors, if b=0
         #alpha = np.angle(1j*v_rel_wind[2] + v_rel_wind[0])
@@ -448,7 +494,7 @@ class Rocket:
         #beta_star = np.angle(1j*v_rel_wind[1] + v_rel_wind[0])
         
         #Dynamic pressure at the current altitude and velocity - WARNING: Am I using the right density?
-        q = 0.5*np.interp(alt, self.launch_site.atmosphere.adat, self.launch_site.atmosphere.ddat)*(v_a**2)
+        q = 0.5*self.launch_site.atmosphere.density(alt)*(v_a**2)
         
         #Characteristic area
         S = self.aero.area
@@ -511,7 +557,7 @@ class Rocket:
             nozzle_area_ratio = np.interp(time, self.motor.motor_time_data, self.motor.area_ratio_data)
             
             #Get atmospheric pressure (to calculate pressure thrust)
-            pres_static = np.interp(alt, self.launch_site.atmosphere.adat, self.launch_site.atmosphere.padat)
+            pres_static = self.launch_site.atmosphere.pressure(alt)
             
             #Calculate the thrust
             area_throat = ((dia_throat/2)**2)*np.pi
