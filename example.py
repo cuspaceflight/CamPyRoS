@@ -3,7 +3,7 @@ from trajectory.main import StandardAtmosphere
 import trajectory.plot, trajectory.mass, csv
 
 import numpy as np
-
+import pandas as pd
 
 
 '''Import data from CSV files'''
@@ -43,14 +43,11 @@ launch_site = main.LaunchSite(rail_length=5, rail_yaw=45, rail_pitch=20, alt=0, 
 martlet4 = main.Rocket(mass_model, pulsar, aerodynamic_coefficients, launch_site, 0.05, True)
 
 '''Run the simulation'''
-simulation_output = martlet4.run(verbose_log=True, debug=True)
+simulation_output = martlet4.run(max_time = 300, debug=True, to_json="output.json")
+
+'''Example of how you can import data from a .csv file'''
+imported_data = main.from_json("output.json")
 
 '''Plot the results'''
-#plot.plot_launch_trajectory_3d(simulation_output, show_orientation=True, show_aero=False)
-#plot.animate_orientation(simulation_output)
-trajectory.plot.plot_altitude_time(simulation_output)
-#plot.plot_w_b(simulation_output)
-#plot.plot_wdot_b(simulation_output)
-trajectory.plot.plot_ypr(simulation_output)
-
-
+trajectory.plot.plot_launch_trajectory_3d(imported_data, martlet4, show_orientation=True) #Could have also used simulation_output instead of imported_data
+trajectory.plot.plot_altitude_time(imported_data, martlet4)
