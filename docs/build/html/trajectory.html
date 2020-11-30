@@ -441,6 +441,116 @@ z points to north from centre of earth, x aligned with launchsite at start and y
 </dd></dl>
 
 <dl class="py class">
+<dt id="trajectory.main.Parachute">
+<em class="property">class </em><code class="sig-prename descclassname">trajectory.main.</code><code class="sig-name descname">Parachute</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">main_s</span></em>, <em class="sig-param"><span class="n">main_c_d</span></em>, <em class="sig-param"><span class="n">drogue_s</span></em>, <em class="sig-param"><span class="n">drogue_c_d</span></em>, <em class="sig-param"><span class="n">main_alt</span></em>, <em class="sig-param"><span class="n">attatch_distance</span></em><span class="sig-paren">)</span><a class="headerlink" href="#trajectory.main.Parachute" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Object holding the parachute information</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The parachute model does not currently simulate the true orientation of the rocket instead it orientates
+it such that it faces back first into the wind (as intuition would suggest).
+This is due to problems trying to impliment the chute exerting torque on the body, possibly because it has to flip
+the rocket over at apogee</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>main_s</strong> (<em>float</em>) – Area of main chute/m^2</p></li>
+<li><p><strong>main_c_d</strong> (<em>float</em>) – Coefficient of drag for main chute/</p></li>
+<li><p><strong>drogue_s</strong> (<em>float</em>) – Area of main chute/m^2</p></li>
+<li><p><strong>drogue_c_d</strong> (<em>float</em>) – Coefficient of drag for main chute/</p></li>
+<li><p><strong>main_alt</strong> (<em>float</em>) – Altitude at which main deploys</p></li>
+<li><p><strong>attatch_distance</strong> (<em>float</em>) – Distance from the nose of the rocket that the parachute is attatched /m</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt id="trajectory.main.Parachute.main_s">
+<code class="sig-name descname">main_s</code><a class="headerlink" href="#trajectory.main.Parachute.main_s" title="Permalink to this definition">¶</a></dt>
+<dd><p>Area of main chute/m^2</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="trajectory.main.Parachute.main_c_d">
+<code class="sig-name descname">main_c_d</code><a class="headerlink" href="#trajectory.main.Parachute.main_c_d" title="Permalink to this definition">¶</a></dt>
+<dd><p>Coefficient of drag for main chute/</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="trajectory.main.Parachute.drogue_s">
+<code class="sig-name descname">drogue_s</code><a class="headerlink" href="#trajectory.main.Parachute.drogue_s" title="Permalink to this definition">¶</a></dt>
+<dd><p>Area of main chute/m^2</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="trajectory.main.Parachute.drogue_c_d">
+<code class="sig-name descname">drogue_c_d</code><a class="headerlink" href="#trajectory.main.Parachute.drogue_c_d" title="Permalink to this definition">¶</a></dt>
+<dd><p>Coefficient of drag for main chute/</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="trajectory.main.Parachute.main_alt">
+<code class="sig-name descname">main_alt</code><a class="headerlink" href="#trajectory.main.Parachute.main_alt" title="Permalink to this definition">¶</a></dt>
+<dd><p>Altitude at which main deploys</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="trajectory.main.Parachute.attatch_distance">
+<code class="sig-name descname">attatch_distance</code><a class="headerlink" href="#trajectory.main.Parachute.attatch_distance" title="Permalink to this definition">¶</a></dt>
+<dd><p>Distance from the nose of the rocket that the parachute is attatched /m</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="trajectory.main.Parachute.get">
+<code class="sig-name descname">get</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">alt</span></em><span class="sig-paren">)</span><a class="headerlink" href="#trajectory.main.Parachute.get" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the current parachute area and drag coefficient (checks if main is deployed)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>alt</strong> (<em>float</em>) – Rocket altitude /m</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Drag coefficient /
+Area /m^2</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
 <dt id="trajectory.main.RasAeroData">
 <em class="property">class </em><code class="sig-prename descclassname">trajectory.main.</code><code class="sig-name descname">RasAeroData</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">file_location_string</span></em>, <em class="sig-param"><span class="n">area</span><span class="o">=</span><span class="default_value">0.0305128422</span></em><span class="sig-paren">)</span><a class="headerlink" href="#trajectory.main.RasAeroData" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
@@ -505,7 +615,7 @@ z points to north from centre of earth, x aligned with launchsite at start and y
 
 <dl class="py class">
 <dt id="trajectory.main.Rocket">
-<em class="property">class </em><code class="sig-prename descclassname">trajectory.main.</code><code class="sig-name descname">Rocket</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">mass_model</span></em>, <em class="sig-param"><span class="n">motor</span></em>, <em class="sig-param"><span class="n">aero</span></em>, <em class="sig-param"><span class="n">launch_site</span></em>, <em class="sig-param"><span class="n">h</span><span class="o">=</span><span class="default_value">0.01</span></em>, <em class="sig-param"><span class="n">variable</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">rtol</span><span class="o">=</span><span class="default_value">1e-07</span></em>, <em class="sig-param"><span class="n">atol</span><span class="o">=</span><span class="default_value">1e-14</span></em><span class="sig-paren">)</span><a class="headerlink" href="#trajectory.main.Rocket" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">trajectory.main.</code><code class="sig-name descname">Rocket</code><span class="sig-paren">(</span><em class="sig-param">mass_model</em>, <em class="sig-param">motor</em>, <em class="sig-param">aero</em>, <em class="sig-param">launch_site</em>, <em class="sig-param">h=0.01</em>, <em class="sig-param">variable=False</em>, <em class="sig-param">rtol=1e-07</em>, <em class="sig-param">atol=1e-14</em>, <em class="sig-param">parachute=&lt;trajectory.main.Parachute object&gt;</em>, <em class="sig-param">alt_poll_interval=1</em><span class="sig-paren">)</span><a class="headerlink" href="#trajectory.main.Rocket" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>The rocket and key simulation components</p>
 <dl class="field-list simple">
@@ -829,7 +939,7 @@ zbdot[0], zbdot[1], zbdot[2]]</p>
 
 <dl class="py method">
 <dt id="trajectory.main.Rocket.gravity">
-<code class="sig-name descname">gravity</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">pos_i</span></em>, <em class="sig-param"><span class="n">vel_i</span></em>, <em class="sig-param"><span class="n">b2i</span></em>, <em class="sig-param"><span class="n">w_b</span></em>, <em class="sig-param"><span class="n">time</span></em><span class="sig-paren">)</span><a class="headerlink" href="#trajectory.main.Rocket.gravity" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">gravity</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">pos_i</span></em>, <em class="sig-param"><span class="n">time</span></em><span class="sig-paren">)</span><a class="headerlink" href="#trajectory.main.Rocket.gravity" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns the gravity force, as a vector in inertial coordinates.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
@@ -853,6 +963,11 @@ zbdot[0], zbdot[1], zbdot[2]]</p>
 </dd>
 </dl>
 </dd></dl>
+
+<dl class="py method">
+<dt id="trajectory.main.Rocket.parachute_force">
+<code class="sig-name descname">parachute_force</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">q</span></em>, <em class="sig-param"><span class="n">velocity</span></em>, <em class="sig-param"><span class="n">alt</span></em><span class="sig-paren">)</span><a class="headerlink" href="#trajectory.main.Rocket.parachute_force" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
 
 <dl class="py method">
 <dt id="trajectory.main.Rocket.run">
@@ -1135,6 +1250,20 @@ Most information can be derived from this in post processing.</p>
 </dd></dl>
 
 <dl class="py function">
+<dt id="trajectory.plot.fix_ypr">
+<code class="sig-prename descclassname">trajectory.plot.</code><code class="sig-name descname">fix_ypr</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">point</span></em><span class="sig-paren">)</span><a class="headerlink" href="#trajectory.plot.fix_ypr" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>if point&lt;0:</dt><dd><p>point = 2*np.pi-abs(point)</p>
+</dd>
+</dl>
+<p>point = round(point,5)
+if point==round(2*np.pi,5):</p>
+<blockquote>
+<div><p>point=0</p>
+</div></blockquote>
+</dd></dl>
+
+<dl class="py function">
 <dt id="trajectory.plot.get_velocity_magnitude">
 <code class="sig-prename descclassname">trajectory.plot.</code><code class="sig-name descname">get_velocity_magnitude</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">df</span></em><span class="sig-paren">)</span><a class="headerlink" href="#trajectory.plot.get_velocity_magnitude" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
@@ -1157,6 +1286,11 @@ Most information can be derived from this in post processing.</p>
 </dd>
 </dl>
 </dd></dl>
+
+<dl class="py function">
+<dt id="trajectory.plot.plot_attitude">
+<code class="sig-prename descclassname">trajectory.plot.</code><code class="sig-name descname">plot_attitude</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">simulation_output</span></em><span class="sig-paren">)</span><a class="headerlink" href="#trajectory.plot.plot_attitude" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
 
 <dl class="py function">
 <dt id="trajectory.plot.plot_inertial_trajectory_3d">

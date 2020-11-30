@@ -59,6 +59,46 @@ def warning_on_one_line(message, category, filename, lineno, file=None, line=Non
 warnings.formatwarning = warning_on_one_line
 
 class Parachute:
+    """Object holding the parachute information
+
+    Note
+    ----
+    The parachute model does not currently simulate the true orientation of the rocket instead it orientates
+    it such that it faces back first into the wind (as intuition would suggest).
+    This is due to problems trying to impliment the chute exerting torque on the body, possibly because it has to flip 
+    the rocket over at apogee
+
+    Parameters
+    ----------
+    main_s : float
+        Area of main chute/m^2
+    main_c_d : float
+        Coefficient of drag for main chute/
+    drogue_s : float
+        Area of main chute/m^2
+    drogue_c_d : float
+        Coefficient of drag for main chute/
+    main_alt : float
+        Altitude at which main deploys
+    attatch_distance : float
+        Distance from the nose of the rocket that the parachute is attatched /m
+
+    Attributes
+    ----------
+    main_s : float
+        Area of main chute/m^2
+    main_c_d : float
+        Coefficient of drag for main chute/
+    drogue_s : float
+        Area of main chute/m^2
+    drogue_c_d : float
+        Coefficient of drag for main chute/
+    main_alt : float
+        Altitude at which main deploys
+    attatch_distance : float
+        Distance from the nose of the rocket that the parachute is attatched /m
+
+    """
     def __init__(self,main_s,main_c_d,drogue_s,drogue_c_d,main_alt,attatch_distance):
         self.main_s=main_s
         self.main_c_d=main_c_d
@@ -69,6 +109,20 @@ class Parachute:
         self.attatch_distance=attatch_distance
 
     def get(self,alt):
+        """Returns the current parachute area and drag coefficient (checks if main is deployed)
+
+        Parameters
+        ----------
+        alt : float
+            Rocket altitude /m
+
+        Returns
+        -------
+        float
+            Drag coefficient /
+            Area /m^2
+
+        """ 
         if alt<self.main_alt:
             c_d=self.main_c_d
             s=self.main_s
@@ -121,8 +175,6 @@ class Motor:
       
     def __init__(self, motor_time_data, prop_mass_data, cham_pres_data, throat_data,
                  gamma_data, nozzle_efficiency_data, exit_pres_data, area_ratio_data):
-        
-     
         self.motor_time_data = motor_time_data
         self.prop_mass_data = prop_mass_data
         self.cham_pres_data = cham_pres_data
