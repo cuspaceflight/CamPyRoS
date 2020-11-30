@@ -20,3 +20,4 @@ documentation/Cylinder Definitions.pdn
 *.out
 *.gz
 *.toc
+output.json

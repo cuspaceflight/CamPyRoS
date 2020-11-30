@@ -20,7 +20,7 @@ Full technical documentation can be found `here <https://github.com/CUSF-Simulat
 
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 3
    :caption: Contents
 
    licences.rst
