@@ -1,5 +1,4 @@
 """6DOF Martlet trajectory simulator"""
-'''Contains classes and functions used to run trajectory simulations'''
 '''All units in SI unless otherwise stated'''
 
 '''
@@ -28,32 +27,163 @@ import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
 from mpl_toolkits.mplot3d import Axes3D
 
+from trajectory.transforms import pos_l2i, pos_i2l, vel_l2i, vel_i2l, direction_l2i, direction_i2l
+
 def get_velocity_magnitude(df):
     return (np.sqrt(df["vx_l"]**2+df["vy_l"]**2+df["vz_l"]**2))
 
-def plot_altitude_time(simulation_output):
+#Functional
+def set_axes_equal(ax):
+    '''Make axes of 3D plot have equal scale so that spheres appear as spheres,
+    cubes as cubes, etc..  This is one possible solution to Matplotlib's
+    ax.set_aspect('equal') and ax.axis('equal') not working for 3D.
 
+    Source: https://stackoverflow.com/questions/13685386/matplotlib-equal-unit-length-with-equal-aspect-ratio-z-axis-is-not-equal-to 
+
+    Input
+      ax: a matplotlib axis, e.g., as output from plt.gca().
+    '''
+
+    x_limits = ax.get_xlim3d()
+    y_limits = ax.get_ylim3d()
+    z_limits = ax.get_zlim3d()
+
+    x_range = abs(x_limits[1] - x_limits[0])
+    x_middle = np.mean(x_limits)
+    y_range = abs(y_limits[1] - y_limits[0])
+    y_middle = np.mean(y_limits)
+    z_range = abs(z_limits[1] - z_limits[0])
+    z_middle = np.mean(z_limits)
+
+    # The plot bounding box is a sphere in the sense of the infinity
+    # norm, hence I call half the max range the plot radius.
+    plot_radius = 0.5*max([x_range, y_range, z_range])
+
+    ax.set_xlim3d([x_middle - plot_radius, x_middle + plot_radius])
+    ax.set_ylim3d([y_middle - plot_radius, y_middle + plot_radius])
+    ax.set_zlim3d([z_middle - plot_radius, z_middle + plot_radius])
+
+def plot_launch_trajectory_3d(simulation_output, rocket, show_orientation=False, arrow_frequency = 0.02):
+    """
+    Plots the trajectory in 3D, given the simulation_output and the rocket
+
+    Parameters
+    ----------
+    simulation_output: pandas array
+        Simulation output from a Rocket.run() method. Should contain the following data:
+
+    rocket : trajectory.Rocket object
+        The rocket object that was used to produce the simulation data. Is needed to calculate coordinate system changes.
+
+    """
+
+    fig = plt.figure()
+    ax = plt.axes(projection="3d")
+    
+    #Convert inertial positions to launch site ones
+    pos_i_array = np.stack(simulation_output["pos_i"], axis=0)    #np.stack(Series, axis=0) will convert a panda Series into a numpy ndarray. 
+    pos_l_array = np.zeros(pos_i_array.shape)
+
+    for i in range(len(pos_l_array)):
+        pos_l_array[i] = pos_i2l(pos_i_array[i], rocket.launch_site, simulation_output["time"][i])
+    x_l = pos_l_array[:, 0]
+    y_l = pos_l_array[:, 1]
+    z_l = pos_l_array[:, 2]
+    
+    #Plot rocket position and launch site position
+    ax.plot3D(x_l, y_l, z_l)
+    ax.scatter(x_l[0], y_l[0], z_l[0], c='red', label="Launch site", linewidths="10")
+    ax.set_xlabel('South')
+    ax.set_ylabel('East')
+    ax.set_zlabel('Altitude')  
+    
+    #Indexes to plot arrows at
+    idx = np.round(np.linspace(0, len(x_l) - 1, arrow_frequency*int(len(x_l)))).astype(int)
+    
+    #Plot the direction the rocket faces at each point (i.e. direction of xb_l), using quivers
+    if show_orientation==True:
+        b2imat = np.stack(simulation_output["b2imat"], axis=0)
+        xb_i_array = b2imat[:, :, 0]
+
+        #Convert inertial orientations into launch site ones
+        xb_l_array = np.zeros(xb_i_array.shape)
+        for i in range(len(xb_i_array)):
+            xb_l_array[i] = direction_i2l(xb_i_array[i], rocket.launch_site, simulation_output["time"][i])
+
+        u = xb_l_array[:, 0]
+        v = xb_l_array[:, 1]
+        w = xb_l_array[:, 2]
+
+        ax.quiver(x_l[idx], y_l[idx], z_l[idx], u[idx], v[idx], w[idx], length=1000, normalize=True, color="red", label="Orientation")
+ 
+    #Make all the axes scales equal
+    set_axes_equal(ax)
+    
+    ax.legend()
+    plt.show()     
+
+def plot_altitude_time(simulation_output, rocket):
+    """
+    Plots the following, against time where applicable: ground track, altitude, speed (in the launch frame) and vertical velocity (in the launch frame)
+
+    Parameters
+    ----------
+    simulation_output: pandas array
+        Simulation output from a Rocket.run() method. Should contain the following data:
+
+    rocket : trajectory.Rocket object
+        The rocket object that was used to produce the simulation data. Is needed to calculate coordinate system changes.
+
+
+    """
+    #Convert inertial positions to launch site ones
+    pos_i_array = np.stack(simulation_output["pos_i"], axis=0)     #np.stack(Series, axis=0) will convert a panda Series into a numpy ndarray
+    pos_l_array = np.zeros(pos_i_array.shape)
+
+    for i in range(len(pos_l_array)):
+        pos_l_array[i] = pos_i2l(pos_i_array[i], rocket.launch_site, simulation_output["time"][i])
+
+    x_l = pos_l_array[:, 0]
+    y_l = pos_l_array[:, 1]
+    z_l = pos_l_array[:, 2]
+
+    #Convert inertial velocities into launch site ones
+    vel_i_array = np.stack(simulation_output["vel_i"], axis=0)     #np.stack(Series, axis=0) will convert a panda Series into a numpy ndarray
+    vel_l_array = np.zeros(pos_i_array.shape)
+
+    for i in range(len(pos_l_array)):
+        vel_l_array[i] = vel_i2l(vel_i_array[i], rocket.launch_site, simulation_output["time"][i])
+
+    vx_l = vel_l_array[:, 0]
+    vy_l = vel_l_array[:, 1]
+    vz_l = vel_l_array[:, 2]
+    
+    #Plot everything
     fig, axs = plt.subplots(2, 2)
-    axs[0, 0].plot(simulation_output["y_l"], -simulation_output["x_l"])
+    axs[0, 0].plot(y_l, -x_l)
     axs[0, 0].set_title('Ground Track ($^*$)')
     axs[0,0].set_xlabel("East/m")
     axs[0,0].set_ylabel("North/m")
-    #plt.text(0,-simulation_output["x"].max(),'$^*$ This is in the fixed cartesian launch frame so will not be actual ground position over large distances',horizontalalignment='left', verticalalignment='center')
-    axs[0, 1].plot(simulation_output["time"],simulation_output["z_l"], 'tab:orange')
+
+    axs[0, 1].plot(simulation_output["time"], z_l, 'tab:orange')
     axs[0, 1].set_title('Altitude')
     axs[0,1].set_xlabel("time/s")
     axs[0,1].set_ylabel("Altitude/m")
-    axs[1, 0].plot(simulation_output["time"],simulation_output.apply(get_velocity_magnitude,axis=1), 'tab:green')
+
+    axs[1, 0].plot(simulation_output["time"], (vx_l**2 + vy_l**2 + vz_l**2)**0.5, 'tab:green')
     axs[1, 0].set_title('Speed')
     axs[1,0].set_xlabel("time/s")
     axs[1,0].set_ylabel("Speed/m/s")
-    axs[1, 1].plot(simulation_output["time"],simulation_output["vz_l"], 'tab:red')
+
+    axs[1, 1].plot(simulation_output["time"], vz_l, 'tab:red')
     axs[1, 1].set_title('Vertical Velocity')
     axs[1,1].set_xlabel("time/s")
     axs[1,1].set_ylabel("Velocity/m/s")
-    fig.tight_layout()
 
+    fig.tight_layout()
     plt.show() 
+
+#Non-functional
 
 def plot_aero_forces(simulation_output):
     fig, axs = plt.subplots(2, 2)
@@ -285,68 +415,6 @@ def plot_inertial_trajectory_3d(simulation_output, show_orientation=False):
     ax.set_zlim3d([z_middle - plot_radius, z_middle + plot_radius])
     
     plt.show() 
-    
-def plot_launch_trajectory_3d(simulation_output, show_orientation=False, show_aero=False, arrow_frequency = 0.02):
-    '''
-    Plots the trajectory in 3D, given the simulation_output
-    '''
-    fig = plt.figure()
-    ax = plt.axes(projection="3d")
-    
-    x=simulation_output["x_l"]
-    y=simulation_output["y_l"]
-    z=simulation_output["z_l"]
-    
-    
-    #Plot rocket position and launch site position
-    ax.plot3D(x,y,z)
-    ax.scatter(x[0],y[0],z[0],c='red', label="Launch site", linewidths="10")
-    ax.set_xlabel('South')
-    ax.set_ylabel('East')
-    ax.set_zlabel('Altitude')  
-
-    
-    #Indenxes to plot arrows at
-    idx = np.round(np.linspace(0, len(x) - 1, arrow_frequency*int(len(x)))).astype(int)
-    
-    #Plot the direction the rocket faces at each point (i.e. direction of x_b), using quivers
-    if show_orientation==True:
-        u=simulation_output["attitude_xl"]
-        v=simulation_output["attitude_yl"]
-        w=simulation_output["attitude_zl"]
-
-        ax.quiver(x[idx], y[idx], z[idx], u[idx], v[idx], w[idx], length=1000, normalize=True, color="red", label="Orientation")
-        
-    if show_aero ==True:
-        aero_x = simulation_output["aero_xl"]
-        aero_y = simulation_output["aero_yl"]
-        aero_z = simulation_output["aero_zl"]
-        
-        ax.quiver(x[idx], y[idx], z[idx], aero_x[idx], 0, 0, length=1000, normalize=True, color="black", label = "Aerodynamic forces")
-        ax.quiver(x[idx], y[idx], z[idx], 0, aero_y[idx], 0, length=1000, normalize=True, color="black")
-        ax.quiver(x[idx], y[idx], z[idx], 0, 0, aero_z[idx], length=1000, normalize=True, color="black")
- 
-    #Make axes equal ratios - source: https://stackoverflow.com/questions/13685386/matplotlib-equal-unit-length-with-equal-aspect-ratio-z-axis-is-not-equal-to 
-    x_limits = ax.get_xlim3d()
-    y_limits = ax.get_ylim3d()
-    z_limits = ax.get_zlim3d()
-
-    x_range = abs(x_limits[1] - x_limits[0])
-    x_middle = np.mean(x_limits)
-    y_range = abs(y_limits[1] - y_limits[0])
-    y_middle = np.mean(y_limits)
-    z_range = abs(z_limits[1] - z_limits[0])
-    z_middle = np.mean(z_limits)
-
-    # The plot bounding box is a sphere in the sense of the infinity
-    # norm, hence call half the max range the plot radius.
-    plot_radius = 0.5*max([x_range, y_range, z_range])
-    ax.set_xlim3d([x_middle - plot_radius, x_middle + plot_radius])
-    ax.set_ylim3d([y_middle - plot_radius, y_middle + plot_radius])
-    ax.set_zlim3d([z_middle - plot_radius, z_middle + plot_radius])
-    
-    ax.legend()
-    plt.show()     
      
 def animate_orientation(simulation_output, frames=500):
     '''frames : number of animation frames in total - less means that the animations runs faster'''
