@@ -4,7 +4,7 @@ Contains the classes and functions for the core trajectory simulation
 
 Example
 -------
-Example of a small, single stage rocket can be found in examples, to run
+A small, single stage rocket can be found in examples, to run
         $ python example/example.py
 
 Notes
@@ -16,6 +16,7 @@ Notes
     x_l, y_l, z_l = Launch site coordinate system (origin has the launch site's longitude and latitude, but is at altitude = 0). Rotates with the Earth.
 
     Directions are defined below.
+
     - Body:
         y points east and z north at take off (before rail alignment is accounted for) x up.
         x is along the "long" axis of the rocket.
