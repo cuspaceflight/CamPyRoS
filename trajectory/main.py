@@ -85,7 +85,7 @@ class Atmosphere:
         self.sdat = sdat
         self.padat = padat
 
-with open(os.path.abspath("..")+'/data/atmosphere_data.csv') as csvfile:
+with open('data/atmosphere_data.csv') as csvfile:
     standard_atmo_data = csv.reader(csvfile)
     adat, ddat, sdat, padat = [], [], [], []
     next(standard_atmo_data)
@@ -492,7 +492,7 @@ class Rocket:
         Engine burned out? Initialises to False
     
     """   
-    def __init__(self, mass_model, motor, aero, launch_site, h=0.01, variable=False, rtol=1e-7, atol=1e-14):   
+    def __init__(self, mass_model, motor, aero, launch_site, h=0.01, variable=False, rtol=1e-7, atol=1e-14, parachute=Parachute(0,0,0,0,0,0),alt_poll_interval=1):   
         self.launch_site = launch_site
         self.motor = motor
         self.aero = aero
@@ -731,36 +731,41 @@ class Rocket:
             Translational accleration in inertial frame, and rotational acceleration using the body coordinate system
 
         """   
-        
-        #Get all the forces in body coordinates
-        thrust_b = self.thrust(time,self.altitude(pos_i))
-        aero_force_b, cop, q = self.aero_forces(b2i, pos_i, vel_i, time)
-        cog = self.mass_model.cog(time)
-    
-        #Get the moment arms
-        r_engine_cog_b = (self.mass_model.l - cog)*np.array([-1,0,0])   #Vector (in body coordinates) of nozzle exit, relative to CoG
-        r_cop_cog_b = (cop - cog)*np.array([-1,0,0])                    #Vector (in body coordinates) of CoP, relative to CoG
-        
-        #Calculate moments in body coordinates using moment = r x F    
-        aero_moment_b = np.cross(r_cop_cog_b, aero_force_b)
-        thrust_moment_b = np.cross(r_engine_cog_b, thrust_b)
-        
-        #Convert forces to inertial coordinates
-        thrust_i = b2i.apply(thrust_b)
-        aero_force_i = b2i.apply(aero_force_b)
-
         if self.parachute_deployed==True:
-            parachute_force=self.parachute_force(q,vel_i-vel_l2i(self.launch_site.wind, self.launch_site, time),self.altitude(pos_i))
-            r_parachute_cog_b=(-cog+self.parachute.attatch_distance)*np.array([1,0,0])
-            parachute_moments = np.cross(r_parachute_cog_b,parachute_force)
-        else:
-            parachute_force = parachute_moments = np.array([0,0,0])
-            r_parachute_cog_b=np.array([0,0,0])
+            aero_force_b, cop, q = self.aero_forces(b2i, pos_i, vel_i, time)
+            cog = self.mass_model.cog(time)
 
+            wind_inertial =  vel_l2i(self.launch_site.wind, self.launch_site, time)
+            v_rel_wind = self.vel_i-wind_inertial
+            
+            parachute_force_i=self.parachute_force(q,v_rel_wind,self.altitude(pos_i))+self.gravity(time,pos_i)
+            r_parachute_cog_b=(-cog+self.parachute.attatch_distance)*np.array([1,0,0])
+            r_parachute_cog_b=np.array([-.5,0,0])
+            parachute_moments = np.cross(r_parachute_cog_b,b2i.inv().apply(parachute_force_i))
+            F=parachute_force_i
+            Q_b=parachute_moments
+            #print(b2i.inv().apply(v_rel_wind)/np.linalg.norm(b2i.inv().apply(v_rel_wind)),b2i.inv().apply(F)/np.linalg.norm(b2i.inv().apply(F)))
+        else:
+            #Get all the forces in body coordinates
+            thrust_b = self.thrust(time,self.altitude(pos_i))
+            aero_force_b, cop, q = self.aero_forces(b2i, pos_i, vel_i, time)
+            cog = self.mass_model.cog(time)
         
-        #Get total force and moment
-        F = thrust_i + aero_force_i + self.gravity(time, pos_i) + parachute_force
-        Q_b = aero_moment_b + thrust_moment_b + parachute_moments
+            #Get the moment arms
+            r_engine_cog_b = (self.mass_model.l - cog)*np.array([-1,0,0])   #Vector (in body coordinates) of nozzle exit, relative to CoG
+            r_cop_cog_b = (cop - cog)*np.array([-1,0,0])                    #Vector (in body coordinates) of CoP, relative to CoG
+            
+            #Calculate moments in body coordinates using moment = r x F    
+            aero_moment_b = np.cross(r_cop_cog_b, aero_force_b)
+            thrust_moment_b = np.cross(r_engine_cog_b, thrust_b)
+            
+            #Convert forces to inertial coordinates
+            thrust_i = b2i.apply(thrust_b)
+            aero_force_i = b2i.apply(aero_force_b)
+        
+            #Get total force and moment
+            F = thrust_i + aero_force_i + self.gravity(time, pos_i)
+            Q_b = aero_moment_b + thrust_moment_b
         
         #Calculate angular velocities using Euler's equations - IIA Engineering, Module 3C5, Rigid body dynamics handout (page 18)
         i_b = np.array([self.mass_model.ixx(time),
@@ -856,7 +861,7 @@ class Rocket:
 
         return np.array([vel_i[0],vel_i[1],vel_i[2], acc_i[0],acc_i[1],acc_i[2], w_bdot[0],w_bdot[1],w_bdot[2], xbdot[0],xbdot[1],xbdot[2], ybdot[0],ybdot[1],ybdot[2], zbdot[0],zbdot[1],zbdot[2]])
 
-    def run(self,max_time=300,verbose_log=False,debug=False):
+    def run(self,max_time=500,verbose_log=False,debug=False,store=False):
         """Runs the rocekt simulaiton
 
         Notes
@@ -894,7 +899,7 @@ class Rocket:
         while (self.altitude(self.pos_i)>=0 and self.time<max_time):
             if self.variable_time==False:
                 integrator.h_abs=self.h
-            events=self.check_phase()
+            events=self.check_phase(verbose=verbose_log)
             integrator.step()
             self.pos_i = np.array([integrator.y[0],integrator.y[1],integrator.y[2]])
             self.vel_i = np.array([integrator.y[3],integrator.y[4],integrator.y[5]])
@@ -905,6 +910,7 @@ class Rocket:
             b2imat[:,2] = np.array([integrator.y[15],integrator.y[16],integrator.y[17]])      #body z-direction
             self.b2i = Rotation.from_matrix(b2imat)
             self.i2b = self.b2i.inv()
+                
             self.time = integrator.t
             self.h=integrator.h_previous
 
@@ -1032,9 +1038,21 @@ class Rocket:
             if (self.alt_poll_watch<self.time-self.alt_poll_watch_interval):
                 current_alt=self.altitude(self.pos_i)
                 if self.alt_record>current_alt:
-                    print("Parachute deployed at %sm at %ss"%(self.altitude(self.pos_i),self.time))
+                    if verbose==True:
+                        print("Parachute deployed at %sm at %ss"%(self.altitude(self.pos_i),self.time))
                     events.append("Parachute deployed")
                     self.parachute_deployed=True
+                    """self.w_b=np.array([0,0,0])
+                    wind_inertial =  vel_l2i(self.launch_site.wind, self.launch_site, self.time)
+                    v_rel_wind = self.b2i.inv().apply(self.vel_i-wind_inertial)
+                    xb_i = direction_l2i([0,0,1], self.launch_site, self.time)
+                    yb_i = direction_l2i([0,1,0], self.launch_site, self.time)
+                    zb_i = direction_l2i([-1,0,0], self.launch_site, self.time)
+                    mat_b2i = np.zeros([3,3])
+                    mat_b2i[:,0] = xb_i
+                    mat_b2i[:,1] = yb_i
+                    mat_b2i[:,2] = zb_i
+                    self.b2i = Rotation.from_matrix(mat_b2i)  """ 
                 else:
                     self.alt_poll_watch=self.time
                     self.alt_record=current_alt
