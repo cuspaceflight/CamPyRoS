@@ -1,3 +1,8 @@
+"""Mass Models
+
+Stores mass models
+"""
+
 import scipy
 import numpy as np
     

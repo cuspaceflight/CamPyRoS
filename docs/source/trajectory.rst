@@ -1,53 +1,43 @@
-trajectory package
+Trajectory Package
 ==================
 
-Submodules
-----------
-
-trajectory.constants module
----------------------------
-
-.. automodule:: trajectory.constants
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-trajectory.main module
-----------------------
+Core Functions
+--------------
 
 .. automodule:: trajectory.main
    :members:
    :undoc-members:
    :show-inheritance:
 
-trajectory.mass module
-----------------------
+Constants
+---------
+
+.. automodule:: Constants
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Mass Models
+-----------
 
 .. automodule:: trajectory.mass
    :members:
    :undoc-members:
    :show-inheritance:
 
-trajectory.plot module
-----------------------
+Plotting
+--------
 
 .. automodule:: trajectory.plot
    :members:
    :undoc-members:
    :show-inheritance:
 
-trajectory.transforms module
-----------------------------
+Transforms
+----------
 
 .. automodule:: trajectory.transforms
    :members:
    :undoc-members:
    :show-inheritance:
 
-Module contents
----------------
-
-.. automodule:: trajectory
-   :members:
-   :undoc-members:
-   :show-inheritance:
