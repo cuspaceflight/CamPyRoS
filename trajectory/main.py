@@ -739,12 +739,9 @@ class Rocket:
             v_rel_wind = self.vel_i-wind_inertial
             
             parachute_force_i=self.parachute_force(q,v_rel_wind,self.altitude(pos_i))+self.gravity(time,pos_i)
-            r_parachute_cog_b=(-cog+self.parachute.attatch_distance)*np.array([1,0,0])
-            r_parachute_cog_b=np.array([-.5,0,0])
-            parachute_moments = np.cross(r_parachute_cog_b,b2i.inv().apply(parachute_force_i))
+
             F=parachute_force_i
-            Q_b=parachute_moments
-            #print(b2i.inv().apply(v_rel_wind)/np.linalg.norm(b2i.inv().apply(v_rel_wind)),b2i.inv().apply(F)/np.linalg.norm(b2i.inv().apply(F)))
+            Q_b=np.array([0,0,0])
         else:
             #Get all the forces in body coordinates
             thrust_b = self.thrust(time,self.altitude(pos_i))
@@ -905,14 +902,24 @@ class Rocket:
             self.vel_i = np.array([integrator.y[3],integrator.y[4],integrator.y[5]])
             self.w_b = np.array([integrator.y[6],integrator.y[7],integrator.y[8]])
             b2imat = np.zeros([3,3])
-            b2imat[:,0] = np.array([integrator.y[9],integrator.y[10],integrator.y[11]])   #body x-direction
-            b2imat[:,1] = np.array([integrator.y[12],integrator.y[13],integrator.y[14]])      #body y-direction
-            b2imat[:,2] = np.array([integrator.y[15],integrator.y[16],integrator.y[17]])      #body z-direction
+            if self.parachute_deployed == False:
+                b2imat[:,0] = np.array([integrator.y[9],integrator.y[10],integrator.y[11]])   #body x-direction
+                b2imat[:,1] = np.array([integrator.y[12],integrator.y[13],integrator.y[14]])      #body y-direction
+                b2imat[:,2] = np.array([integrator.y[15],integrator.y[16],integrator.y[17]])      #body z-direction
+                
+            else:
+                wind_inertial =  vel_l2i(self.launch_site.wind, self.launch_site, self.time)
+                v_rel_wind = self.vel_i-wind_inertial
+                b2imat[:,0] = -v_rel_wind   #body x-direction
+                b2imat[:,1] = np.cross(-v_rel_wind,np.array([integrator.y[15],integrator.y[16],integrator.y[17]]))     #body y-direction
+                b2imat[:,2] = np.array([integrator.y[15],integrator.y[16],integrator.y[17]])      #body z-direction
+
             self.b2i = Rotation.from_matrix(b2imat)
             self.i2b = self.b2i.inv()
                 
             self.time = integrator.t
-            self.h=integrator.h_previous
+            if self.variable_time==True:
+                self.h=integrator.h_previous
 
             #Orientation - direction's of the body's coordinate system in the inertial frame
             xb = np.array([integrator.y[9],integrator.y[10],integrator.y[11]])   #body x-direction
@@ -942,7 +949,6 @@ class Rocket:
             if verbose_log == True:
                 launch_position = pos_i2l(self.pos_i,self.launch_site,self.time)
                 launch_velocity = vel_i2l(self.vel_i,self.launch_site,self.time)
-                w_b = self.w_b
 
                 #Orientation
                 x_b_i = self.b2i.apply([1,0,0])
