@@ -1,5 +1,4 @@
-import trajectory.main as main
-import trajectory.plot, trajectory.mass, csv
+import trajectory, csv
 
 import numpy as np
 import pandas as pd
@@ -8,7 +7,7 @@ import pandas as pd
 '''Import data from CSV files'''
 
 #Import drag coefficients from RasAero II
-aerodynamic_coefficients = main.RasAeroData("data/Martlet4RasAeroII.CSV")
+aerodynamic_coefficients = trajectory.RasAeroData("data/Martlet4RasAeroII.CSV")
 
 #Import motor data - copied from Joe Hunt's simulation
 with open('novus_sim_6/motor_out.csv') as csvfile:
@@ -34,18 +33,18 @@ length = 6.529      # m
 radius = 98.5e-3    # m
 
 '''Create the objects needed to initialise the Rocket object'''
-mass_model = trajectory.mass.CylindricalMassModel(dry_mass + np.array(prop_mass_data), motor_time_data, length, radius)
-pulsar = main.Motor(motor_time_data, prop_mass_data, cham_pres_data, throat_data, gamma_data, nozzle_efficiency_data, exit_pres_data, area_ratio_data)
-launch_site = main.LaunchSite(rail_length=5, rail_yaw=45, rail_pitch=20, alt=0, longi=0, lat=0, wind=[0,0,0])
+mass_model = trajectory.CylindricalMassModel(dry_mass + np.array(prop_mass_data), motor_time_data, length, radius)
+pulsar = trajectory.Motor(motor_time_data, prop_mass_data, cham_pres_data, throat_data, gamma_data, nozzle_efficiency_data, exit_pres_data, area_ratio_data)
+launch_site = trajectory.LaunchSite(rail_length=5, rail_yaw=45, rail_pitch=20, alt=0, longi=0, lat=0, wind=[0,0,0])
 
 '''Create the Rocket object'''
-martlet4 = main.Rocket(mass_model, pulsar, aerodynamic_coefficients, launch_site, 0.05, True)
+martlet4 = trajectory.Rocket(mass_model, pulsar, aerodynamic_coefficients, launch_site, 0.05, True)
 
 '''Run the simulation'''
 simulation_output = martlet4.run(max_time = 300, debug=True, to_json="output.json")
 
 '''Example of how you can import data from a .csv file'''
-imported_data = main.from_json("output.json")
+imported_data = trajectory.from_json("output.json")
 
 '''Plot the results'''
 #trajectory.plot.plot_launch_trajectory_3d(imported_data, martlet4, show_orientation=True) #Could have also used simulation_output instead of imported_data
