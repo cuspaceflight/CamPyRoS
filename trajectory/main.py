@@ -47,8 +47,8 @@ import scipy.interpolate
 from scipy.spatial.transform import Rotation
 import scipy.integrate as integrate
 
-from trajectory.constants import r_earth, ang_vel_earth
-from trajectory.transforms import pos_l2i, pos_i2l, vel_l2i, vel_i2l, direction_l2i, direction_i2l
+from .constants import r_earth, ang_vel_earth
+from .transforms import pos_l2i, pos_i2l, vel_l2i, vel_i2l, direction_l2i, direction_i2l
 from ambiance import Atmosphere
 
 def warning_on_one_line(message, category, filename, lineno, file=None, line=None):
