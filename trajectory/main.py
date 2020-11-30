@@ -41,11 +41,12 @@ ang_vel_earth : float
 
 """
 
-import csv, warnings, os, sys
+import csv, warnings, os, sys, ast
 import numpy as np
+import pandas as pd
+
 import scipy.interpolate
 from scipy.spatial.transform import Rotation
-import pandas as pd
 import scipy.integrate as integrate
 
 from trajectory.constants import r_earth, ang_vel_earth
@@ -55,6 +56,7 @@ def warning_on_one_line(message, category, filename, lineno, file=None, line=Non
     return ' %s:%s: %s:%s\n' % (filename, lineno, category.__name__, message)
 
 warnings.formatwarning = warning_on_one_line
+
 class Atmosphere:
     """Object storing the parameters of an atmosphere
 
@@ -298,8 +300,7 @@ class RasAeroData:
         self.COP = scipy.interpolate.interp2d(Mach, alpha, COP)
         self.CA = scipy.interpolate.interp2d(Mach, alpha, CA)
         self.CN = scipy.interpolate.interp2d(Mach, alpha, CN)
-            
-            
+                      
 class Rocket:
     """The rocket and key simulation components
 
@@ -383,11 +384,11 @@ class Rocket:
         yb_i = direction_l2i(yb_l, self.launch_site, self.time)     #y for the body is aligned with y for the launch site (both point East)
         zb_i = direction_l2i(zb_l, self.launch_site, self.time)     #xl points South, zb should point North
 
-        mat_b2i = np.zeros([3,3])
-        mat_b2i[:,0] = xb_i
-        mat_b2i[:,1] = yb_i
-        mat_b2i[:,2] = zb_i
-        self.b2i = Rotation.from_matrix(mat_b2i)     
+        b2imat = np.zeros([3,3])
+        b2imat[:,0] = xb_i
+        b2imat[:,1] = yb_i
+        b2imat[:,2] = zb_i
+        self.b2i = Rotation.from_matrix(b2imat)     
 
         self.b2i = self.b2i                     #Body-to-Inertial Rotation - you can apply it to a vector with self.b2i.apply(vector)
         self.i2b = self.b2i.inv()               #Inertial-to-Body Rotation
@@ -705,8 +706,8 @@ class Rocket:
 
         return np.array([vel_i[0],vel_i[1],vel_i[2], acc_i[0],acc_i[1],acc_i[2], w_bdot[0],w_bdot[1],w_bdot[2], xbdot[0],xbdot[1],xbdot[2], ybdot[0],ybdot[1],ybdot[2], zbdot[0],zbdot[1],zbdot[2]])
 
-    def run(self,max_time=300,verbose_log=False,debug=False):
-        """Runs the rocekt simulaiton
+    def run(self, max_time=300, debug=False, to_json = False):
+        """Runs the rocket simulation
 
         Notes
         -----
@@ -716,26 +717,39 @@ class Rocket:
         ----------
         max_time : int, optional
             Maximum simulation runtime, defaults to 300 /s
-        verbose_log : bool, optional
-            Log extra information? Will make simulation slightly slower, defaults to False
         debug : bool, optional
-            Output more progress messages/warnings, defaults ot False
+            Output more progress messages/warnings, defaults to False
+        to_json : str, optional
+            Export a .JSON file containing the data to the directory given, "False" means nothing will be exported.
 
         Returns
         -------
         pandas array
-            Record of simulation, varies in content depending on verbosity. Default contains interial position and velocity, angular velocity, orientation and events (e.g. parachute). 
+            Record of simulation, contains interial position and velocity, angular velocity in body coordinates, orientation and events (e.g. parachute).
             Most information can be derived from this in post processing.
+
+            "time" : array
+                List of times that all the data corresponds to /s
+            "pos_i" : array
+                List of inertial position vectors [x, y, z] /m
+            "vel_i" : array
+                List of inertial velocity vectors [x, y, z] /m/s
+            "b2imat" : array:
+                List of rotation matrices for going from the body to inertial coordinate system (i.e. a record of rocket orientation)
+            "w_b" : array:
+                List of angular velocity vectors, in body coordinates [x, y, z] /rad/s
+            "events" : array:
+                List of useful events        
 
         """
         if debug == True:
             print("Running simulation")
 
-        xb = self.b2i.as_matrix()[:,0]
-        yb = self.b2i.as_matrix()[:,1]
-        zb = self.b2i.as_matrix()[:,2]
+        xb_i = self.b2i.as_matrix()[:,0]
+        yb_i = self.b2i.as_matrix()[:,1]
+        zb_i = self.b2i.as_matrix()[:,2]
 
-        fn = [self.pos_i[0],self.pos_i[1],self.pos_i[2],self.vel_i[0],self.vel_i[1],self.vel_i[2], self.w_b[0],self.w_b[1],self.w_b[2], xb[0],xb[1],xb[2],yb[0],yb[1],yb[2], zb[0],zb[1],zb[2]]
+        fn = [self.pos_i[0],self.pos_i[1],self.pos_i[2],self.vel_i[0],self.vel_i[1],self.vel_i[2], self.w_b[0],self.w_b[1],self.w_b[2], xb_i[0],xb_i[1],xb_i[2],yb_i[0],yb_i[1],yb_i[2], zb_i[0],zb_i[1],zb_i[2]]
         integrator = integrate.DOP853(self.fdot,0,fn,1000,atol=self.atol,rtol=self.rtol)
 
         record=pd.DataFrame({})
@@ -743,13 +757,13 @@ class Rocket:
         while (self.altitude(self.pos_i)>=0 and self.time<max_time):
             if self.variable_time==False:
                 integrator.h_abs=self.h
-            events=self.check_phase()
+            events=self.check_phase(debug=debug)
             integrator.step()
             self.pos_i = np.array([integrator.y[0],integrator.y[1],integrator.y[2]])
             self.vel_i = np.array([integrator.y[3],integrator.y[4],integrator.y[5]])
             self.w_b = np.array([integrator.y[6],integrator.y[7],integrator.y[8]])
             b2imat = np.zeros([3,3])
-            b2imat[:,0] = np.array([integrator.y[9],integrator.y[10],integrator.y[11]])   #body x-direction
+            b2imat[:,0] = np.array([integrator.y[9],integrator.y[10],integrator.y[11]])       #body x-direction
             b2imat[:,1] = np.array([integrator.y[12],integrator.y[13],integrator.y[14]])      #body y-direction
             b2imat[:,2] = np.array([integrator.y[15],integrator.y[16],integrator.y[17]])      #body z-direction
             self.b2i = Rotation.from_matrix(b2imat)
@@ -757,91 +771,29 @@ class Rocket:
             self.time = integrator.t
             self.h=integrator.h_previous
 
-            #Orientation - direction's of the body's coordinate system in the inertial frame
-            xb = np.array([integrator.y[9],integrator.y[10],integrator.y[11]])   #body x-direction
-            yb = np.array([integrator.y[12],integrator.y[13],integrator.y[14]])      #body y-direction
-            zb = np.array([integrator.y[15],integrator.y[16],integrator.y[17]])
-
             new_row={"time":self.time,
 
-                            "x_i":self.pos_i[0],
-                            "y_i":self.pos_i[1],
-                            "z_i":self.pos_i[2],
-
-                            "w_bx":self.w_b[0],
-                            "w_by":self.w_b[1],
-                            "w_bz":self.w_b[2],
-
-                            "vx_i":self.vel_i[0],
-                            "vy_i":self.vel_i[1],
-                            "vz_i":self.vel_i[2],
-
-                            "xb":xb,
-                            "yb":yb,
-                            "zb":zb,
+                            "pos_i":self.pos_i.tolist(),
+                            "vel_i":self.vel_i.tolist(),
+                            "b2imat":b2imat.tolist(),
+                            "w_b":self.w_b.tolist(),
                             
                             "events":events}
-
-            if verbose_log == True:
-                launch_position = pos_i2l(self.pos_i,self.launch_site,self.time)
-                launch_velocity = vel_i2l(self.vel_i,self.launch_site,self.time)
-                w_b = self.w_b
-
-                #Orientation
-                x_b_i = self.b2i.apply([1,0,0])
-                x_b_l = direction_i2l(x_b_i, self.launch_site, self.time)
-                ypr = self.b2i.as_euler('zyx')
-
-                #Aero forces aero_forces
-                aero_forces, cop = self.aero_forces(self.pos_i, self.vel_i, self.b2i, self.w_b, self.time)
-                aero_forces_l = direction_i2l(self.b2i.apply(aero_forces), self.launch_site, self.time)
-
-                #Accelerations
-                lin_acc, wdot_b = self.accelerations(self.pos_i, self.vel_i, self.b2i, self.w_b, self.time)
-
-                #Centre of gravity
-                cog = self.mass_model.cog(self.time)    
-                verbose_info={"h":self.h,
-
-                        "x_l":launch_position[0],
-                        "y_l":launch_position[1],
-                        "z_l":launch_position[2],
-                        "vx_l":launch_velocity[0],
-                        "vy_l":launch_velocity[1],
-                        "vz_l":launch_velocity[2],
-
-                        "yaw":ypr[0],
-                        "pitch":ypr[1],
-                        "roll":ypr[2],
-                        "attitude_xi":x_b_i[0],
-                        "attitude_yi":x_b_i[1],
-                        "attitude_zi":x_b_i[2],
-                        "attitude_xl":x_b_l[0],
-                        "attitude_yl":x_b_l[1],
-                        "attitude_zl":x_b_l[2],
-
-                        "aero_xb":aero_forces[0],
-                        "aero_yb":aero_forces[1],
-                        "aero_zb":aero_forces[2],
-                        "aero_xl":aero_forces_l[0],
-                        "aero_yl":aero_forces_l[1],
-                        "aero_zl":aero_forces_l[2],
-                        "cop":cop,
-
-                        "wdot_bx":wdot_b[0],
-                        "wdot_by":wdot_b[1],
-                        "wdot_bz":wdot_b[2],
-                        
-                        "cog": cog}
-                new_row.update(verbose_info)
 
             record=record.append(new_row, ignore_index=True)
             if (c%100==0 and debug==True):
                 print("t={:.2f} s alt={:.2f} km (h={} s). Step number {}".format(self.time, self.altitude(self.pos_i)/1000, integrator.h_abs, c))
             c+=1
+
+        #Export a JSON if required
+        if to_json != False:
+            record.to_json(path_or_buf = to_json, orient="index")
+            if debug == True:
+                print("Exported JSON data to '{}'".format(to_json))
+
         return record
 
-    def check_phase(self, verbose=False):
+    def check_phase(self, debug=False):
         """Checks phase of flight between steps
 
         Notes
@@ -864,7 +816,7 @@ class Rocket:
         if self.on_rail==True:
             flight_distance = np.linalg.norm(pos_i2l(self.pos_i,self.launch_site,self.time))
             if flight_distance>=self.launch_site.rail_length:
-                if verbose == True:
+                if debug == True:
                     print("Cleared rail at t={:.2f} s with alt={:.2f} m and TtW={:.2f}".format(self.time,
                 self.altitude(self.pos_i),
                 np.linalg.norm(self.accelerations(self.pos_i, self.vel_i, self.b2i, self.w_b, self.time)[0])/9.81)
@@ -872,5 +824,36 @@ class Rocket:
                 self.on_rail=False
                 events.append("Cleared rail")
         return events
+
+def from_json(directory):
+    """Imports simulation data from a JSON file
+
+    Parameters
+    ----------
+    directory : string
+        The directory of the simulation data .JSON file
+
+    Returns
+    -------
+    pandas array
+        Record of simulation, contains interial position and velocity, angular velocity in body coordinates, orientation and events (e.g. parachute).
+        Most information can be derived from this in post processing.
+
+        "time" : array
+            List of times that all the data corresponds to /s
+        "pos_i" : array
+            List of inertial position vectors [x, y, z] /m
+        "vel_i" : array
+            List of inertial velocity vectors [x, y, z] /m/s
+        "b2imat" : array:
+            List of rotation matrices for going from the body to inertial coordinate system (i.e. a record of rocket orientation)
+        "w_b" : array:
+            List of angular velocity vectors, in body coordinates [x, y, z] /rad/s
+        "events" : array:
+            List of useful events        
+
+    """
+
+    return pd.read_json(directory, orient="index")
 
 

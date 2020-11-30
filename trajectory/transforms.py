@@ -2,8 +2,7 @@ import numpy as np
 from scipy.spatial.transform import Rotation
 
 from trajectory.constants import r_earth, ang_vel_earth
-
-#pos_l2i and pos_i2l HAVE BEEN CHANGED BUT HAS NOT BEEN TESTED        
+     
 def pos_l2i(pos_l, launch_site, time):
     """Converts position in launch frame to position in inertial frame.
 
