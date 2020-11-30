@@ -1,25 +1,8 @@
-"""6DOF Martlet trajectory simulator"""
-'''All units in SI unless otherwise stated'''
+"""6DOF Trajectory Simulator
 
-'''
-COORDINATE SYSTEM NOMENCLATURE
-x_b,y_b,z_b = Body coordinate system (origin on rocket, rotates with the rocket)
-x_i,y_i,z_i = Inertial coordinate system (does not rotate, origin at centre of the Earth)
-x_l, y_l, z_l = Launch site coordinate system - the origin is on launch site but dropped down to a position of zero altitude (whilst keeping the same long and lat). Rotates with the Earth.
+Various useful plots of the outputted data
 
-Directions are defined below.
-- Body:
-    y points east and z north at take off (before rail alignment is accounted for) x up.
-    x is along the "long" axis of the rocket.
-
-- Launch site:
-    z points perpendicular to the earth, y in the east direction and x tangential to the earth pointing south
-    
-- Inertial:
-    Origin at centre of the Earth
-    z points to north from centre of earth, x aligned with launchsite at start and y orthogonal
-
-'''
+"""
 
 
 import numpy as np
