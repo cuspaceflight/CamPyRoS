@@ -80,11 +80,14 @@
               
             
             
-              <!-- Local TOC -->
-              <div class="local-toc"><ul>
-<li><a class="reference internal" href="#">Results plotting modual</a></li>
+              <p class="caption"><span class="caption-text">Contents</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="licences.html">License</a></li>
+<li class="toctree-l1"><a class="reference internal" href="licences.html#contact">Contact</a></li>
+<li class="toctree-l1"><a class="reference internal" href="help.html">Need help</a></li>
+<li class="toctree-l1"><a class="reference internal" href="modules.html">trajectory</a></li>
 </ul>
-</div>
+
             
           
         </div>
@@ -148,77 +151,8 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="module-plot">
-<span id="results-plotting-modual"></span><h1>Results plotting modual<a class="headerlink" href="#module-plot" title="Permalink to this headline">¶</a></h1>
-<p>6DOF Martlet trajectory simulator</p>
-<dl class="py function">
-<dt id="plot.animate_orientation">
-<code class="sig-prename descclassname">plot.</code><code class="sig-name descname">animate_orientation</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">simulation_output</span></em>, <em class="sig-param"><span class="n">frames</span><span class="o">=</span><span class="default_value">500</span></em><span class="sig-paren">)</span><a class="headerlink" href="#plot.animate_orientation" title="Permalink to this definition">¶</a></dt>
-<dd><p>frames : number of animation frames in total - less means that the animations runs faster</p>
-</dd></dl>
-
-<dl class="py function">
-<dt id="plot.get_velocity_magnitude">
-<code class="sig-prename descclassname">plot.</code><code class="sig-name descname">get_velocity_magnitude</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">df</span></em><span class="sig-paren">)</span><a class="headerlink" href="#plot.get_velocity_magnitude" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py function">
-<dt id="plot.plot_aero_forces">
-<code class="sig-prename descclassname">plot.</code><code class="sig-name descname">plot_aero_forces</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">simulation_output</span></em><span class="sig-paren">)</span><a class="headerlink" href="#plot.plot_aero_forces" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py function">
-<dt id="plot.plot_altitude_time">
-<code class="sig-prename descclassname">plot.</code><code class="sig-name descname">plot_altitude_time</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">simulation_output</span></em><span class="sig-paren">)</span><a class="headerlink" href="#plot.plot_altitude_time" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py function">
-<dt id="plot.plot_inertial_trajectory_3d">
-<code class="sig-prename descclassname">plot.</code><code class="sig-name descname">plot_inertial_trajectory_3d</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">simulation_output</span></em>, <em class="sig-param"><span class="n">show_orientation</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="headerlink" href="#plot.plot_inertial_trajectory_3d" title="Permalink to this definition">¶</a></dt>
-<dd><p>Plots the trajectory in 3D, given the simulation_output</p>
-</dd></dl>
-
-<dl class="py function">
-<dt id="plot.plot_launch_trajectory_3d">
-<code class="sig-prename descclassname">plot.</code><code class="sig-name descname">plot_launch_trajectory_3d</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">simulation_output</span></em>, <em class="sig-param"><span class="n">show_orientation</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">show_aero</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">arrow_frequency</span><span class="o">=</span><span class="default_value">0.02</span></em><span class="sig-paren">)</span><a class="headerlink" href="#plot.plot_launch_trajectory_3d" title="Permalink to this definition">¶</a></dt>
-<dd><p>Plots the trajectory in 3D, given the simulation_output</p>
-</dd></dl>
-
-<dl class="py function">
-<dt id="plot.plot_position">
-<code class="sig-prename descclassname">plot.</code><code class="sig-name descname">plot_position</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">simulation_output</span></em><span class="sig-paren">)</span><a class="headerlink" href="#plot.plot_position" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py function">
-<dt id="plot.plot_quat_i2b">
-<code class="sig-prename descclassname">plot.</code><code class="sig-name descname">plot_quat_i2b</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">simulation_output</span></em><span class="sig-paren">)</span><a class="headerlink" href="#plot.plot_quat_i2b" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py function">
-<dt id="plot.plot_quat_i2bdot">
-<code class="sig-prename descclassname">plot.</code><code class="sig-name descname">plot_quat_i2bdot</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">simulation_output</span></em><span class="sig-paren">)</span><a class="headerlink" href="#plot.plot_quat_i2bdot" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py function">
-<dt id="plot.plot_velocity">
-<code class="sig-prename descclassname">plot.</code><code class="sig-name descname">plot_velocity</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">simulation_output</span></em><span class="sig-paren">)</span><a class="headerlink" href="#plot.plot_velocity" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py function">
-<dt id="plot.plot_w_b">
-<code class="sig-prename descclassname">plot.</code><code class="sig-name descname">plot_w_b</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">simulation_output</span></em><span class="sig-paren">)</span><a class="headerlink" href="#plot.plot_w_b" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py function">
-<dt id="plot.plot_wdot_b">
-<code class="sig-prename descclassname">plot.</code><code class="sig-name descname">plot_wdot_b</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">simulation_output</span></em><span class="sig-paren">)</span><a class="headerlink" href="#plot.plot_wdot_b" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py function">
-<dt id="plot.plot_ypr">
-<code class="sig-prename descclassname">plot.</code><code class="sig-name descname">plot_ypr</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">simulation_output</span></em><span class="sig-paren">)</span><a class="headerlink" href="#plot.plot_ypr" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
+  <div class="section" id="results-plotting-modual">
+<h1>Results plotting modual<a class="headerlink" href="#results-plotting-modual" title="Permalink to this headline">¶</a></h1>
 </div>
 
 
