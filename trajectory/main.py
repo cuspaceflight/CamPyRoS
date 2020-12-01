@@ -40,7 +40,7 @@ ang_vel_earth : float
 
 """
 
-import csv, warnings, os, sys, ast
+import csv, warnings, os, sys, json
 import numpy as np
 import pandas as pd
 
@@ -765,6 +765,8 @@ class Rocket:
             Output more progress messages/warnings, defaults to False
         to_json : str, optional
             Export a .JSON file containing the data to the directory given, "False" means nothing will be exported.
+        json_orient : string
+            See pandas.DataFrame.to_json documentation - allowed values are: {‘split’, ‘records’, ‘index’, ‘columns’, ‘values’, ‘table’}. Defaults to 'split'.
 
         Returns
         -------
@@ -842,7 +844,16 @@ class Rocket:
 
         #Export a JSON if required
         if to_json != False:
-            record.to_json(path_or_buf = to_json, orient="index")
+            #Convert the DataFrame to a dict first, the in-built Python JSON library works better than panda's does I think
+            dict = record.to_dict(orient="list")
+
+            #Now use the inbuilt json module to export it
+            with open(to_json, "w") as write_file:
+                json.dump(dict, write_file)
+            
+            #How you could do this without the json module - but the JSON is stored in a less intuitive format:
+            #record.to_json(path_or_buf = to_json, orient="split")
+
             if debug == True:
                 print("Exported JSON data to '{}'".format(to_json))
 
@@ -931,7 +942,15 @@ def from_json(directory):
             List of useful events        
 
     """
+    #How you could try to do this without the json module:
+    #return pd.read_json(directory, orient="split")
 
-    return pd.read_json(directory, orient="index")
+    #Import the JSON as a dict first (the in-built Python JSON library works better than panda's does I think)
+    with open(directory, "r") as read_file:
+        dict = json.load(read_file)
+    
+    #Now convert the dict to a pandas DataFrame
+    return pd.DataFrame.from_dict(dict, orient="columns")
 
+    
 

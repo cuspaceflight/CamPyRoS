@@ -75,13 +75,13 @@ def plot_launch_trajectory_3d(simulation_output, rocket, show_orientation=False,
     
     #Plot rocket position and launch site position
     ax.plot3D(x_l, y_l, z_l)
-    ax.scatter(x_l[0], y_l[0], z_l[0], c='red', label="Launch site", linewidths="10")
+    ax.scatter(x_l[0], y_l[0], z_l[0], c='red', label="Launch site", linewidths=10)
     ax.set_xlabel('South')
     ax.set_ylabel('East')
     ax.set_zlabel('Altitude')  
     
     #Indexes to plot arrows at
-    idx = np.round(np.linspace(0, len(x_l) - 1, arrow_frequency*int(len(x_l)))).astype(int)
+    idx = np.linspace(0, len(x_l) - 1, int(arrow_frequency*len(x_l))).astype(int)
     
     #Plot the direction the rocket faces at each point (i.e. direction of xb_l), using quivers
     if show_orientation==True:
