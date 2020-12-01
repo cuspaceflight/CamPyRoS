@@ -473,6 +473,7 @@ class Rocket:
         v_a = np.linalg.norm(v_rel_wind)
         mach = v_a/Atmosphere(alt).speed_of_sound[0]
 
+        #Angles of attack, as defined in Paper A: NASA Basic Considerations for Rocket Trajectory Simulation
         #np.angle(1j*a + b) is equivelant to np.arctan2(a/b) 
         #alpha = np.angle(1j*v_rel_wind[2] + v_rel_wind[0])
         beta = np.arctan2(v_rel_wind[1], (v_rel_wind[0]**2 + v_rel_wind[2]**2 )**0.5 )
