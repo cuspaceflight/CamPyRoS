@@ -50,7 +50,7 @@ import scipy.integrate as integrate
 from datetime import datetime
 
 from .constants import r_earth, ang_vel_earth
-from .transforms import pos_l2i, pos_i2l, vel_l2i, vel_i2l, direction_l2i, direction_i2l
+from .transforms import pos_l2i, pos_i2l, vel_l2i, vel_i2l, direction_l2i, direction_i2l, i2airspeed
 from ambiance import Atmosphere
 
 def warning_on_one_line(message, category, filename, lineno, file=None, line=None):
@@ -431,6 +431,7 @@ class Rocket:
         self.alt_record=self.altitude(self.pos_i)
         self.alt_poll_watch_interval=alt_poll_interval
         self.alt_poll_watch=self.alt_poll_watch_interval
+
     def aero_forces(self, pos_i, vel_i, b2i, w_b, time):  
         """Returns aerodynamic forces (in the body reference frame and the distance of the centre of pressure (COP) from the front of the vehicle.)
 
@@ -466,16 +467,17 @@ class Rocket:
         if alt<-5000:
             #I keep getting some weird error where if there is any wind the timesteps go to ~11s long near the ground and then it goes really far under ground, presumably in less than one whole timestep so the simulation can't break
             alt=-5000
-        wind_inertial =  vel_l2i(self.launch_site.wind, self.launch_site, time)
-        v_rel_wind = b2i.inv().apply(vel_i - wind_inertial)
+        
+        #Get velocity relative to the wind (i.e. the airspeed vector), in body coordinates
+        v_rel_wind = b2i.inv().apply( direction_l2i((i2airspeed(pos_i, vel_i, self.launch_site, time) - self.launch_site.wind), self.launch_site, time) )
         v_a = np.linalg.norm(v_rel_wind)
         mach = v_a/Atmosphere(alt).speed_of_sound[0]
-        
-        #Angles - use np.angle(ja + b) to replace np.arctan(a/b) because the latter gave divide by zero errors, if b=0
+
+        #np.angle(1j*a + b) is equivelant to np.arctan2(a/b) 
         #alpha = np.angle(1j*v_rel_wind[2] + v_rel_wind[0])
-        beta = np.angle(1j*v_rel_wind[1] + (v_rel_wind[0]**2 + v_rel_wind[2]**2 )**0.5 )
-        delta = np.angle( 1j*(v_rel_wind[2]**2 + v_rel_wind[1]**2)**0.5 + v_rel_wind[0])
-        alpha_star = np.angle(1j*v_rel_wind[2] + (v_rel_wind[0]**2 + v_rel_wind[1]**2 )**0.5 )
+        beta = np.arctan2(v_rel_wind[1], (v_rel_wind[0]**2 + v_rel_wind[2]**2 )**0.5 )
+        delta = np.arctan2((v_rel_wind[2]**2 + v_rel_wind[1]**2)**0.5, v_rel_wind[0])
+        alpha_star = np.arctan2(v_rel_wind[2], (v_rel_wind[0]**2 + v_rel_wind[1]**2 )**0.5 )
         #beta_star = np.angle(1j*v_rel_wind[1] + v_rel_wind[0])
         
         #Dynamic pressure at the current altitude and velocity - WARNING: Am I using the right density?
@@ -506,7 +508,7 @@ class Rocket:
 
         Note
         ----
-        -Mainly derived from Joe Hunt's NOVIS Simulation
+        -Mainly derived from Joe Hunt's NOVUS Simulation
 
         Parameters
         ----------
@@ -644,6 +646,7 @@ class Rocket:
 
             wind_inertial =  vel_l2i(self.launch_site.wind, self.launch_site, time)
             v_rel_wind = self.vel_i-wind_inertial
+            #v_rel_wind = b2i.inv().apply( direction_l2i((i2airspeed(pos_i, vel_i, self.launch_site, time) - self.launch_site.wind), self.launch_site, time) )
             
             parachute_force_i=self.parachute_force(q,v_rel_wind,self.altitude(pos_i))+self.gravity(pos_i,time)
 
