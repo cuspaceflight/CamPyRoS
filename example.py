@@ -35,7 +35,7 @@ radius = 98.5e-3    # m
 '''Create the objects needed to initialise the Rocket object'''
 mass_model = trajectory.CylindricalMassModel(dry_mass + np.array(prop_mass_data), motor_time_data, length, radius)
 pulsar = trajectory.Motor(motor_time_data, prop_mass_data, cham_pres_data, throat_data, gamma_data, nozzle_efficiency_data, exit_pres_data, area_ratio_data)
-launch_site = trajectory.LaunchSite(rail_length=5, rail_yaw=45, rail_pitch=20, alt=0, longi=0, lat=0, wind=[0,0,0])
+launch_site = trajectory.LaunchSite(rail_length=10, rail_yaw=45, rail_pitch=20, alt=0, longi=0, lat=0, wind=[5,0,0])
 parachute=trajectory.Parachute(13.9,0.78,1.13,0.78,1000,0)
 
 """Create the Rocket object"""
