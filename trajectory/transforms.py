@@ -66,7 +66,7 @@ def pos_i2l(position,launch_site,time):
     return pos_rocket_l
 
 def vel_i2l(vel_i, launch_site, time): 
-    """Converts position in launch frame to position in inertial frame.
+    """Converts velocity in inertial frame to velocity in launch frame.
 
     Note
     ----
@@ -170,3 +170,32 @@ def direction_l2i(vector, launch_site, time):
         Vector in the launch frame
     """ 
     return Rotation.from_euler('zy', [-launch_site.longi - (180/np.pi)*ang_vel_earth*time, -90 + launch_site.lat], degrees=True).inv().apply(vector)
+
+def i2airspeed(pos_i, vel_i, launch_site, time):
+    """Converts velocity in the inertial frame to airspeed (before wind is taken into account) using site launch coordinates
+    
+
+    Note
+    ----
+    Assumes that the atmosphere moves at the same angular velocity as the Earth. Hence, at a given altitude, v_atmosphere = w_earth x r_i
+
+    Parameters
+    ----------
+    vel_i : numpy array
+        Velocity in the inertial frame [x,y,z] /m/s
+    pos_i : numpy array
+        Position in the intertial frame [x,y,z] /m
+    launch_site : LaunchSite object
+        Holds the launch site parameters
+    time : float
+        Time since ignition /s
+
+    Returns
+    -------
+    numpy array
+        Airspeed (assuming no wind), given using launch site coordinates
+    """  
+    w_earth = np.array([0, 0, ang_vel_earth])
+    atmosphere_velocity_i = np.cross(w_earth, pos_i)
+
+    return direction_i2l(vel_i - atmosphere_velocity_i, launch_site, time) 
