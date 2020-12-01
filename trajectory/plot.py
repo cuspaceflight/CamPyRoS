@@ -73,12 +73,20 @@ def plot_launch_trajectory_3d(simulation_output, rocket, show_orientation=False,
     y_l = pos_l_array[:, 1]
     z_l = pos_l_array[:, 2]
     
-    #Plot rocket position and launch site position
+    #Plot rocket positions
     ax.plot3D(x_l, y_l, z_l)
-    ax.scatter(x_l[0], y_l[0], z_l[0], c='red', label="Launch site", linewidths=10)
     ax.set_xlabel('South')
     ax.set_ylabel('East')
     ax.set_zlabel('Altitude')  
+
+    #Plot launch site position and burnout position
+    ax.scatter(x_l[0], y_l[0], z_l[0], c='red', label="Launch site", linewidths=3)
+    
+    #Get burnout position
+    burnout_time = rocket.motor.motor_time_data[-1]
+    burnout_index = (np.abs(np.array(simulation_output["time"]) - burnout_time)).argmin()
+    ax.scatter(x_l[burnout_index], y_l[burnout_index], z_l[burnout_index], c='green', label="Engine burnout", linewidths=3)
+
     
     #Indexes to plot arrows at
     idx = np.linspace(0, len(x_l) - 1, int(arrow_frequency*len(x_l))).astype(int)
