@@ -981,6 +981,7 @@ zbdot[0], zbdot[1], zbdot[2]]</p>
 <li><p><strong>max_time</strong> (<em>int</em><em>, </em><em>optional</em>) – Maximum simulation runtime, defaults to 300 /s</p></li>
 <li><p><strong>debug</strong> (<em>bool</em><em>, </em><em>optional</em>) – Output more progress messages/warnings, defaults to False</p></li>
 <li><p><strong>to_json</strong> (<em>str</em><em>, </em><em>optional</em>) – Export a .JSON file containing the data to the directory given, “False” means nothing will be exported.</p></li>
+<li><p><strong>json_orient</strong> (<em>string</em>) – See pandas.DataFrame.to_json documentation - allowed values are: {‘split’, ‘records’, ‘index’, ‘columns’, ‘values’, ‘table’}. Defaults to ‘split’.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
@@ -1289,7 +1290,7 @@ if point==round(2*np.pi,5):</p>
 
 <dl class="py function">
 <dt id="trajectory.plot.plot_attitude">
-<code class="sig-prename descclassname">trajectory.plot.</code><code class="sig-name descname">plot_attitude</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">simulation_output</span></em><span class="sig-paren">)</span><a class="headerlink" href="#trajectory.plot.plot_attitude" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">trajectory.plot.</code><code class="sig-name descname">plot_attitude</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">simulation_output</span></em>, <em class="sig-param"><span class="n">rocket</span></em><span class="sig-paren">)</span><a class="headerlink" href="#trajectory.plot.plot_attitude" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py function">
@@ -1344,7 +1345,7 @@ if point==round(2*np.pi,5):</p>
 
 <dl class="py function">
 <dt id="trajectory.plot.plot_ypr">
-<code class="sig-prename descclassname">trajectory.plot.</code><code class="sig-name descname">plot_ypr</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">simulation_output</span></em><span class="sig-paren">)</span><a class="headerlink" href="#trajectory.plot.plot_ypr" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">trajectory.plot.</code><code class="sig-name descname">plot_ypr</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">simulation_output</span></em>, <em class="sig-param"><span class="n">rocket</span></em><span class="sig-paren">)</span><a class="headerlink" href="#trajectory.plot.plot_ypr" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py function">
