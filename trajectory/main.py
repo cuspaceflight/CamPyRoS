@@ -813,13 +813,14 @@ class Rocket:
                 b2imat[:,0] = np.array([integrator.y[9],integrator.y[10],integrator.y[11]])   #body x-direction
                 b2imat[:,1] = np.array([integrator.y[12],integrator.y[13],integrator.y[14]])      #body y-direction
                 b2imat[:,2] = np.array([integrator.y[15],integrator.y[16],integrator.y[17]])      #body z-direction
-                
             else:
                 wind_inertial =  vel_l2i(self.launch_site.wind, self.launch_site, self.time)
                 v_rel_wind = self.vel_i-wind_inertial
-                b2imat[:,0] = -v_rel_wind   #body x-direction
-                b2imat[:,1] = np.cross(-v_rel_wind,np.array([integrator.y[15],integrator.y[16],integrator.y[17]]))     #body y-direction
-                b2imat[:,2] = np.array([integrator.y[15],integrator.y[16],integrator.y[17]])      #body z-direction
+                b2imat[:,0] = -v_rel_wind/np.linalg.norm(v_rel_wind)   #body x-direction
+                z=self.b2i.as_matrix()[:,2]
+                b2imat[:,1] = np.cross(z,-v_rel_wind/np.linalg.norm(v_rel_wind))     #body y-direction
+                b2imat[:,2] = z      #body z-direction
+            
 
             self.b2i = Rotation.from_matrix(b2imat)
             self.i2b = self.b2i.inv()
@@ -898,8 +899,8 @@ class Rocket:
                         print("Parachute deployed at %sm at %ss"%(self.altitude(self.pos_i),self.time))
                     events.append("Parachute deployed")
                     self.parachute_deployed=True
-                    """self.w_b=np.array([0,0,0])
-                    wind_inertial =  vel_l2i(self.launch_site.wind, self.launch_site, self.time)
+                    self.w_b=np.array([0,0,0])
+                    """wind_inertial =  vel_l2i(self.launch_site.wind, self.launch_site, self.time)
                     v_rel_wind = self.b2i.inv().apply(self.vel_i-wind_inertial)
                     xb_i = direction_l2i([0,0,1], self.launch_site, self.time)
                     yb_i = direction_l2i([0,1,0], self.launch_site, self.time)
