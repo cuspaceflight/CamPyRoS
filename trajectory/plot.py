@@ -9,7 +9,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
 from mpl_toolkits.mplot3d import Axes3D
-
+import trajectory
 from trajectory.transforms import pos_l2i, pos_i2l, vel_l2i, vel_i2l, direction_l2i, direction_i2l
 
 def get_velocity_magnitude(df):
@@ -241,50 +241,71 @@ def fix_ypr(point):
         point=0"""
     return point
 
-def plot_ypr(simulation_output):
+def plot_ypr(simulation_output, rocket):
+    yaw=[]
+    pitch=[]
+    roll=[]
+    z_l=[]
+    for index, row in simulation_output.iterrows():#this is ugly but proper way not working
+        ypr=trajectory.Rotation.from_matrix(row["b2imat"]).as_euler("zyx")
+        yaw.append(ypr[0])
+        pitch.append(ypr[1])
+        roll.append(ypr[2])
+        z_l.append(trajectory.pos_i2l(np.array(row["pos_i"]),rocket.launch_site,row["time"])[2])
     fig, axs = plt.subplots(2, 2)
     
-    axs[0, 0].plot(simulation_output["time"], [fix_ypr(n) for n in simulation_output["yaw"]])
+    axs[0, 0].plot(simulation_output["time"], [fix_ypr(n) for n in yaw])
     axs[0, 0].set_title('Yaw')
     axs[0,0].set_xlabel("time/s")
     axs[0,0].set_ylabel("Angles/ rad")
     
-    axs[0, 1].plot(simulation_output["time"], [fix_ypr(n) for n in simulation_output["pitch"]])
+    axs[0, 1].plot(simulation_output["time"], [fix_ypr(n) for n in pitch])
     axs[0, 1].set_title('Pitch')
     axs[0,1].set_xlabel("time/s")
     axs[0,1].set_ylabel("Angles/ rad")
     
-    axs[1, 0].plot(simulation_output["time"], [fix_ypr(n) for n in simulation_output["roll"]])
+    axs[1, 0].plot(simulation_output["time"], [fix_ypr(n) for n in roll])
     axs[1, 0].set_title('Roll')
     axs[1,0].set_xlabel("time/s")
     axs[1,0].set_ylabel("Angles/ rad")
 
-    axs[1, 1].plot(simulation_output["time"], simulation_output["z_l"])
+    axs[1, 1].plot(simulation_output["time"], z_l)
     axs[1, 1].set_title('Altitude')
     axs[1,1].set_xlabel("time/s")
     axs[1,1].set_ylabel("Altitude /m")
     
     plt.show()
 
-def plot_attitude(simulation_output):
+def plot_attitude(simulation_output,rocket):
+    attitude=[]
+    for index, row in simulation_output.iterrows():
+        x_b_l = trajectory.direction_i2l(trajectory.Rotation.from_matrix(row["b2imat"]).apply([1,0,0]), launch_site, row["time"])
+        new_row={"attitude_xl":x_b_l[0],
+                "attitude_yl":x_b_l[1],
+                "attitude_zl":x_b_l[2],
+                "z_l":trajectory.pos_i2l(np.array(row["pos_i"]),rocket.launch_site,row["time"])[2],
+                "time":row["time"]}
+        attitude.append(new_row)
+    attitude=trajectory.pd.DataFrame(attitude) 
+
     fig, axs = plt.subplots(2, 2)
     
-    axs[0, 0].plot(simulation_output["time"], simulation_output["attitude_xl"])
+    axs[0, 0].plot(attitude["time"], attitude["attitude_xl"])
     axs[0, 0].set_title('X')
     axs[0,0].set_xlabel("time/s")
     axs[0,0].set_ylabel("Distance/m")
     
-    axs[0, 1].plot(simulation_output["time"], simulation_output["attitude_yl"])
+    axs[0, 1].plot(attitude["time"], attitude["attitude_yl"])
     axs[0, 1].set_title('Y')
     axs[0,1].set_xlabel("time/s")
     axs[0,1].set_ylabel("Distance/m")
     
-    axs[1, 0].plot(simulation_output["time"], simulation_output["attitude_zl"])
+    axs[1, 0].plot(attitude["time"], attitude["attitude_zl"])
     axs[1, 0].set_title('Z')
     axs[1,0].set_xlabel("time/s")
     axs[1,0].set_ylabel("Distance/m")
 
-    axs[1, 1].plot(simulation_output["time"], simulation_output["z_l"])
+    axs[1, 1].plot(attitude["time"], attitude["z_l"])
     axs[1, 1].set_title('Altitude')
     axs[1,1].set_xlabel("time/s")
     axs[1,1].set_ylabel("Altitude /m")
