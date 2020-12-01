@@ -40,7 +40,7 @@ ang_vel_earth : float
 
 """
 
-import csv, warnings, os, sys, ast
+import csv, warnings, os, sys, json
 import numpy as np
 import pandas as pd
 
@@ -655,7 +655,7 @@ class Rocket:
 
         return np.array([vel_i[0],vel_i[1],vel_i[2], acc_i[0],acc_i[1],acc_i[2], w_bdot[0],w_bdot[1],w_bdot[2], xbdot[0],xbdot[1],xbdot[2], ybdot[0],ybdot[1],ybdot[2], zbdot[0],zbdot[1],zbdot[2]])
 
-    def run(self, max_time=300, debug=False, to_json = False, json_orient="split"):
+    def run(self, max_time=300, debug=False, to_json = False):
         """Runs the rocket simulation
 
         Notes
@@ -738,7 +738,16 @@ class Rocket:
 
         #Export a JSON if required
         if to_json != False:
-            record.to_json(path_or_buf = to_json, orient=json_orient)
+            #Convert the DataFrame to a dict first, the in-built Python JSON library works better than panda's does I think
+            dict = record.to_dict(orient="list")
+
+            #Now use the inbuilt json module to export it
+            with open(to_json, "w") as write_file:
+                json.dump(dict, write_file)
+            
+            #How you could do this without the json module - but the JSON is stored in a less intuitive format:
+            #record.to_json(path_or_buf = to_json, orient="split")
+
             if debug == True:
                 print("Exported JSON data to '{}'".format(to_json))
 
@@ -776,15 +785,14 @@ class Rocket:
                 events.append("Cleared rail")
         return events
 
-def from_json(directory, orient="split"):
+def from_json(directory):
     """Imports simulation data from a JSON file
 
     Parameters
     ----------
     directory : string
         The directory of the simulation data .JSON file
-    orient : string
-        See pandas.read_json documentation - allowed values are: {‘split’, ‘records’, ‘index’, ‘columns’, ‘values’, ‘table’}. Defaults to 'split'.
+
     Returns
     -------
     pandas array
@@ -805,7 +813,15 @@ def from_json(directory, orient="split"):
             List of useful events        
 
     """
+    #How you could try to do this without the json module:
+    #return pd.read_json(directory, orient="split")
 
-    return pd.read_json(directory, orient=orient)
+    #Import the JSON as a dict first (the in-built Python JSON library works better than panda's does I think)
+    with open(directory, "r") as read_file:
+        dict = json.load(read_file)
+    
+    #Now convert the dict to a pandas DataFrame
+    return pd.DataFrame.from_dict(dict, orient="columns")
 
+    
 
