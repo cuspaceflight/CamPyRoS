@@ -3,3 +3,4 @@ scipy==1.5.2
 matplotlib==3.3.0
 numpy==1.18.5
 ray==1.0.1
+ambiance==1.1.0
