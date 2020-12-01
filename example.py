@@ -4,7 +4,7 @@ import numpy as np
 import pandas as pd
 
 
-'''Import data from CSV files'''
+"""Import data from CSV files"""
 
 #Import drag coefficients from RasAero II
 aerodynamic_coefficients = trajectory.RasAeroData("data/Martlet4RasAeroII.CSV")
@@ -35,10 +35,11 @@ radius = 98.5e-3    # m
 '''Create the objects needed to initialise the Rocket object'''
 mass_model = trajectory.CylindricalMassModel(dry_mass + np.array(prop_mass_data), motor_time_data, length, radius)
 pulsar = trajectory.Motor(motor_time_data, prop_mass_data, cham_pres_data, throat_data, gamma_data, nozzle_efficiency_data, exit_pres_data, area_ratio_data)
-launch_site = trajectory.LaunchSite(rail_length=5, rail_yaw=45, rail_pitch=20, alt=0, longi=0, lat=0, wind=[0,0,0])
+launch_site = trajectory.LaunchSite(rail_length=10, rail_yaw=45, rail_pitch=20, alt=0, longi=0, lat=0, wind=[0,0,0])
+parachute=trajectory.Parachute(13.9,0.78,1.13,0.78,1000,0)
 
-'''Create the Rocket object'''
-martlet4 = trajectory.Rocket(mass_model, pulsar, aerodynamic_coefficients, launch_site, 0.05, True)
+"""Create the Rocket object"""
+martlet4 = trajectory.Rocket(mass_model, pulsar, aerodynamic_coefficients, launch_site, h=0.05, variable=True,alt_poll_interval=1,parachute=parachute)
 
 '''Run the simulation'''
 simulation_output = martlet4.run(max_time = 300, debug=True, to_json="output.json")
@@ -47,5 +48,6 @@ simulation_output = martlet4.run(max_time = 300, debug=True, to_json="output.jso
 imported_data = trajectory.from_json("output.json")
 
 '''Plot the results'''
-trajectory.plot_launch_trajectory_3d(imported_data, martlet4, show_orientation=False) #Could have also used simulation_output instead of imported_data
-trajectory.plot_altitude_time(imported_data, martlet4)
+#trajectory.plot_launch_trajectory_3d(imported_data, martlet4, show_orientation=False) #Could have also used simulation_output instead of imported_data
+#trajectory.plot_altitude_time(imported_data, martlet4)
+trajectory.plot_ypr(imported_data, martlet4)
