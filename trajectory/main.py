@@ -463,6 +463,9 @@ class Rocket:
         """        
         #Use np.angle(ja + b) to replace np.arctan(a/b)
         alt = self.altitude(pos_i)
+        if alt<-5000:
+            #I keep getting some weird error where if there is any wind the timesteps go to ~11s long near the ground and then it goes really far under ground, presumably in less than one whole timestep so the simulation can't break
+            alt=-5000
         wind_inertial =  vel_l2i(self.launch_site.wind, self.launch_site, time)
         v_rel_wind = b2i.inv().apply(vel_i - wind_inertial)
         v_a = np.linalg.norm(v_rel_wind)
