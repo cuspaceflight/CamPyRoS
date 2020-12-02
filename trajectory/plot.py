@@ -166,6 +166,8 @@ def plot_altitude_time(simulation_output, rocket):
     fig.tight_layout()
     plt.show() 
 
+    return fig
+
 #Non-functional
 
 def plot_aero_forces(simulation_output):

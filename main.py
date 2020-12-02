@@ -245,7 +245,7 @@ class CylindricalMassModel:
 class RasAeroData:
     """Object holding aerodynamic data from a RasAero II 'Aero Plots' export file
     """    
-    def __init__(self, file_location_string, area = 0.0305128422): 
+    def __init__(self, file_location_string, area = 0.0305128422, variability={"ca":0.0,"cn":0.0,"cop":0.0}): 
         """Loads the RasAero data
 
         Args:
@@ -309,9 +309,9 @@ class RasAeroData:
         Mach = Mach[:2498]
            
         #Generate grids of the data
-        CA = np.array([CA_0, CA_2, CA_4])
-        CN = np.array([CN_0, CN_2, CN_4])
-        COP = 0.0254*np.array([COP_0, COP_2, COP_4])    #Convert inches to m
+        CA = np.array([CA_0, CA_2, CA_4])*variability["ca"]
+        CN = np.array([CN_0, CN_2, CN_4])*variability["cn"]
+        COP = 0.0254*np.array([COP_0, COP_2, COP_4])*variability["cop"]    #Convert inches to m
         alpha = [0,2,4]
                     
         #Generate functions (note these are funcitons, not variables) which return a coefficient given (Mach, alpha)
@@ -373,7 +373,7 @@ class Deviation:
 class StatisticalModel:
     """Class for monte carlo modeling of flights
     """    
-    def __init__(self, mass_model, motor, aero_model, launch_site, h, variable=False, rail_yaw=0.0, rail_pitch=0.0, cop=0.0, ca=0.0, cn=0.0, thrust=0.0, gravity=0.0, mass=0.0, ixx=0.0, iyy=0.0, izz=0.0, thrust_alignment=np.array([0.0,0.0,0.0]), air_density=0.0, air_pressure=0.0, air_temp=0.0, wind=np.array([0.0,0.0,0.0])):
+    def __init__(self, mass_model, motor, aero_model, launch_site, h, variable=False, rail_yaw=0.0, rail_pitch=0.0, cop=0.0, ca=0.0, cn=0.0, thrust=0.0, gravity=0.0, mass=0.0, ixx=0.0, iyy=0.0, izz=0.0, thrust_alignment=np.array([0.0,0.0,0.0]), air_density=0.0, air_pressure=0.0, wind=np.array([0.0,0.0,0.0])):
         """Creates the model, initialising the maximum deviation for the variable parameters. Initialise with no parameters to not vary.
 
         Args:
@@ -391,7 +391,6 @@ class StatisticalModel:
             thrust_alignment (numpy array): maximum deviation of thrust missalignment, vector pointing
             air_density (float): maximum deviation of air density %
             air_pressure (float): maximum deviation of air pressure %
-            air_temp (float): maximum deviation of air temperature %
             wind (numpy array): maximum deviaiton of wind speed, vector m/s
         """     
         self.max_deviations={"rail_yaw":rail_yaw,
@@ -408,7 +407,6 @@ class StatisticalModel:
                             "thrust_alignment":thrust_alignment,
                             "air_density":air_density,
                             "air_pressure":air_pressure,
-                            "air_temp":air_temp,
                             "wind":wind}
         self.mass_model=mass_model
         self.launch_site=launch_site
