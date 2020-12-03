@@ -257,7 +257,7 @@ class RasAeroData:
         Normal coefficient of drag, when called interpolates to desired time /
     
     """ 
-    def __init__(self, file_location_string, area = 0.0305128422, variability={"CA":0.0,"CN":0.0,"COP":0.0}): 
+    def __init__(self, file_location_string, area = 0.0305128422, error={"CA":0.0,"CN":0.0,"COP":0.0}): 
         self.area = area
         
         with open(file_location_string) as csvfile:
@@ -314,9 +314,9 @@ class RasAeroData:
         Mach = Mach[:2498]
            
         #Generate grids of the data
-        CA = np.array([CA_0, CA_2, CA_4])*(1+variability["CA"])
-        CN = np.array([CN_0, CN_2, CN_4])*(1+variability["CA"])
-        COP = 0.0254*np.array([COP_0, COP_2, COP_4])*(1+variability["CA"])    #Convert inches to m
+        CA = error["CA"]*np.array([CA_0, CA_2, CA_4])
+        CN = error["CN"]*np.array([CN_0, CN_2, CN_4])
+        COP = error["COP"]*0.0254*np.array([COP_0, COP_2, COP_4])   #Convert inches to m
         alpha = [0,2,4]
                     
         #Generate functions (note these are funcitons, not variables) which return a coefficient given (Mach, alpha)
@@ -382,7 +382,7 @@ class Rocket:
         Engine burned out? Initialises to False
     
     """   
-    def __init__(self, mass_model, motor, aero, launch_site, h=0.01, variable=True, rtol=1e-7, atol=1e-14, parachute=Parachute(0,0,0,0,0,0),alt_poll_interval=1,thrust_vector=np.array([1,0,0]),errors={"gravity":0.0,"pressure":0.0,"density":0.0,"speed_of_sound":0.0}):   
+    def __init__(self, mass_model, motor, aero, launch_site, h=0.01, variable=True, rtol=1e-7, atol=1e-14, parachute=Parachute(0,0,0,0,0,0),alt_poll_interval=1,thrust_vector=np.array([1,0,0]),errors={"gravity":1.0,"pressure":1.0,"density":1.0,"speed_of_sound":1.0}):   
         self.launch_site = launch_site
         self.motor = motor
         self.aero = aero

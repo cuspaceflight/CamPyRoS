@@ -11,9 +11,8 @@ from datetime import datetime
 def variable_name(**variables):
     return [x for x in variables][0]
 
-def full_random():
-    return 2*(random.random()-.5)
-
+def abs_stdev(value,percentage):
+    return value*percentage
 
 class StatisticalModel:
     """Class for monte carlo modeling of flights
@@ -37,27 +36,29 @@ class StatisticalModel:
 
     @ray.remote
     def run_itteration(self, id, save_loc):
-        run_vars={"launch_site":{},"mass_model":{},"parachute":{},"enviroment":{}}
-        for index,item in enumerate([self.launch_site_vars,self.mass_model_vars,self.parachute_vars]):
-            for key in item:
-                run_vars[self.type_names[index]][key]=np.array(item[key][0])*(1+item[key][1]*full_random())
-
-        run_vars["enviroment"]={k: 1+full_random()*v for k, v in self.env_vars.items()}
+        run_vars={"launch_site":{k: np.random.normal(v[0],v[1]) for k, v in self.launch_site_vars.items()},#absolute errors given
+                "mass_model":{k: np.array(v[0])*np.random.normal(1,v[1]) for k, v in self.mass_model_vars.items()},
+                "parachute":{k: np.random.normal(v[0],abs_stdev(v[0],v[1])) for k, v in self.parachute_vars.items()},
+                "aero":{k: np.random.normal(1,v) for k,v in self.aero_error.items()},
+                "env":{k: np.random.normal(1,v) for k,v in self.env_vars.items()}}
+        run_vars["launch_site"]["alt"]=abs(run_vars["launch_site"]["alt"])#I suppose this doesn't work when mean alt is non zero but less than a few stdevs
 
         launch_site=LaunchSite(run_vars["launch_site"]["rail_length"],run_vars["launch_site"]["rail_yaw"],run_vars["launch_site"]["rail_pitch"],run_vars["launch_site"]["alt"],run_vars["launch_site"]["longi"],run_vars["launch_site"]["lat"],run_vars["launch_site"]["wind"])
-        mass_model=CylindricalMassModel(run_vars["mass_model"]["dry_mass"] + run_vars["mass_model"]["prop_mass"],run_vars["mass_model"]["time_data"],run_vars["mass_model"]["length"],run_vars["mass_model"]["radius"])#CylindricalMassModel(run_vars["mass_model"]["dry_mass"] + run_vars["mass_model"]["prop_mass"],run_vars["mass_model"]["time_data"],run_vars["mass_model"]["length"],run_vars["mass_model"]["radius"])
+        mass_model=CylindricalMassModel(run_vars["mass_model"]["dry_mass"] + run_vars["mass_model"]["prop_mass"],run_vars["mass_model"]["time_data"],run_vars["mass_model"]["length"],run_vars["mass_model"]["radius"])
+        #mass_model=CylindricalMassModel(self.mass_model_vars["dry_mass"][0] + np.array(self.mass_model_vars["prop_mass"][0]),self.mass_model_vars["time_data"][0],self.mass_model_vars["length"][0],self.mass_model_vars["radius"][0])#CylindricalMassModel(run_vars["mass_model"]["dry_mass"] + run_vars["mass_model"]["prop_mass"],run_vars["mass_model"]["time_data"],run_vars["mass_model"]["length"],run_vars["mass_model"]["radius"])
         motor=copy.copy(self.motor_base)
-    
-        motor.nozzle_efficiency_data=np.array(motor.nozzle_efficiency_data)*(1+self.thrust_error*full_random())
-        aero_error = {k: full_random()*v for k, v in self.aero_error.items()}
-        aero=RasAeroData(self.aero_file,variability=aero_error) #I'm not convinces this is sufficient, should each datapoint not have its own random or is it okay to apply one error to the whole set?
-        parachute=Parachute(run_vars["parachute"]["main_s"],run_vars["parachute"]["main_c_d"],run_vars["parachute"]["drogue_s"],run_vars["parachute"]["drogue_c_d"],run_vars["parachute"]["main_alt"],run_vars["parachute"]["attatch_distance"])
+        motor.nozzle_efficiency_data=np.array(motor.nozzle_efficiency_data)*np.random.normal(1,self.thrust_error)
+
+        aero=RasAeroData(self.aero_file,error=run_vars["aero"]) #I'm not convinces this is sufficient, should each datapoint not have its own random or is it okay to apply one error to the whole set?
         
-        thrust_alignment = np.array([1,0,0])#+np.array([0,full_random()*self.thrust_alignment_error,full_random()*self.thrust_alignment_error])
+        parachute=Parachute(run_vars["parachute"]["main_s"],run_vars["parachute"]["main_c_d"],run_vars["parachute"]["drogue_s"],run_vars["parachute"]["drogue_c_d"],run_vars["parachute"]["main_alt"],run_vars["parachute"]["attatch_distance"])
+        #parachute=Parachute(self.parachute_vars["main_s"][0],self.parachute_vars["main_c_d"][0],self.parachute_vars["drogue_s"][0],self.parachute_vars["drogue_c_d"][0],self.parachute_vars["main_alt"][0],self.parachute_vars["attatch_distance"][0])
+        
+        thrust_alignment = np.array([np.random.normal(1,self.thrust_alignment_error),np.random.normal(0,self.thrust_alignment_error),np.random.normal(0,self.thrust_alignment_error)])
         thrust_alignment = thrust_alignment/np.linalg.norm(thrust_alignment)
 
         
-        rocket=Rocket(mass_model, motor, aero, launch_site, h=self.h, variable=self.variable_time,parachute=parachute,thrust_vector=thrust_alignment,errors=run_vars["enviroment"])
+        rocket=Rocket(mass_model, motor, aero, launch_site, h=self.h, variable=self.variable_time,parachute=parachute,thrust_vector=thrust_alignment,errors=run_vars["env"])#,errors=run_vars["enviroment"])
         run_output = rocket.run(max_time = 500)
         run_save = pd.DataFrame()
         run_save["time"]=run_output["time"]
@@ -81,7 +82,7 @@ class StatisticalModel:
         run_save["v_x"]=v_x
         run_save["v_y"]=v_y
         run_save["v_z"]=v_z
-        #run_save["vel_l"] = [vel_i2l(pos, rocket.launch_site, run_output["time"][index]) for index,pos in enumerate(run_output["vel_i"])]
+
         with open("%s/%s.csv"%(save_loc,id), "w+") as f:
             run_save.to_csv(path_or_buf=f)
 
