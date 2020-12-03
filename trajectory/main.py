@@ -382,7 +382,7 @@ class Rocket:
         Engine burned out? Initialises to False
     
     """   
-    def __init__(self, mass_model, motor, aero, launch_site, h=0.01, variable=True, rtol=1e-7, atol=1e-14, parachute=Parachute(0,0,0,0,0,0),alt_poll_interval=1,thrust_vector=np.array([1,0,0]),errors={"gravity":0.0,"pressure":0.0,"density":0.0}):   
+    def __init__(self, mass_model, motor, aero, launch_site, h=0.01, variable=True, rtol=1e-7, atol=1e-14, parachute=Parachute(0,0,0,0,0,0),alt_poll_interval=1,thrust_vector=np.array([1,0,0]),errors={"gravity":0.0,"pressure":0.0,"density":0.0,"speed_of_sound":0.0}):   
         self.launch_site = launch_site
         self.motor = motor
         self.aero = aero
@@ -433,6 +433,9 @@ class Rocket:
         self.alt_poll_watch=self.alt_poll_watch_interval
 
         self.thrust_vector=thrust_vector
+
+        self.env_vars = errors
+
     def aero_forces(self, pos_i, vel_i, b2i, w_b, time):  
         """Returns aerodynamic forces (in the body reference frame and the distance of the centre of pressure (COP) from the front of the vehicle.)
 
@@ -468,10 +471,12 @@ class Rocket:
         if alt<-5000:
             #I keep getting some weird error where if there is any wind the timesteps go to ~11s long near the ground and then it goes really far under ground, presumably in less than one whole timestep so the simulation can't break
             alt=-5000
+        elif alt>81020:
+            alt=81020
         wind_inertial =  vel_l2i(self.launch_site.wind, self.launch_site, time)
         v_rel_wind = b2i.inv().apply(vel_i - wind_inertial)
         v_a = np.linalg.norm(v_rel_wind)
-        mach = v_a/Atmosphere(alt).speed_of_sound[0]
+        mach = v_a/(Atmosphere(alt).speed_of_sound[0]*self.env_vars["speed_of_sound"])
         
         #Angles - use np.angle(ja + b) to replace np.arctan(a/b) because the latter gave divide by zero errors, if b=0
         #alpha = np.angle(1j*v_rel_wind[2] + v_rel_wind[0])
@@ -481,7 +486,7 @@ class Rocket:
         #beta_star = np.angle(1j*v_rel_wind[1] + v_rel_wind[0])
         
         #Dynamic pressure at the current altitude and velocity - WARNING: Am I using the right density?
-        q = 0.5*Atmosphere(alt).density[0]*(v_a**2)
+        q = 0.5*Atmosphere(alt).density[0]*self.env_vars["density"]*(v_a**2)
         
         #Characteristic area
         S = self.aero.area
@@ -544,7 +549,7 @@ class Rocket:
             nozzle_area_ratio = np.interp(time, self.motor.motor_time_data, self.motor.area_ratio_data)
             
             #Get atmospheric pressure (to calculate pressure thrust)
-            pres_static = Atmosphere(alt).pressure[0]
+            pres_static = Atmosphere(alt).pressure[0]*self.env_vars["pressure"]
             
             #Calculate the thrust
             area_throat = ((dia_throat/2)**2)*np.pi
@@ -592,7 +597,7 @@ class Rocket:
         """   
         
         # F = -GMm/r^2 = μm/r^2 where μ = 3.986004418e14 for Earth
-        return -3.986004418e14 * self.mass_model.mass(time) * pos_i / np.linalg.norm(pos_i)**3
+        return -self.env_vars["gravity"]*3.986004418e14 * self.mass_model.mass(time) * pos_i / np.linalg.norm(pos_i)**3
 
     def parachute_force(self, q, velocity, alt):
         c_d,s=self.parachute.get(alt)
@@ -835,13 +840,12 @@ class Rocket:
                 self.h=integrator.h_previous
 
             new_row={"time":self.time,
-
-                            "pos_i":self.pos_i.tolist(),
-                            "vel_i":self.vel_i.tolist(),
-                            "b2imat":b2imat.tolist(),
-                            "w_b":self.w_b.tolist(),
+                    "pos_i":self.pos_i,
+                    "vel_i":self.vel_i,
+                    "b2imat":b2imat.tolist(),
+                    "w_b":self.w_b.tolist(),
                             
-                            "events":events}
+                    "events":events}
 
             record=record.append(new_row, ignore_index=True)
             if (c%100==0 and debug==True):
@@ -851,6 +855,8 @@ class Rocket:
         #Export a JSON if required
         if to_json != False:
             #Convert the DataFrame to a dict first, the in-built Python JSON library works better than panda's does I think
+            record["pos_i"]=[n.tolist() for n in record["pos_i"]]
+            record["vel_i"]=[n.tolist() for n in record["vel_i"]]
             dict = record.to_dict(orient="list")
 
             #Now use the inbuilt json module to export it
