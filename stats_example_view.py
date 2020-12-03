@@ -4,7 +4,7 @@ import pandas as pd
 import numpy as np
 
 run_name="stat_model_20201203"
-itterations = 100
+itterations = 1
 
 fig, axs = plt.subplots(2, 2)
 axs[0,1].scatter(0,0,marker="x",s=5)
@@ -18,9 +18,9 @@ for n in range(1,itterations+1):
     speed = [(v_x**2+run_data["v_y"][index]**2+run_data["v_z"][index]**2)**.5 for index, v_x in enumerate(run_data["v_x"])]
 
     axs[1,0].plot(run_data["time"],speed,linewidth=1)
-    axs[0,0].plot(run_data["time"],run_data["z"])
+    axs[0,0].plot(run_data["time"],run_data["z"],linewidth=1)
     axs[0,1].scatter(run_data["x"].values[-1],run_data["y"].values[-1],marker="x",s=5)
-    axs[1,1].plot(run_data["time"],run_data["v_z"])
+    axs[1,1].plot(run_data["time"],run_data["v_z"],linewidth=1)
     
 
 #Make all the axes scales equal
@@ -43,7 +43,7 @@ plt.show()
 fig = plt.figure()
 ax = plt.axes(projection='3d')
 for itt in xyz:
-    ax.plot3D(itt[0], itt[1], itt[2])
+    ax.plot3D(itt[0], itt[1], itt[2],linewidth=1)
 ax.set_xlabel('South/m')
 ax.set_ylabel('East/m')
 ax.set_zlabel('Altitude/m')  
