@@ -4,7 +4,7 @@ import pandas as pd
 import numpy as np
 
 run_name="stat_model_20201203"
-itterations = 1
+itterations = 48
 
 fig, axs = plt.subplots(2, 2)
 axs[0,1].scatter(0,0,marker="x",s=5)
