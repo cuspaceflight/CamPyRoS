@@ -467,6 +467,8 @@ class Rocket:
         if alt<-5000:
             #I keep getting some weird error where if there is any wind the timesteps go to ~11s long near the ground and then it goes really far under ground, presumably in less than one whole timestep so the simulation can't break
             alt=-5000
+        elif alt>81020:
+            alt=81020
         
         #Get velocity relative to the wind (i.e. the airspeed vector), in body coordinates
         v_rel_wind = b2i.inv().apply( direction_l2i((i2airspeed(pos_i, vel_i, self.launch_site, time) - self.launch_site.wind), self.launch_site, time) )
@@ -757,7 +759,7 @@ class Rocket:
 
         return np.array([vel_i[0],vel_i[1],vel_i[2], acc_i[0],acc_i[1],acc_i[2], w_bdot[0],w_bdot[1],w_bdot[2], xbdot[0],xbdot[1],xbdot[2], ybdot[0],ybdot[1],ybdot[2], zbdot[0],zbdot[1],zbdot[2]])
 
-    def run(self, max_time=300, debug=False, to_json = False):
+    def run(self, max_time=1000, debug=False, to_json = False):
         """Runs the rocket simulation
 
         Notes
