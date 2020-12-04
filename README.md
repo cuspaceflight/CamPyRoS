@@ -49,12 +49,9 @@ https://www.precice.org/ - Precise Code Interaction Coupling Environment - Can b
 
 http://ohllab.org/CFD_course/index.html - PyCFD
 
-<<<<<<< HEAD
-https://pdfs.semanticscholar.org/d337/9e4baaa1a4b49d17d9eea52df6e10aefbf8e.pdf - parachutes
-
-We need to make sure to remove all the links to pirated books if we make the repository public. 
-=======
->>>>>>> 7eeccfe3654eacacc214363de16f3826f5ef0a63
+#### Stats
+https://www.umass.edu/remp/Papers/Smith&Wells_NERA06.pdf - How many samples
+https://apps.dtic.mil/dtic/tr/fulltext/u2/a621501.pdf - " " "
 ## Program Workflow
 ![Rough flowchart](img/flowchart1.jpeg)
 

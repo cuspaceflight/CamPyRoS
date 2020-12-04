@@ -3,11 +3,11 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
 
-run_name="stat_model_20201204_1000"
+run_name="stat_model_20201204_1000_upright"
 itterations = 1000
 
 fig, axs = plt.subplots(2, 2)
-axs[0,1].scatter(0,0,marker="x",s=5,color="red")
+axs[0,1].scatter(0,0,marker="x",s=15,color="green",label="Launch Site")
 
 xyz = []
 
@@ -21,6 +21,15 @@ for n in range(1,itterations+1):
         axs[0,0].plot(run_data["time"],run_data["z"],linewidth=1,color="blue",alpha=0.01)
         axs[0,1].scatter(run_data["x"].values[-1],run_data["y"].values[-1],marker="o",s=10,color="blue",alpha=0.1)
         axs[1,1].plot(run_data["time"],run_data["v_z"],linewidth=1,color="blue",alpha=0.01)
+
+run_data = pd.read_csv("results/%s/%s.csv"%(run_name,"nominal"))
+nominal_xyz=[run_data["x"], run_data["y"], run_data["z"]]
+speed = [(v_x**2+run_data["v_y"][index]**2+run_data["v_z"][index]**2)**.5 for index, v_x in enumerate(run_data["v_x"])]
+
+"""axs[1,0].plot(run_data["time"],speed,linewidth=1,color="red",alpha=0.5,label="Nominal")
+axs[0,0].plot(run_data["time"],run_data["z"],linewidth=1,color="red",alpha=0.5,label="Nominal")
+axs[0,1].scatter(run_data["x"].values[-1],run_data["y"].values[-1],marker="o",s=10,color="red",alpha=0.5,label="Nominal")
+axs[1,1].plot(run_data["time"],run_data["v_z"],linewidth=1,color="red",alpha=0.5,label="Nominal")"""
     
 
 #Make all the axes scales equal
@@ -33,17 +42,23 @@ axs[1,0].set_title("Speed")
 axs[1,0].set_xlabel("Time/s")
 axs[1,0].set_ylabel("Speed/m/s")
 axs[0,1].set_title("Downrange")
-axs[0,1].set_xlabel("North/m")
+axs[0,1].set_xlabel("South/m")
 axs[0,1].set_ylabel("East/m")
 axs[1,1].set_title("Vertical Velocity")
 axs[1,1].set_xlabel("Time/s")
 axs[1,1].set_ylabel("Velocity/m/s")
+axs[0,0].legend()
+axs[1,0].legend()
+axs[0,1].legend()
+axs[1,1].legend()
 plt.show() 
 
 fig = plt.figure()
 ax = plt.axes(projection='3d')
 for itt in xyz:
-    ax.plot3D(itt[0], itt[1], itt[2],linewidth=1,color="blue",alpha=0.01)
+    ax.plot3D(itt[0], itt[1], itt[2],linewidth=1,color="blue",alpha=0.05)
+
+#ax.plot3D(nominal_xyz[0], nominal_xyz[1], nominal_xyz[2],linewidth=1,color="red",alpha=0.5,label="Nominal")
 ax.set_xlabel('South/m')
 ax.set_ylabel('East/m')
 ax.set_zlabel('Altitude/m')  
