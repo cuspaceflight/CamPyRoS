@@ -42,7 +42,6 @@ class StatisticalModel:
                 "aero":{k: np.random.normal(1,v) for k,v in self.aero_error.items()},
                 "env":{k: np.random.normal(1,v) for k,v in self.env_vars.items()}}
         run_vars["launch_site"]["alt"]=abs(run_vars["launch_site"]["alt"])#I suppose this doesn't work when mean alt is non zero but less than a few stdevs
-
         launch_site=LaunchSite(run_vars["launch_site"]["rail_length"],run_vars["launch_site"]["rail_yaw"],run_vars["launch_site"]["rail_pitch"],run_vars["launch_site"]["alt"],run_vars["launch_site"]["longi"],run_vars["launch_site"]["lat"],run_vars["launch_site"]["wind"])
         mass_model=CylindricalMassModel(run_vars["mass_model"]["dry_mass"] + run_vars["mass_model"]["prop_mass"],run_vars["mass_model"]["time_data"],run_vars["mass_model"]["length"],run_vars["mass_model"]["radius"])
         #mass_model=CylindricalMassModel(self.mass_model_vars["dry_mass"][0] + np.array(self.mass_model_vars["prop_mass"][0]),self.mass_model_vars["time_data"][0],self.mass_model_vars["length"][0],self.mass_model_vars["radius"][0])#CylindricalMassModel(run_vars["mass_model"]["dry_mass"] + run_vars["mass_model"]["prop_mass"],run_vars["mass_model"]["time_data"],run_vars["mass_model"]["length"],run_vars["mass_model"]["radius"])
@@ -88,8 +87,9 @@ class StatisticalModel:
 
         
 
-    def run_model(self,itters):
-        save_loc=os.path.join(os.getcwd(),"results/stat_model_%s"%datetime.now().strftime("%Y%m%d"))
+    def run_model(self,itters,save_loc=None):
+        if save_loc==None:
+            save_loc=os.path.join(os.getcwd(),"results/stat_model_%s"%datetime.now().strftime("%Y%m%d"))
         if not os.path.exists(save_loc):
             os.makedirs(save_loc)
 
