@@ -9,7 +9,21 @@
 \usepackage{amsmath}
 \usepackage{amssymb}
 
-
+\usepackage{media9}%
+\newcommand{\includemovie}[3]{%
+\includemedia[%
+width=#1,height=#2,%
+activate=pagevisible,%
+deactivate=pageclose,%
+addresource=#3,%
+flashvars={%
+src=#3 % same path as in addresource!
+&autoPlay=true % default: false; if =true, automatically starts playback after activation (see option ‘activation)’
+&loop=true % if loop=true, media is played in a loop
+&controlBarAutoHideTimeout=0 %  time span before auto-hide
+}%
+]{}{StrobeMediaPlayback.swf}%
+}% end of the new command
 
 %% Title slide formatting %%
 
@@ -127,13 +141,92 @@
             \item Includes parachute decent
             \item Designed to be as general as possible so it can be used for any flight
             \item Structed like a python library including documentation (hopefully finished soon)
-            \item Has a new modual for Monte Carlo simulation to find trajector error bounds
-        \end{itemize}
+            \item New modual for Monte Carlo simulation to find trajector error bounds
+        \end{itemize} 
 
     \end{frame}
     \begin{frame}
-        \frametitle{Nominal Flight}
-        \framesubtitle{Results of a nominal flight}
-        
+        \frametitle{Nominal Flight 1}
+        \framesubtitle{2m/s Wind and 2 degree rail angle}
+        \includegraphics[width=0.85\textwidth]{images/example1.png}
+    \end{frame}
+    \begin{frame}
+        \frametitle{Nominal Flight 1}
+        \framesubtitle{2m/s Wind and 2 degree rail angle}
+        \includegraphics[width=0.85\textwidth]{images/example2.png}
+    \end{frame}
+    \begin{frame}
+        \frametitle{Nominal Flight 1}
+        \framesubtitle{2m/s Wind and 2 degree rail angle}
+        \includegraphics[width=0.85\textwidth]{images/example3.png}
+    \end{frame}
+    \begin{frame}
+        \frametitle{Nominal Flight 2}
+        \framesubtitle{No wild or rail angle, jaggedness from automatic step size reduction (note the scale on the downrange is $1\times10^{-11}$)}
+        \includegraphics[width=0.85\textwidth]{images/example1a.png}
+    \end{frame}
+    \begin{frame}
+        \frametitle{Nominal Flight 2}
+        \framesubtitle{No wild or rail angle, jaggedness from automatic step size reduction (note the scale on the downrange is $1\times10^{-11}$)}
+        \includegraphics[width=0.85\textwidth]{images/example2a.png}
+    \end{frame}
+    \begin{frame}
+        \frametitle{Nominal Flight 2}
+        \framesubtitle{No wild or rail angle, jaggedness from automatic step size reduction (note the scale on the downrange is $1\times10^{-11}$)}
+        \includegraphics[width=0.85\textwidth]{images/example3a.png}
+    \end{frame}
+    \begin{frame}
+        \frametitle{Nominal Flight 3}
+        \framesubtitle{45 degree rail angle}
+        \includegraphics[width=0.85\textwidth]{images/example1b.png}
+    \end{frame}
+    \begin{frame}
+        \frametitle{Nominal Flight 3}
+        \framesubtitle{45 degree rail angle}
+        \includegraphics[width=0.85\textwidth]{images/example2b.png}
+    \end{frame}
+    \begin{frame}
+        \frametitle{Nominal Flight 3}
+        \framesubtitle{45 degree rail angle}
+        \includegraphics[width=0.85\textwidth]{images/example3b.png}
+    \end{frame}
+    \begin{frame}
+        \frametitle{Monte Carlo Analysis}
+        \framesubtitle{What is that}
+        \begin{itemize}
+            \item Monte Carlo allows you to analyse the effects of variations on a highly non linear system
+            \item Essentially randomly generating variations/error in the input parameters (e.g. thrust, drag coefficients, rail angle)
+            \item Possible to calculate errors/confidence intervals for predicted trajectories (maths of this is yet to come)
+        \end{itemize} 
+    \end{frame}
+    \begin{frame}
+        \frametitle{Monte Carlo Analysis}
+        \framesubtitle{No rail angle or wind}
+        \includegraphics[width=0.85\textwidth]{images/stats_example1.png}
+    \end{frame}
+    \begin{frame}
+        \frametitle{Monte Carlo Analysis}
+        \framesubtitle{No rail angle or wind}
+        \includegraphics[width=0.85\textwidth]{images/stats_example1_with_nom.png}
+    \end{frame}
+    \begin{frame}
+        \frametitle{Monte Carlo Analysis}
+        \framesubtitle{No rail angle or wind}
+        \includegraphics[width=0.85\textwidth]{images/stats_example2_with_nom.png}
+    \end{frame}
+
+    \begin{frame}
+        \frametitle{Final Notes}
+        \framesubtitle{What we have left}
+        \begin{itemize}
+            \item Proper analysis of the Monte Carlo Results
+            \item New more accurate mass model (we currently just have a cylinder)
+            \item Better aero model (i.e. including damping etc.)
+            \item Aerodynamic heating analysis
+            \item Slosh modeling
+            \item Couple with CFD for more accurate results 
+            \item Finish documentation
+            \item Think of a name
+        \end{itemize} 
     \end{frame}
 \end{document}
