@@ -55,15 +55,14 @@ src=#3 % same path as in addresource!
 \definecolor{oxfordblue}{RGB}{4,30,66}
 
 \pgfdeclareimage[width=0.9cm]{logo}{images/logo.png}
-\pgfdeclareimage[width=1cm]{mathslogo}{images/logo.png}
 
 \setbeamertemplate{headline}
 {%
     \begin{picture}(0,0)
-        \put(314,-50){%
+        \put(314,-35){%
             \pgfuseimage{logo}
         }
-        \put(20,-55){%
+        \put(20,-45){%
             \rule{320pt}{0.4pt}
         }
     \end{picture}
@@ -122,7 +121,7 @@ src=#3 % same path as in addresource!
     \begin{frame}
         \begin{titlepage}
             \usebeamerfont{title}
-                {\inserttitle\\[0.9cm]}
+                {\inserttitle\\[.9cm]}
             \usebeamerfont{subtitle}
                 {\insertauthor\par}
                 {\insertinstitute\\[0.3cm]}
@@ -141,54 +140,72 @@ src=#3 % same path as in addresource!
             \item Includes parachute decent
             \item Designed to be as general as possible so it can be used for any flight
             \item Structed like a python library including documentation (hopefully finished soon)
-            \item New modual for Monte Carlo simulation to find trajector error bounds
+            \item New module for Monte Carlo simulation to find trajectory error bounds
         \end{itemize} 
 
     \end{frame}
     \begin{frame}
         \frametitle{Nominal Flight 1}
         \framesubtitle{No wind, rail upright}
-        \includegraphics[width=0.85\textwidth]{images/example1.png}
+        \begin{center}
+            \includegraphics[width=\textwidth]{images/example1.png}
+        \end{center}
     \end{frame}
     \begin{frame}
         \frametitle{Nominal Flight 1}
         \framesubtitle{No wind, rail upright. Jaggedness from automatic step size reduction (note the scale on the downrange is $1\times10^{-11}$)}
-        \includegraphics[width=0.85\textwidth]{images/example1a.png}
+        \begin{center}
+            \includegraphics[width=\textwidth]{images/example1a.png}
+        \end{center}
     \end{frame}
     \begin{frame}
         \frametitle{Nominal Flight 1}
         \framesubtitle{No wind, rail upright}
-        \includegraphics[width=0.85\textwidth]{images/example1b.png}
+        \begin{center}
+            \includegraphics[width=\textwidth]{images/example1b.png}
+        \end{center}
+    \end{frame}
+    \begin{frame}
+        \frametitle{Nominal Flight 2}
+        \framesubtitle{7m/s south east wind, rail upright. Goes back on its self as it weather cocks.}
+        \begin{center}
+            \includegraphics[width=\textwidth]{images/example2.png}
+        \end{center}
+    \end{frame}
+    \begin{frame}
+        \frametitle{Nominal Flight 2}
+        \framesubtitle{7m/s south east wind, rail upright. Goes back on its self as it weather cocks.}
+        \begin{center}
+            \includegraphics[width=\textwidth]{images/example2a.png}
+        \end{center}
     \end{frame}
     \begin{frame}
         \frametitle{Nominal Flight 2}
         \framesubtitle{7m/s south east wind, rail upright}
-        \includegraphics[width=0.85\textwidth]{images/example2.png}
-    \end{frame}
-    \begin{frame}
-        \frametitle{Nominal Flight 2}
-        \framesubtitle{7m/s south east wind, rail upright}
-        \includegraphics[width=0.85\textwidth]{images/example2a.png}
-    \end{frame}
-    \begin{frame}
-        \frametitle{Nominal Flight 2}
-        \framesubtitle{7m/s south east wind, rail upright}
-        \includegraphics[width=0.85\textwidth]{images/example2b.png}
+        \begin{center}
+            \includegraphics[width=\textwidth]{images/example2b.png}
+        \end{center}
     \end{frame}
     \begin{frame}
         \frametitle{Nominal Flight 3}
         \framesubtitle{45 degree rail angle}
-        \includegraphics[width=0.85\textwidth]{images/example3.png}
+        \begin{center}
+            \includegraphics[width=\textwidth]{images/example3.png}
+        \end{center}
     \end{frame}
     \begin{frame}
         \frametitle{Nominal Flight 3}
         \framesubtitle{45 degree rail angle}
-        \includegraphics[width=0.85\textwidth]{images/example3a.png}
+        \begin{center}
+            \includegraphics[width=\textwidth]{images/example3a.png}
+        \end{center}
     \end{frame}
     \begin{frame}
         \frametitle{Nominal Flight 3}
         \framesubtitle{45 degree rail angle}
-        \includegraphics[width=0.85\textwidth]{images/example3b.png}
+        \begin{center}
+            \includegraphics[width=\textwidth]{images/example3b.png}
+        \end{center}
     \end{frame}
     \begin{frame}
         \frametitle{Monte Carlo Analysis}
@@ -202,17 +219,23 @@ src=#3 % same path as in addresource!
     \begin{frame}
         \frametitle{Monte Carlo Analysis}
         \framesubtitle{No rail angle or wind, 1000 itterations}
-        \includegraphics[width=0.85\textwidth]{images/stats_example1.png}
+        \begin{center}
+            \includegraphics[width=\textwidth]{images/stats_example1.png}
+        \end{center}
     \end{frame}
     \begin{frame}
         \frametitle{Monte Carlo Analysis}
         \framesubtitle{No rail angle or wind, 1000 itterations}
-        \includegraphics[width=0.85\textwidth]{images/stats_example1_with_nom.png}
+        \begin{center}
+            \includegraphics[width=\textwidth]{images/stats_example1_with_nom.png}
+        \end{center}
     \end{frame}
     \begin{frame}
         \frametitle{Monte Carlo Analysis}
         \framesubtitle{No rail angle or wind, 1000 itterations}
-        \includegraphics[width=0.85\textwidth]{images/stats_example2_with_nom.png}
+        \begin{center}
+            \includegraphics[width=\textwidth]{images/stats_example2_with_nom.png}
+        \end{center}
     \end{frame}
 
     \begin{frame}
