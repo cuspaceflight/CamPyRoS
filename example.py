@@ -5,6 +5,8 @@ import pandas as pd
 
 
 """Import data from CSV files"""
+print("Importing CSV data")
+
 
 #Import drag coefficients from RASAero II
 aerodynamic_coefficients = trajectory.RasAeroData("data/Martlet4RasAeroII.CSV")
@@ -36,7 +38,9 @@ with open('novus_sim_6.1/motor_out.csv') as csvfile:
         DENSITY_FUEL = float(row[12])
         DIA_FUEL = float(row[13])
         LENGTH_PORT = float(row[14])
-        
+
+print("Finished importing CSV data")
+
 '''Set up the mass model'''
 dry_mass = 60                           # kg
 rocket_length = 6.529                   # m
@@ -45,7 +49,7 @@ rocket_wall_thickness = 1e-2            # m - This is just needed for the mass m
 pos_tank_bottom = 4.456                 # m - Distance between the nose tip and the bottom of the nitrous tank
 pos_solidfuel_bottom = 4.856+LENGTH_PORT
 
-#mass_model = trajectory.CylindricalMassModel(dry_mass + np.array(prop_mass_data), motor_time_data, length, radius)
+
 liquid_fuel = trajectory.LiquidFuel(lden_data, lmass_data, rocket_radius, pos_tank_bottom, motor_time_data)
 solid_fuel = trajectory.SolidFuel(fuel_mass_data, DENSITY_FUEL, DIA_FUEL/2, LENGTH_PORT, pos_solidfuel_bottom, motor_time_data)
 dry_mass_model = trajectory.HollowCylinder(rocket_radius, rocket_radius - rocket_wall_thickness, rocket_length, dry_mass)
@@ -53,6 +57,8 @@ dry_mass_model = trajectory.HollowCylinder(rocket_radius, rocket_radius - rocket
 mass_model = trajectory.HybridMassModel(rocket_length, solid_fuel, liquid_fuel, vmass_data, 
                                         dry_mass_model.mass, dry_mass_model.ixx, dry_mass_model.iyy, dry_mass_model.izz, 
                                         dry_cog = rocket_length/2)
+
+mass_model = trajectory.CylindricalMassModel(dry_mass + np.array(prop_mass_data), motor_time_data, rocket_length, rocket_radius)
 
 '''Create the other objects needed to initialise the Rocket object'''
 
@@ -89,6 +95,9 @@ simulation_output = martlet4.run(max_time = 400, debug=True, to_json="output.jso
 imported_data = trajectory.from_json("output.json")
 
 '''Plot the results'''
-trajectory.plot_launch_trajectory_3d(imported_data, martlet4, show_orientation=True) #Could have also used simulation_output instead of imported_data
-trajectory.plot_altitude_time(imported_data, martlet4)
-trajectory.plot_ypr(imported_data, martlet4)
+#trajectory.plot_launch_trajectory_3d(imported_data, martlet4, show_orientation=True) #Could have also used simulation_output instead of imported_data
+#trajectory.plot_altitude_time(imported_data, martlet4)
+#trajectory.plot_ypr(imported_data, martlet4)
+
+'''Extra plots you could make'''
+trajectory.plot_mass(imported_data, martlet4)
