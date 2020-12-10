@@ -95,9 +95,9 @@ simulation_output = martlet4.run(max_time = 400, debug=True, to_json="output.jso
 imported_data = trajectory.from_json("output.json")
 
 '''Plot the results'''
-#trajectory.plot_launch_trajectory_3d(imported_data, martlet4, show_orientation=True) #Could have also used simulation_output instead of imported_data
-#trajectory.plot_altitude_time(imported_data, martlet4)
-#trajectory.plot_ypr(imported_data, martlet4)
+trajectory.plot_launch_trajectory_3d(imported_data, martlet4, show_orientation=True) #Could have also used simulation_output instead of imported_data
+trajectory.plot_altitude_time(imported_data, martlet4)
+trajectory.plot_ypr(imported_data, martlet4)
 
 '''Extra plots you could make'''
 trajectory.plot_mass(imported_data, martlet4)
