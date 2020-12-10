@@ -157,6 +157,11 @@ class CylindricalMassModel:
 class LiquidFuel:
     """Mass model for the liquid in a cylindrical fuel tank
 
+    Notes
+    ----------
+    - Ignore the mass of the vapour, this must be included seperately
+
+
     Parameters
     ----------
 
@@ -256,7 +261,7 @@ class SolidFuel:
         self.mass_interp = scipy.interpolate.interp1d(time, fuel_mass)
 
         #Distance between the rocket nose tip and the centre of gravity of the fuel
-        self.cog = self.pos_bottom + self.length/2
+        self._cog = self.pos_bottom + self.length/2
 
     def mass(self, time):
         #Mass of the solid fuel  
@@ -288,6 +293,74 @@ class SolidFuel:
     def izz(self, time):
         return self.iyy(time)
 
+    def cog(self, time=0):
+        return self._cog
+
+class CustomMass:
+    """For storing custom mass data
+
+    Notes
+    ----------
+    
+
+    Parameters
+    ----------
+
+
+    Attributes
+    ----------
+
+
+    """
+
+    def __init__(self, mass, ixx, iyy, izz, cog):
+        self._mass = mass
+        self._ixx = ixx
+        self._iyy = iyy
+        self._izz = izz
+
+    def mass(self, time=0):
+        return self._mass
+    
+    def ixx(self, time=0):
+        return self._ixx
+
+    def iyy(self, time=0):
+        return self._iyy
+
+    def izz(self, time=0):
+        return self._izz
+
+class HollowCylinder:
+    """To help calculate moments of inertia for a hollow (i.e. annular) cylinder
+
+    Notes
+    ----------
+    
+
+    Parameters
+    ----------
+
+
+    Attributes
+    ----------
+
+
+    """
+
+    def __init__(self, r_out, r_in, l, mass):
+        self.r_out = r_out
+        self.r_in = r_in
+        self.l = l
+        self.mass = mass
+
+        self.t = r_out - r_in
+        self.a = (r_out + r_in)/2
+
+        self.ixx = self.mass* (self.a**2 + (self.t**2)/4)
+        self.iyy = self.mass * ((self.a**2)/2 + (self.t**2)/8 + (self.l**2)/12)
+        self.izz = self.iyy
+
 class HybridMassModel:
     """Mass model for a a rocket that uses hybrid fuel
 
@@ -295,6 +368,9 @@ class HybridMassModel:
     ----------
     - Assumes the solid fuel is an annular cylinder, and the liquid fuel is in a cylindrical fuel tank
     - Assumes the fuel tanks and solid fuel are coaxial along the rocket's long axis
+    - The data for the solid fuel, liquid fuel, and vapour mass (v_mass) must all correspond to the same time array
+    - Vapour mass data is only used for calculating the total mass. It is ignored for moments of inertia, and for the centre of gravity.
+    WARNING: Might need to include the vapour mass for centre of gravity calculations for more accurate results?
 
     Parameters
     ----------
@@ -304,9 +380,13 @@ class HybridMassModel:
 
 
     """
-    def __init__(self, solid_fuel, liquid_fuel, dry_mass, dry_cog, dry_ixx, dry_iyy, dry_izz):
+    def __init__(self, rocket_length, solid_fuel, liquid_fuel, vap_mass, dry_mass, dry_ixx, dry_iyy, dry_izz, dry_cog):
         self.solid_fuel = solid_fuel        #SolidFuel object
         self.liquid_fuel = liquid_fuel      #LiquidTank object
+        self.time = self.liquid_fuel.time    
+
+        #Vapour mass
+        self.vap_mass_interp = scipy.interpolate.interp1d(self.time, vap_mass)
 
         #Properties without the fuel loaded
         self.dry_mass = dry_mass
@@ -315,8 +395,22 @@ class HybridMassModel:
         self.dry_iyy = dry_iyy
         self.dry_izz = dry_izz
 
+        #Geometry of the rocket
+        self.l = rocket_length
+
+    def vap_mass(self, time):
+        #Mass of vapour
+        if time<0:
+            raise ValueError("Tried to input negative time when using HyrbidMassModel.vap_mass()")
+        elif time < self.time[0]:
+            return self.vap_mass_interp(self.time[0])
+        elif time < self.time[-1]:
+            return self.vap_mass_interp(time)
+        else:
+            return self.vap_mass_interp(self.time[-1])
+
     def mass(self, time):
-        return self.dry_mass + self.solid_fuel.mass(time) + self.liquid_fuel.mass(time)
+        return self.dry_mass + self.vap_mass(time) + self.solid_fuel.mass(time) + self.liquid_fuel.mass(time)
 
     def cog(self, time):
         #Centre of gravity (distance from nose tip)

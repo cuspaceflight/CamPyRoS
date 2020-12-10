@@ -319,7 +319,7 @@ class RasAeroData:
         COP = 0.0254*np.array([COP_0, COP_2, COP_4])    #Convert inches to m
         alpha = [0,2,4]
                     
-        #Generate functions (note these are funcitons, not variables) which return a coefficient given (Mach, alpha)
+        #Generate functions (note these are functions, not variables) which return a coefficient given (Mach, alpha)
         self.COP = scipy.interpolate.interp2d(Mach, alpha, COP)
         self.CA = scipy.interpolate.interp2d(Mach, alpha, CA)
         self.CN = scipy.interpolate.interp2d(Mach, alpha, CN)
