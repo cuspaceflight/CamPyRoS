@@ -58,7 +58,8 @@ mass_model = trajectory.HybridMassModel(rocket_length, solid_fuel, liquid_fuel, 
                                         dry_mass_model.mass, dry_mass_model.ixx, dry_mass_model.iyy, dry_mass_model.izz, 
                                         dry_cog = rocket_length/2)
 
-mass_model = trajectory.CylindricalMassModel(dry_mass + np.array(prop_mass_data), motor_time_data, rocket_length, rocket_radius)
+#Alterative, simpler, solid cylinder mass model:
+#mass_model = trajectory.CylindricalMassModel(dry_mass + np.array(prop_mass_data), motor_time_data, rocket_length, rocket_radius)
 
 '''Create the other objects needed to initialise the Rocket object'''
 
