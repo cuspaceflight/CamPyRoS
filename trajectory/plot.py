@@ -11,6 +11,7 @@ from matplotlib.animation import FuncAnimation
 from mpl_toolkits.mplot3d import Axes3D
 import trajectory
 from trajectory.transforms import pos_l2i, pos_i2l, vel_l2i, vel_i2l, direction_l2i, direction_i2l
+import pandas as pd
 
 def get_velocity_magnitude(df):
     return (np.sqrt(df["vx_l"]**2+df["vy_l"]**2+df["vz_l"]**2))
@@ -565,4 +566,82 @@ def animate_orientation(simulation_output, frames=500):
                                    frames=frames, interval=20, blit=True)
     
     
+    plt.show()
+
+def stats_landing(mu,cov,data=pd.DataFrame(),sigma=3):
+    t=np.linspace(0,2*np.pi,314)
+
+    eig=np.linalg.eig(cov)
+    eig_mat=np.array([[eig[1][0][0],eig[1][1][0]],[eig[1][0][1],eig[1][1][1]]])
+    cov_elipse = np.matmul(eig_mat,np.array([eig[0][0]**0.5*np.cos(t),eig[0][1]**0.5*np.sin(t)]))
+    
+    for sig in range(1,sigma+1):
+        plt.plot(sig*cov_elipse[0]+mu[0],sig*cov_elipse[1]+mu[1],label="%s $\sigma$"%sig)
+
+    plt.scatter(0,0,marker="x",color="red",label="Launch site")
+    plt.scatter(mu[0],mu[1],marker="o",s=40,color="green",label="Mean landing point")
+
+    plt.xlabel("South/m")
+    plt.ylabel("East/m")
+
+    if not data.empty:
+        plt.scatter(data.x,data.y,marker="o",s=50,color="blue",alpha=0.3)
+
+    plt.legend()
+    plt.show()
+
+def elipse(u,v,a,b,c):
+    x=a*np.cos(u)*np.sin(v)
+    y=b*np.sin(u)*np.sin(v)
+    z=c*np.cos(v)
+    return np.array([x,y,z])
+
+def stats_apogee(mu,cov,data=pd.DataFrame(),sigma=3,landing_mu=np.array([]),landing_cov=np.array([]),landing_data=pd.DataFrame()):
+    eig=np.linalg.eig(cov)
+    eig_mat=np.array([[eig[1][0][0],eig[1][1][0],eig[1][2][0]],[eig[1][0][1],eig[1][1][1],eig[1][2][1]],[eig[1][0][2],eig[1][1][2],eig[1][2][2]]])
+
+    fig = plt.figure()
+    ax = fig.gca(projection = '3d')
+
+    x,y,z=[],[],[]
+
+    for v in np.linspace(0,np.pi,100):
+        for u in np.linspace(0,2*np.pi,200):
+            d=elipse(u,v,eig[0][2]**.5,eig[0][1]**.5,eig[0][0]**.5)
+            d=np.matmul(eig_mat,d)
+            x.append(d[0])
+            y.append(d[1])
+            z.append(d[2])
+
+    for sig in range(1,sigma+1):
+        ax.plot(mu[0]+np.array(x)*sig,mu[1]+np.array(y)*sig,mu[2]+np.array(z)*sig,color="green",alpha=.3,label="%s $\sigma$"%sig)
+
+    ax.plot(mu[0],mu[1],mu[2],label="Mean apogee point")
+
+    ax.scatter(0,0)
+    ax.set_xlabel("South/m")
+    ax.set_ylabel("East/m")
+    ax.set_zlabel("Altitude/m")
+
+    if not data.empty:
+        ax.scatter(data.x,data.y,data.alt,alpha=.1)
+
+    if landing_mu.shape!=(0,) and landing_cov.shape!=(0,):
+        t=np.linspace(0,2*np.pi,314)
+
+        eig=np.linalg.eig(landing_cov)
+        eig_mat=np.array([[eig[1][0][0],eig[1][1][0]],[eig[1][0][1],eig[1][1][1]]])
+        cov_elipse = np.matmul(eig_mat,np.array([eig[0][0]**0.5*np.cos(t),eig[0][1]**0.5*np.sin(t)]))
+        
+        for sig in range(1,sigma+1):
+            ax.plot(sig*cov_elipse[0]+landing_mu[0],sig*cov_elipse[1]+landing_mu[1],label="%s $\sigma$"%sig)
+
+        ax.scatter(0,0,marker="x",color="red",label="Launch site")
+        ax.scatter(mu[0],mu[1],marker="o",s=40,color="green",label="Mean landing point")
+
+        if not landing_data.empty:
+            ax.scatter(data.x,data.y,marker="o",s=1,color="blue",alpha=0.3)   
+
+    set_axes_equal(ax)
+    ax.legend()
     plt.show()
