@@ -10,7 +10,8 @@ import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
 from mpl_toolkits.mplot3d import Axes3D
 import trajectory
-from trajectory.transforms import pos_l2i, pos_i2l, vel_l2i, vel_i2l, direction_l2i, direction_i2l
+from trajectory.transforms import pos_l2i, pos_i2l, vel_l2i, vel_i2l, direction_l2i, direction_i2l, pos_i2alt
+from scipy.spatial.transform import Rotation
 
 def get_velocity_magnitude(df):
     return (np.sqrt(df["vx_l"]**2+df["vy_l"]**2+df["vz_l"]**2))
@@ -174,34 +175,232 @@ def plot_altitude_time(simulation_output, rocket):
     fig.tight_layout()
     plt.show() 
 
-#Non-functional
+def plot_aero(simulation_output, rocket):
+    output_dict = simulation_output.to_dict(orient="list")
+    burnout_time = rocket.motor.motor_time_data[-1]
 
-def plot_aero_forces(simulation_output):
+    aero_x_b = []
+    aero_y_b = []
+    aero_z_b = []
+    q_data = []
+
+    cop_data = []
+    cog_data = []
+    for i in range(len(output_dict["time"])):
+        aero_b, cop, q = rocket.aero_forces(output_dict["pos_i"][i], output_dict["vel_i"][i], Rotation.from_matrix(output_dict["b2imat"][i]), output_dict["w_b"][i], output_dict["time"][i])
+        aero_x_b.append(aero_b[0])
+        aero_y_b.append(aero_b[1])
+        aero_z_b.append(aero_b[2])
+        q_data.append(q/1000)
+
+        cop_data.append(-cop)
+        cog_data.append(-rocket.mass_model.cog(output_dict["time"][i]))
+
     fig, axs = plt.subplots(2, 2)
-    axs[0, 0].plot(simulation_output["time"], simulation_output["aero_xb"])
-    axs[0, 0].set_title('aero_x_b')
-    axs[0,0].set_xlabel("time/s")
-    axs[0,0].set_ylabel("Force/N")
+    axs[0, 0].plot(output_dict["time"], aero_x_b, label="X-force (body-coordinates)", color="red")
+    axs[0, 0].plot(output_dict["time"], aero_y_b, label="Y-force (body-coordinates)", color="green")
+    axs[0, 0].plot(output_dict["time"], aero_z_b, label = "Z-force (body-coordinates)", color="blue")
+    axs[0, 0].axvline(burnout_time, label="Burnout time", linestyle = '--', color="black")
+    axs[0, 0].set_title('Aerodynamic Forces')
+    axs[0,0].set_xlabel("Time (s)")
+    axs[0,0].set_ylabel("Force (N)")
+    axs[0,0].legend()
+    axs[0,0].grid()
     
-    axs[0, 1].plot(simulation_output["time"], simulation_output["aero_yb"])
-    axs[0, 1].set_title('aero_y_b')
-    axs[0,1].set_xlabel("time/s")
-    axs[0,1].set_ylabel("Force/N")
+    axs[0, 1].plot(output_dict["time"], q_data)
+    axs[0, 1].axvline(burnout_time, label="Burnout time", linestyle = '--', color="black")
+    axs[0, 1].set_title('Dynamic Pressure ' + r'$(\frac{1}{2} \rho V^2)$')
+    axs[0,1].set_xlabel("Time (s)")
+    axs[0,1].set_ylabel("Pressure (kPa)")
+    axs[0,1].grid()
     
-    axs[1, 0].plot(simulation_output["time"], simulation_output["aero_zb"])
-    axs[1, 0].set_title('aero_z_b')
-    axs[1,0].set_xlabel("time/s")
-    axs[1,0].set_ylabel("Force/N")
-    
-    axs[1, 1].plot(simulation_output["time"], -simulation_output["cop"], label="CoP")
-    axs[1, 1].plot(simulation_output["time"], -simulation_output["cog"], label="CoG")
-    axs[1, 1].set_title('Centre of Pressure (positive relative to nose tip)')
-    axs[1,1].set_xlabel("time/s")
-    axs[1,1].set_ylabel("Distance/m")
-    
-    axs[1,1].legend()
+    axs[1,0].plot(output_dict["time"], cop_data, label="Centre of Pressure")
+    axs[1,0].plot(output_dict["time"], cog_data, label="Centre of Gravity")
+    axs[1, 0].axvline(burnout_time, label="Burnout time", linestyle = '--', color="black")
+    axs[1,0].set_title('Centre of Pressure (positive relative to nose tip)')
+    axs[1,0].set_xlabel("Time (s)")
+    axs[1,0].set_ylabel("Position (m)")
+    axs[1,0].legend()
+    axs[1,0].grid()
     
     plt.show()
+
+def plot_thrust(simulation_output, rocket):
+    output_dict = simulation_output.to_dict(orient="list")
+    burnout_time = rocket.motor.motor_time_data[-1]
+
+    thrust_x_b = []
+    thrust_y_b = []
+    thrust_z_b = []
+
+    jet_damping_x_b = []
+    jet_damping_y_b = []
+    jet_damping_z_b = []
+
+    mdot_data = []
+
+    for i in range(len(output_dict["time"])):
+        thrust_b, jet_damping_moment = rocket.thrust(output_dict["pos_i"][i], output_dict["vel_i"][i], Rotation.from_matrix(output_dict["b2imat"][i]), output_dict["w_b"][i], output_dict["time"][i])
+        thrust_x_b.append(thrust_b[0])
+        thrust_y_b.append(thrust_b[1])
+        thrust_z_b.append(thrust_b[2])
+
+        jet_damping_x_b.append(jet_damping_moment[0])
+        jet_damping_y_b.append(jet_damping_moment[1])
+        jet_damping_z_b.append(jet_damping_moment[2])
+
+        if output_dict["time"][i] < max(rocket.motor.motor_time_data):
+            mdot = np.interp(output_dict["time"][i], rocket.motor.motor_time_data, rocket.motor.mdot_data)
+        else:
+            mdot = 0
+        mdot_data.append(mdot)
+
+    fig, axs = plt.subplots(2, 2)
+    axs[0, 0].plot(output_dict["time"], thrust_x_b, label="X-force (body-coordinates)", color="red")
+    axs[0, 0].plot(output_dict["time"], thrust_y_b, label="Y-force (body-coordinates)", color="green")
+    axs[0, 0].plot(output_dict["time"], thrust_z_b, label = "Z-force (body-coordinates)", color="blue")
+    axs[0, 0].axvline(burnout_time, label="Burnout time", linestyle = '--', color="black")
+    axs[0, 0].set_title('Thrust Force')
+    axs[0,0].set_xlabel("Time (s)")
+    axs[0,0].set_ylabel("Force (N)")
+    axs[0,0].legend()
+    axs[0,0].grid()
+    
+    axs[0, 1].plot(output_dict["time"], jet_damping_x_b, label="X-moment (body-coordinates)", color="red")
+    axs[0, 1].plot(output_dict["time"], jet_damping_y_b, label="Y-moment (body-coordinates)", color="green")
+    axs[0, 1].plot(output_dict["time"], jet_damping_z_b, label = "Z-moment (body-coordinates)", color="blue")
+    axs[0, 1].axvline(burnout_time, label="Burnout time", linestyle = '--', color="black")
+    axs[0, 1].set_title('Jet Damping Moment')
+    axs[0,1].set_xlabel("Time (s)")
+    axs[0,1].set_ylabel("Moment (Nm)")
+    axs[0,1].legend()
+    axs[0,1].grid()
+    
+    axs[1,0].plot(output_dict["time"], mdot_data)
+    axs[1, 0].axvline(burnout_time, label="Burnout time", linestyle = '--', color="black")
+    axs[1,0].set_title('Exhaust mass flow rate')
+    axs[1,0].set_xlabel("Time (s)")
+    axs[1,0].set_ylabel("Mass flow rate (kg/s)")
+    axs[1,0].grid()
+    
+    plt.show()
+
+def animate_orientation(simulation_output, frames=500):
+    '''frames : number of animation frames in total - less means that the animations runs faster'''
+    output_dict = simulation_output.to_dict(orient="list")
+
+    #Get data
+    yaw=[]
+    pitch=[]
+    roll=[]
+    altitude=[]
+    time = output_dict["time"]
+
+    for i in range(len(time)):
+        ypr = Rotation.from_matrix(output_dict["b2imat"][i]).as_euler("zyx")
+        yaw.append(ypr[0])
+        pitch.append(ypr[1])
+        roll.append(ypr[2])
+        altitude.append(pos_i2alt(output_dict["pos_i"][i]))
+
+    #Create figure
+    fig, axs = plt.subplots(2, 2)
+    
+    #Add titles
+    axs[0, 0].set_title('Yaw')
+    axs[0, 1].set_title('Pitch')
+    axs[1, 0].set_title('Roll')
+    axs[1, 1].set_title('Altitude (m)')
+    axs[1, 1].set_xlabel('Time (s)')
+    axs[0, 0].grid()
+    axs[0, 1].grid()
+    axs[1, 0].grid()
+    axs[1, 1].grid()    
+    
+    #Plot the initial directions
+    axs[0,0].plot(np.linspace(0,np.cos(yaw[0]), 100), np.linspace(0, np.sin(yaw[0]), 100), lw=3, color='black')
+    axs[0,1].plot(np.linspace(0,np.cos(pitch[0]), 100), np.linspace(0, np.sin(pitch[0]), 100), lw=3, color='black')
+    axs[1,0].plot(np.linspace(0,np.cos(roll[0]), 100), np.linspace(0, np.sin(roll[0]), 100), lw=3, color='black')
+    
+    #Set up the lines that will be animated
+    line1, = axs[0,0].plot([], [], lw=3, color='red')
+    line2, = axs[0,1].plot([], [], lw=3, color='green')
+    line3, = axs[1,0].plot([], [], lw=3, color='blue')
+    line4, = axs[1,1].plot([], [], lw=3, color='orange')
+    
+    axs[0,0].set_xlim(-1,1)
+    axs[0,0].set_ylim(-1,1)
+    
+    axs[0,1].set_xlim(-1,1)
+    axs[0,1].set_ylim(-1,1)
+    
+    axs[1,0].set_xlim(-1,1)
+    axs[1,0].set_ylim(-1,1)
+    
+    axs[1,1].set_xlim(0,max(time))
+    axs[1,1].set_ylim(0,30e3)
+    
+    def init1():
+        line1.set_data([], [])
+        return line1,
+    
+    def init2():
+        line2.set_data([], [])
+        return line1,
+    
+    def init3():
+        line3.set_data([], [])
+        return line1,
+    
+    def init4():
+        line4.set_data([], [])
+        return line1,
+    
+    def update1(i):
+        j = int(i*len(yaw)/frames)
+        x = np.linspace(0,np.cos(yaw[j]), 100)
+        y = np.linspace(0, np.sin(yaw[j]), 100)
+        line1.set_data(x, y)
+        return line1,
+    
+    def update2(i):
+        j = int(i*len(pitch)/frames)
+        x = np.linspace(0,np.cos(pitch[j]), 100)
+        y = np.linspace(0, np.sin(pitch[j]), 100)
+        line2.set_data(x, y)
+        return line2,
+    
+    def update3(i):
+        j = int(i*len(roll)/frames)
+        x = np.linspace(0,np.cos(roll[j]), 100)
+        y = np.linspace(0, np.sin(roll[j]), 100)
+        line3.set_data(x, y)
+        return line3,
+    
+    def update4(i):
+        j = int(i*len(altitude)/frames)
+        y = altitude[0:j]
+        x = time[0:j]
+        line4.set_data(x, y)
+        return line4,
+    
+    #Start the animations
+    anim1 = FuncAnimation(fig, update1, init_func=init1,
+                                   frames=frames, blit=True)
+    anim2 = FuncAnimation(fig, update2, init_func=init2,
+                                   frames=frames, interval=20, blit=True)
+    anim3 = FuncAnimation(fig, update3, init_func=init3,
+                                   frames=frames, interval=20, blit=True)
+    anim4 = FuncAnimation(fig, update4, init_func=init4,
+                                   frames=frames, interval=20, blit=True)
+
+    #The animation only seems to run if you trigger an error to do with axs, I don't know why:
+    axs.i_dont_know_why_this_makes_it_work
+
+    plt.show()
+
+
+#Non-functional
     
 def plot_velocity(simulation_output):
     fig, axs = plt.subplots(2, 2)
@@ -460,115 +659,4 @@ def plot_inertial_trajectory_3d(simulation_output, show_orientation=False):
     ax.set_zlim3d([z_middle - plot_radius, z_middle + plot_radius])
     
     plt.show() 
-     
-def animate_orientation(simulation_output, frames=500):
-    '''frames : number of animation frames in total - less means that the animations runs faster'''
-
-    fig, axs = plt.subplots(2, 2)
-    
-    #Get data
-    yaw=simulation_output["yaw"]
-    pitch=simulation_output["pitch"]
-    roll=simulation_output["roll"]
-    altitude = simulation_output["z_l"]
-
-    time = simulation_output["time"]
-    #burnout_time = simulation_output["burnout_time"]
-    
-
-    
-    #Add titles
-    axs[0, 0].set_title('Yaw')
-    axs[0, 1].set_title('Pitch')
-    axs[1, 0].set_title('Roll')
-    axs[1, 1].set_title('Altitude / m')
-    axs[1, 1].set_xlabel('time / s')
-    axs[0, 0].grid()
-    axs[0, 1].grid()
-    axs[1, 0].grid()
-    axs[1, 1].grid()    
-    
-    #Plot the initial directions
-    axs[0,0].plot(np.linspace(0,np.cos(yaw[0]), 100), np.linspace(0, np.sin(yaw[0]), 100), lw=3, color='black')
-    axs[0,1].plot(np.linspace(0,np.cos(pitch[0]), 100), np.linspace(0, np.sin(pitch[0]), 100), lw=3, color='black')
-    axs[1,0].plot(np.linspace(0,np.cos(roll[0]), 100), np.linspace(0, np.sin(roll[0]), 100), lw=3, color='black')
-
-    #Plot the point of engine burnout on the altitude-time graph
-    #burnout_index = (np.abs(time - burnout_time)).idxmin()
-    #axs[1,1].scatter(time[burnout_index], altitude[burnout_index], color="red", label="Engine burnout")
-    axs[1,1].legend()
-    
-    #Set up the lines that will be animated
-    line1, = axs[0,0].plot([], [], lw=3, color='red')
-    line2, = axs[0,1].plot([], [], lw=3, color='green')
-    line3, = axs[1,0].plot([], [], lw=3, color='blue')
-    line4, = axs[1,1].plot([], [], lw=3, color='orange')
-    
-    axs[0,0].set_xlim(-1,1)
-    axs[0,0].set_ylim(-1,1)
-    
-    axs[0,1].set_xlim(-1,1)
-    axs[0,1].set_ylim(-1,1)
-    
-    axs[1,0].set_xlim(-1,1)
-    axs[1,0].set_ylim(-1,1)
-    
-    axs[1,1].set_xlim(0,max(time))
-    axs[1,1].set_ylim(0,30e3)
-    
-    def init1():
-        line1.set_data([], [])
-        return line1,
-    
-    def init2():
-        line2.set_data([], [])
-        return line1,
-    
-    def init3():
-        line3.set_data([], [])
-        return line1,
-    
-    def init4():
-        line4.set_data([], [])
-        return line1,
-    
-    def animate1(i):
-        j = int(i*len(yaw)/frames)
-        x = np.linspace(0,np.cos(yaw[j]), 100)
-        y = np.linspace(0, np.sin(yaw[j]), 100)
-        line1.set_data(x, y)
-        return line1,
-    
-    def animate2(i):
-        j = int(i*len(pitch)/frames)
-        x = np.linspace(0,np.cos(pitch[j]), 100)
-        y = np.linspace(0, np.sin(pitch[j]), 100)
-        line2.set_data(x, y)
-        return line2,
-    
-    def animate3(i):
-        j = int(i*len(roll)/frames)
-        x = np.linspace(0,np.cos(roll[j]), 100)
-        y = np.linspace(0, np.sin(roll[j]), 100)
-        line3.set_data(x, y)
-        return line3,
-    
-    def animate4(i):
-        j = int(i*len(altitude)/frames)
-        y = altitude[0:j]
-        x = time[0:j]
-        line4.set_data(x, y)
-        return line4,
-    
-    
-    anim1 = FuncAnimation(fig, animate1, init_func=init1,
-                                   frames=frames, interval=20, blit=True)
-    anim2 = FuncAnimation(fig, animate2, init_func=init2,
-                                   frames=frames, interval=20, blit=True)
-    anim3 = FuncAnimation(fig, animate3, init_func=init3,
-                                   frames=frames, interval=20, blit=True)
-    anim4 = FuncAnimation(fig, animate4, init_func=init4,
-                                   frames=frames, interval=20, blit=True)
-    
-    
-    plt.show()
+  
