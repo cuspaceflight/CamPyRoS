@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
 from mpl_toolkits.mplot3d import Axes3D
 import trajectory
-from trajectory.transforms import pos_l2i, pos_i2l, vel_l2i, vel_i2l, direction_l2i, direction_i2l, pos_i2alt
+from trajectory.transforms import pos_l2i, pos_i2l, vel_l2i, vel_i2l, direction_l2i, direction_i2l, pos_i2alt, i2airspeed
 from scipy.spatial.transform import Rotation
 
 def get_velocity_magnitude(df):
@@ -186,8 +186,16 @@ def plot_aero(simulation_output, rocket):
 
     cop_data = []
     cog_data = []
+
+    #Angles of attack (as defined in https://apps.dtic.mil/sti/pdfs/AD0642855.pdf)
+    alpha_star_data = []
+    beta_data = []
+    delta_data = []
+
     for i in range(len(output_dict["time"])):
-        aero_b, cop, q = rocket.aero_forces(output_dict["pos_i"][i], output_dict["vel_i"][i], Rotation.from_matrix(output_dict["b2imat"][i]), output_dict["w_b"][i], output_dict["time"][i])
+        b2i = Rotation.from_matrix(output_dict["b2imat"][i])
+
+        aero_b, cop, q = rocket.aero_forces(output_dict["pos_i"][i], output_dict["vel_i"][i], b2i, output_dict["w_b"][i], output_dict["time"][i])
         aero_x_b.append(aero_b[0])
         aero_y_b.append(aero_b[1])
         aero_z_b.append(aero_b[2])
@@ -195,6 +203,15 @@ def plot_aero(simulation_output, rocket):
 
         cop_data.append(-cop)
         cog_data.append(-rocket.mass_model.cog(output_dict["time"][i]))
+
+        v_rel_wind = b2i.inv().apply( direction_l2i((i2airspeed(output_dict["pos_i"][i], output_dict["vel_i"][i], rocket.launch_site, output_dict["time"][i]) - rocket.launch_site.wind), rocket.launch_site,  output_dict["time"][i]) )
+        beta = np.arctan2(v_rel_wind[1], (v_rel_wind[0]**2 + v_rel_wind[2]**2 )**0.5 )
+        delta = np.arctan2((v_rel_wind[2]**2 + v_rel_wind[1]**2)**0.5, v_rel_wind[0])
+        alpha_star = np.arctan2(v_rel_wind[2], (v_rel_wind[0]**2 + v_rel_wind[1]**2 )**0.5 )
+
+        alpha_star_data.append(alpha_star*180/np.pi)
+        beta_data.append(beta*180/np.pi)
+        delta_data.append(delta*180/np.pi)
 
     fig, axs = plt.subplots(2, 2)
     axs[0, 0].plot(output_dict["time"], aero_x_b, label="X-force (body-coordinates)", color="red")
@@ -214,14 +231,26 @@ def plot_aero(simulation_output, rocket):
     axs[0,1].set_ylabel("Pressure (kPa)")
     axs[0,1].grid()
     
-    axs[1,0].plot(output_dict["time"], cop_data, label="Centre of Pressure")
-    axs[1,0].plot(output_dict["time"], cog_data, label="Centre of Gravity")
+    axs[1, 0].plot(output_dict["time"], delta_data, label = r'$\delta$ (used for $C_X$)', color="red")
+    axs[1, 0].plot(output_dict["time"], beta_data, label=r'$\beta$ (used for $C_Y$)', color="green")
+    axs[1, 0].plot(output_dict["time"], alpha_star_data, label=r'$\alpha{*}$ (used for $C_Z$)', color="blue")
     axs[1, 0].axvline(burnout_time, label="Burnout time", linestyle = '--', color="black")
-    axs[1,0].set_title('Centre of Pressure (positive relative to nose tip)')
+    axs[1, 0].set_title('Angles of attack')
     axs[1,0].set_xlabel("Time (s)")
-    axs[1,0].set_ylabel("Position (m)")
+    axs[1,0].set_ylabel("Angle (degrees)")
     axs[1,0].legend()
     axs[1,0].grid()
+
+    axs[1,1].plot(output_dict["time"], cop_data, label="Centre of Pressure")
+    axs[1,1].plot(output_dict["time"], cog_data, label="Centre of Gravity")
+    axs[1, 1].axvline(burnout_time, label="Burnout time", linestyle = '--', color="black")
+    axs[1,1].set_title('Centre of Pressure (positive relative to nose tip)')
+    axs[1,1].set_xlabel("Time (s)")
+    axs[1,1].set_ylabel("Position (m)")
+    axs[1,1].legend()
+    axs[1,1].grid()
+
+
     
     plt.show()
 
