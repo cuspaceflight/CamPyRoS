@@ -80,7 +80,7 @@ class StatisticalModel:
         run_save["z"]=z
         run_save["v_x"]=v_x
         run_save["v_y"]=v_y
-        run_save["v_z"]=v_z
+        run_save["v_z"]=v_z#These were'nt saving properly as vectors but really should
 
         with open("%s/%s.csv"%(save_loc,id), "w+") as f:
             run_save.to_csv(path_or_buf=f)
@@ -98,3 +98,38 @@ class StatisticalModel:
             self.run_itteration.remote(self,run,save_loc)
         input("Press enter when complete otherwise it pretends to have finished")
         return save_loc
+
+def analyse(results_path, itterations, full_results=True, velocity=False):
+    x,y,z=pd.DataFrame(),pd.DataFrame(),pd.DataFrame()
+    itts=range(1,itterations+1)
+
+    for itt in itts:
+        tmp=pd.read_csv("%s/%s.csv"%(results_path,itt))
+    
+        x[itt]=tmp["x"]
+        y[itt]=tmp["y"]
+        z[itt]=tmp["z"]
+
+    apogee=pd.DataFrame()
+    apogee["index"]=z.idxmax()
+    apogee["alt"]=z.max()
+    #I know this isn't the proper pandas way todo this but I can't see how todo it right
+    apogee["x"]=[x[itt][apogee["index"][itt]] for itt in itts]
+    apogee["y"]=[y[itt][apogee["index"][itt]] for itt in itts]
+    apogee=apogee.drop("index",axis=1)
+
+    landing=pd.DataFrame()
+    landing["x"]=[x[itt].dropna().iloc[-1] for itt in itts]
+    landing["y"]=[y[itt].dropna().iloc[-1] for itt in itts]
+
+    landing_mu=np.array([landing["x"].mean(),landing["y"].mean()])
+    landing_cov=landing.cov()
+
+    apogee_mu=np.array([apogee["x"].mean(),apogee["y"].mean(),apogee["alt"].mean()])
+    apogee_cov=apogee.cov()
+
+    if full_results==True:
+        return landing_mu,landing_cov,apogee_mu,apogee_cov,apogee,landing
+    else:
+        return landing_mu,landing_cov,apogee_mu,apogee_cov
+

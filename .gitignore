@@ -21,3 +21,7 @@ documentation/Cylinder Definitions.pdn
 *.gz
 *.toc
 output.json
+*.grb2
+*.grib
+*.NC
+*.anl

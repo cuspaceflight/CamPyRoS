@@ -52,6 +52,12 @@ http://ohllab.org/CFD_course/index.html - PyCFD
 #### Stats
 https://www.umass.edu/remp/Papers/Smith&Wells_NERA06.pdf - How many samples
 https://apps.dtic.mil/dtic/tr/fulltext/u2/a621501.pdf - " " "
+https://ascelibrary.org/doi/pdf/10.1061/%28ASCE%29AS.1943-5525.0000051 - Basically what we're aiming for 
+- we should add random altitude parachute failures
+- can we add the ability to cant the fins and simulate roll stabalisation
+- Atmo needs to be way more complicated
+
+
 ## Program Workflow
 ![Rough flowchart](img/flowchart1.jpeg)
 
