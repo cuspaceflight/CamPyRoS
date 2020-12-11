@@ -159,16 +159,32 @@ class LiquidFuel:
 
     Notes
     ----------
-    - Ignore the mass of the vapour, this must be included seperately
+    - Ignore the mass of the vapour
 
 
     Parameters
     ----------
-
+    liq_den : list
+        Array of liquid densities (kg m^-3), corresponding to the time array 
+    liq_mass : list
+        Array of liquid mass (kg), corresponding to the time array
+    tank_radius : float
+        Radius of the fuel tank
+    pos_tank_bottom : float
+        Distance between the rocket's nose tip and the bottom of the fuel tank
+    time : list
+        Array of times that the time-dependent data (liq_den and liq_mass) corresponds to
+    
 
     Attributes
     ----------
-
+    liq_den : list
+    liq_mass : list
+    time : list
+    mass_interp : Scipy Interpolation Function
+    den_interp : Scipy Interpolation Function
+    tank_radius : float
+    pos_tank_bottom : float
 
     """
     def __init__(self, liq_den, liq_mass, tank_radius, pos_tank_bottom, time):  
@@ -239,11 +255,30 @@ class SolidFuel:
 
     Parameters
     ----------
+    fuel_mass : list
+        List of the solid fuel mass (kg), corresponding to the time array
+    fuel_density : float
+        Solid fuel density (constant) (kg m^-3)
+    r_out : float
+        Outer radius of the solid fuel cylinder (m)
+    length : float
+        Length of the fuel grain (m)
+    pos_bottom : float
+        Distance between the rocket nose tip and the bottom of the fuel grain (m)
+    time : list
+        List of times (s) that the fuel_mass data corresponds to
 
 
     Attributes
     ----------
-
+    fuel_mass : list
+    time : list
+    fuel_density : float
+    r_out : float
+    length : float
+    pos_bottom : float
+    mass_interp : Scipy Interpolation Function
+    cog : float
 
     """
     def __init__(self, fuel_mass, fuel_density, r_out, length, pos_bottom, time):  
@@ -259,9 +294,11 @@ class SolidFuel:
 
         #Set up interpolated functions
         self.mass_interp = scipy.interpolate.interp1d(time, fuel_mass)
-
+    
+    @property
+    def cog(self):
         #Distance between the rocket nose tip and the centre of gravity of the fuel
-        self._cog = self.pos_bottom + self.length/2
+        return self.pos_bottom + self.length/2
 
     def mass(self, time):
         #Mass of the solid fuel  
@@ -293,23 +330,26 @@ class SolidFuel:
     def izz(self, time):
         return self.iyy(time)
 
-    def cog(self, time=0):
-        return self._cog
-
 class CustomMass:
-    """For storing custom mass data
-
-    Notes
-    ----------
-    
+    """For storing custom mass data (must be constants)
 
     Parameters
     ----------
-
+    mass : float
+        Mass (kg)
+    ixx : float
+        X-X principal moment of inertia (kg m^2)
+    iyy : float
+        Y-Y principal moment of inertia (kg m^2)
+    izz : float
+        Z-Z principle moment of inertia (kg m^2)
 
     Attributes
     ----------
-
+    mass : float
+    ixx : float
+    iyy : float
+    izz : float
 
     """
 
@@ -319,16 +359,20 @@ class CustomMass:
         self._iyy = iyy
         self._izz = izz
 
-    def mass(self, time=0):
+    @property
+    def mass(self):
         return self._mass
     
-    def ixx(self, time=0):
+    @property
+    def ixx(self):
         return self._ixx
 
-    def iyy(self, time=0):
+    @property
+    def iyy(self):
         return self._iyy
 
-    def izz(self, time=0):
+    @property
+    def izz(self):
         return self._izz
 
 class HollowCylinder:
@@ -336,15 +380,25 @@ class HollowCylinder:
 
     Notes
     ----------
-    
+    - Does not store COG data for the cylinder. COG will simply be half way up the length of the cylinder (since it is modelled as uniform)
 
     Parameters
     ----------
-
+    r_out : float
+        Outer radius (m)
+    r_in : float
+        Inner radius (m)
+    l : float
+        Length (m)
+    mass : float
+        Mass (kg)
 
     Attributes
     ----------
-
+    r_out : float
+    r_in : float
+    l : float
+    mass : float
 
     """
 
@@ -354,12 +408,20 @@ class HollowCylinder:
         self.l = l
         self.mass = mass
 
-        self.t = r_out - r_in
-        self.a = (r_out + r_in)/2
+    def t(self):
+        return self.r_out - self.r_in
+    
+    def a(self):
+        return (self.r_out + self.r_in)/2
+    
+    def ixx(self):
+        return self.mass * (self.a()**2 + (self.t()**2)/4)
 
-        self.ixx = self.mass* (self.a**2 + (self.t**2)/4)
-        self.iyy = self.mass * ((self.a**2)/2 + (self.t**2)/8 + (self.l**2)/12)
-        self.izz = self.iyy
+    def iyy(self):
+        return self.mass * ((self.a()**2)/2 + (self.t()**2)/8 + (self.l**2)/12)
+
+    def izz(self):
+        return self.iyy()
 
 class HybridMassModel:
     """Mass model for a a rocket that uses hybrid fuel
@@ -370,20 +432,46 @@ class HybridMassModel:
     - Assumes the fuel tanks and solid fuel are coaxial along the rocket's long axis
     - The data for the solid fuel, liquid fuel, and vapour mass (v_mass) must all correspond to the same time array
     - Vapour mass data is only used for calculating the total mass. It is ignored for moments of inertia, and for the centre of gravity.
-    WARNING: Might need to include the vapour mass for centre of gravity calculations for more accurate results?
 
     Parameters
     ----------
+    rocket_length : float
+        Length of the rocket (m)
+    solid_fuel : SolidFuel
+        SolidFuel object containing data on the solid fuel grain
+    liquid_fuel : LiquidFuel
+        LiquidFuel object containing data on the liquid fuel
+    vap_mass : list
+        Vapour masses (kg) corresponding to the time array used for solid_fuel and liquid_fuel
+    dry_mass : float
+        Dry mass of the rocket (kg), without any fuel or oxidiser
+    dry_ixx : float
+        Dry X-X principal moment of inertia (kg m^2)
+    dry_iyy : float
+        Dry Y-Y principal moment of inertia (kg m^2)
+    dry_izz : float
+        Dry Z-Z principal moment of inertia (kg m^2)
+    dry_cog : float
+        Distance between the rocket's nose tip and the centre of gravity, with no fuel or oxidiser loaded
 
     Attributes
     ----------
-
+    solid_fuel : SolidFuel
+    liquid_fuel : LiquidFuel
+    time : list
+        Obtained from LiquidFuel.time
+    vap_mass_interp : Scipy Interpolation Function
+    dry_mass : float
+    dry_cog : float
+    dry_ixx : float
+    dry_iyy : float
+    dry_izz : float
+    l : float
 
     """
     def __init__(self, rocket_length, solid_fuel, liquid_fuel, vap_mass, dry_mass, dry_ixx, dry_iyy, dry_izz, dry_cog):
         self.solid_fuel = solid_fuel        #SolidFuel object
         self.liquid_fuel = liquid_fuel      #LiquidTank object
-        self.time = self.liquid_fuel.time    
 
         #Vapour mass
         self.vap_mass_interp = scipy.interpolate.interp1d(self.time, vap_mass)
@@ -397,6 +485,10 @@ class HybridMassModel:
 
         #Geometry of the rocket
         self.l = rocket_length
+
+    @property
+    def time(self):
+        return self.liquid_fuel.time 
 
     def vap_mass(self, time):
         #Mass of vapour
@@ -414,7 +506,7 @@ class HybridMassModel:
 
     def cog(self, time):
         #Centre of gravity (distance from nose tip)
-        return (self.dry_mass*self.dry_cog + self.liquid_fuel.mass(time)*self.liquid_fuel.cog(time) + self.solid_fuel.mass(time)*self.solid_fuel.cog(time)) / self.mass(time)
+        return (self.dry_mass*self.dry_cog + self.liquid_fuel.mass(time)*self.liquid_fuel.cog(time) + self.solid_fuel.mass(time)*self.solid_fuel.cog) / self.mass(time)
                                                                                     
     def ixx(self, time):
         #Parralel axis theorem (but in this case mR^2 = 0 for everything, because all cogs are on the xx axis)
@@ -424,7 +516,7 @@ class HybridMassModel:
         #Get the parralel axis theorem equivelant of each mass, shifted to the rocket's current overall centre of gravity
         dry_component = self.dry_iyy + self.dry_mass*(self.cog(time) - self.dry_cog)**2
         liquid_component = self.liquid_fuel.iyy(time) + self.liquid_fuel.mass(time)*(self.cog(time) - self.liquid_fuel.cog(time))**2
-        solid_component = self.solid_fuel.iyy(time) + self.solid_fuel.mass(time)*(self.cog(time) - self.solid_fuel.cog(time))**2
+        solid_component = self.solid_fuel.iyy(time) + self.solid_fuel.mass(time)*(self.cog(time) - self.solid_fuel.cog)**2
 
         return dry_component + liquid_component + solid_component
 
@@ -432,7 +524,7 @@ class HybridMassModel:
         #Get the parralel axis theorem equivelant of each mass, shifted to the rocket's current overall centre of gravity
         dry_component = self.dry_izz + self.dry_mass*(self.cog(time) - self.dry_cog)**2
         liquid_component = self.liquid_fuel.izz(time) + self.liquid_fuel.mass(time)*(self.cog(time) - self.liquid_fuel.cog(time))**2
-        solid_component = self.solid_fuel.izz(time) + self.solid_fuel.mass(time)*(self.cog(time) - self.solid_fuel.cog(time))**2
+        solid_component = self.solid_fuel.izz(time) + self.solid_fuel.mass(time)*(self.cog(time) - self.solid_fuel.cog)**2
 
         return dry_component + liquid_component + solid_component
 
