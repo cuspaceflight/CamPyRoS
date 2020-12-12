@@ -5,7 +5,7 @@ from .main import *
 from .mass import CylindricalMassModel
 from .transforms import pos_i2l, vel_i2l
 
-from .plot import plot_ypr,plot_altitude_time
+from .plot import *
 from datetime import datetime
 
 def variable_name(**variables):
@@ -41,7 +41,7 @@ class StatisticalModel:
                 "parachute":{k: np.random.normal(v[0],abs_stdev(v[0],v[1])) for k, v in self.parachute_vars.items()},
                 "aero":{k: np.random.normal(1,v) for k,v in self.aero_error.items()},
                 "env":{k: np.random.normal(1,v) for k,v in self.env_vars.items()}}
-        run_vars["launch_site"]["alt"]=abs(run_vars["launch_site"]["alt"])#I suppose this doesn't work when mean alt is non zero but less than a few stdevs
+        run_vars["launch_site"]["alt"]=abs(run_vars["launch_site"]["alt"])#This doesn't work when mean alt is non zero but less than a few stdevs
         launch_site=LaunchSite(run_vars["launch_site"]["rail_length"],run_vars["launch_site"]["rail_yaw"],run_vars["launch_site"]["rail_pitch"],run_vars["launch_site"]["alt"],run_vars["launch_site"]["longi"],run_vars["launch_site"]["lat"],run_vars["launch_site"]["wind"])
         mass_model=CylindricalMassModel(run_vars["mass_model"]["dry_mass"] + run_vars["mass_model"]["prop_mass"],run_vars["mass_model"]["time_data"],run_vars["mass_model"]["length"],run_vars["mass_model"]["radius"])
         #mass_model=CylindricalMassModel(self.mass_model_vars["dry_mass"][0] + np.array(self.mass_model_vars["prop_mass"][0]),self.mass_model_vars["time_data"][0],self.mass_model_vars["length"][0],self.mass_model_vars["radius"][0])#CylindricalMassModel(run_vars["mass_model"]["dry_mass"] + run_vars["mass_model"]["prop_mass"],run_vars["mass_model"]["time_data"],run_vars["mass_model"]["length"],run_vars["mass_model"]["radius"])
@@ -51,6 +51,7 @@ class StatisticalModel:
         aero=RasAeroData(self.aero_file,error=run_vars["aero"]) #I'm not convinces this is sufficient, should each datapoint not have its own random or is it okay to apply one error to the whole set?
         
         parachute=Parachute(run_vars["parachute"]["main_s"],run_vars["parachute"]["main_c_d"],run_vars["parachute"]["drogue_s"],run_vars["parachute"]["drogue_c_d"],run_vars["parachute"]["main_alt"],run_vars["parachute"]["attatch_distance"])
+        
         #parachute=Parachute(self.parachute_vars["main_s"][0],self.parachute_vars["main_c_d"][0],self.parachute_vars["drogue_s"][0],self.parachute_vars["drogue_c_d"][0],self.parachute_vars["main_alt"][0],self.parachute_vars["attatch_distance"][0])
         
         thrust_alignment = np.array([np.random.normal(1,self.thrust_alignment_error),np.random.normal(0,self.thrust_alignment_error),np.random.normal(0,self.thrust_alignment_error)])
@@ -58,7 +59,7 @@ class StatisticalModel:
 
         
         rocket=Rocket(mass_model, motor, aero, launch_site, h=self.h, variable=self.variable_time,parachute=parachute,thrust_vector=thrust_alignment,errors=run_vars["env"])#,errors=run_vars["enviroment"])
-        run_output = rocket.run(max_time = 500)
+        run_output = rocket.run()
         run_save = pd.DataFrame()
         run_save["time"]=run_output["time"]
         x,y,z=[],[],[]
