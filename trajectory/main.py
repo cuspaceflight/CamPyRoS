@@ -233,99 +233,6 @@ class LaunchSite:
         self.lat = lat
         self.wind = np.array(wind)
  
-class RASAeroData: 
-    """Object holding aerodynamic data from a RasAero II 'Aero Plots' export file
-
-    Note
-    ----
-    Relies on an axially symetric body
-
-    Parameters
-    ----------
-    file_location_string : string
-        Location of RASAero file
-    area : float, optional
-        Referance area used to normalise coefficients, defaults to 0.0305128422 /m^2
-
-    Attributes
-    ----------
-    area : float, optional
-        Referance area used to normalise coefficients, /m^2
-    COP : Scipy Interpolation Function
-        Centre of pressure at time after ignition, when called interpolates to desired time /m
-    CA : Scipy Interpolation Function
-       Axial coefficient of drag, when called interpolates to desired time /
-    CN : Scipy Interpolation Function
-        Normal coefficient of drag, when called interpolates to desired time /
-    
-    """ 
-    def __init__(self, file_location_string, area = 0.0305128422): 
-        self.area = area
-        
-        with open(file_location_string) as csvfile:
-            aero_data = csv.reader(csvfile)
-        
-            Mach_raw = []
-            alpha_raw = []
-            CA_raw = []
-            COP_raw = []
-            CN_raw = []
-    
-            #Extract the raw data from the .csv file
-            next(aero_data)            
-            for row in aero_data:
-                Mach_raw.append(float(row[0]))
-                alpha_raw.append(float(row[1]))
-                CA_raw.append(float(row[5]))
-                COP_raw.append(float(row[12]))
-                CN_raw.append(float(row[8]))
-        
-        #Seperate the data by angle of attack.
-        Mach = []
-        CA_0 = []  #CA at alpha = 0
-        CA_2 = []  #CA at alpha = 2
-        CA_4 = []  #CA at alpha = 4
-        COP_0 = []
-        COP_2 = []
-        COP_4 = []
-        CN_0 = []
-        CN_2 = []
-        CN_4 = []
-             
-        for i in range(len(Mach_raw)):
-            if alpha_raw[i] == 0:
-                Mach.append(Mach_raw[i])
-                CA_0.append(CA_raw[i])
-                COP_0.append(COP_raw[i])
-                CN_0.append(CN_raw[i])
-             
-            elif alpha_raw[i] == 2:
-                CA_2.append(CA_raw[i])
-                COP_2.append(COP_raw[i])
-                CN_2.append(CN_raw[i])    
-              
-            elif alpha_raw[i] == 4:
-                CA_4.append(CA_raw[i])
-                COP_4.append(COP_raw[i])
-                CN_4.append(CN_raw[i])   
-           
-        #Make sure all the lists are the same length - this is needed because it seems the alpha=4 data only has 2499 points, but the others have 2500
-        CA_0, CA_2, CA_4 = CA_0[:2498], CA_2[:2498], CA_4[:2498]
-        CN_0, CN_2, CN_4 = CN_0[:2498], CN_2[:2498], CN_4[:2498]
-        COP_0, COP_2, COP_4 = COP_0[:2498], COP_2[:2498], COP_4[:2498]
-        Mach = Mach[:2498]
-           
-        #Generate grids of the data
-        CA = np.array([CA_0, CA_2, CA_4])
-        CN = np.array([CN_0, CN_2, CN_4])
-        COP = 0.0254*np.array([COP_0, COP_2, COP_4])    #Convert inches to m
-        alpha = [0,2,4]
-                    
-        #Generate functions (note these are funcitons, not variables) which return a coefficient given (Mach, alpha)
-        self.COP = scipy.interpolate.interp2d(Mach, alpha, COP)
-        self.CA = scipy.interpolate.interp2d(Mach, alpha, CA)
-        self.CN = scipy.interpolate.interp2d(Mach, alpha, CN)
-                      
 class Rocket:
     """The rocket and key simulation components
 
@@ -488,7 +395,7 @@ class Rocket:
         q = 0.5*Atmosphere(alt).density[0]*(v_a**2)
         
         #Characteristic area
-        S = self.aero.area
+        S = self.aero.ref_area
         
         #Drag/Force coefficients
         Cx = self.aero.CA(mach, abs(delta))[0]         #WARNING: Not sure if I'm using the right angles for these all
@@ -506,6 +413,37 @@ class Rocket:
         #Return the forces (note that they're given using the body coordinate system, [x_b, y_b, z_b]) and the COP position
         return np.array([Fx,Fy,Fz]), COP, q
         
+    def aero_damping_moment(self, pos_i, vel_i, b2i, w_b, time):  
+        """Returns aerodynamic damping moments (in the body reference frame).
+
+        Note
+        ----
+        -Assumes the damping coefficients are constants
+
+        Parameters
+        ----------
+        pos_i : numpy array
+            Position of the rocket in the inertial coordinate system [x,y,z] /m
+        vel_i : numpy array
+            Velocity of the rocket in the inertial coordinate system [x,y,z] /m/s
+        b2i : scipy rotation object
+            Defines the orientation of the body frame to the inertial frame
+        w_b : numpy array
+            Angular velocity of the body in the body frame [x,y,z] /rad/s
+        time : float
+            Time since ignition /s
+
+        Returns
+        -------
+        numpy array
+            Aerodynamic damping moments on the rocket in the body frame [x,y,z] /N
+
+        """        
+        alt = pos_i2alt(pos_i)
+        return np.array([-np.sign(w_b[0])*Atmosphere(alt).density[0] * w_b[0]**2 * self.aero.roll_damping_coefficient, 
+                         -np.sign(w_b[1])*Atmosphere(alt).density[0] * w_b[1]**2 * self.aero.pitch_damping_coefficient,
+                         -np.sign(w_b[2])*Atmosphere(alt).density[0] * w_b[2]**2 * self.aero.pitch_damping_coefficient])                  
+
     def thrust(self, pos_i, vel_i, b2i, w_b, time, vector = [1,0,0]): 
         """Returns thrust and moments generated by the motor, in body frame.
 
@@ -662,7 +600,7 @@ class Rocket:
             
             #Get total force and moment
             F = thrust_i + aero_force_i + self.gravity(pos_i,time)
-            Q_b = aero_moment_b + thrust_moment_b + jet_damping_moment_b
+            Q_b = aero_moment_b + thrust_moment_b + jet_damping_moment_b + self.aero_damping_moment(pos_i, vel_i, b2i, w_b, time)
         
         #Calculate angular velocities using Euler's equations - IIA Engineering, Module 3C5, Rigid body dynamics handout (page 18)
         i_b = np.array([self.mass_model.ixx(time),
