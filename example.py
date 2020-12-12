@@ -37,7 +37,7 @@ rocket_length = 6.529                       # m
 rocket_radius = 98.5e-3                     # m
 rocket_wall_thickness = 1e-2                # m - This is just needed for the mass model
 pos_tank_bottom = 4.456                     # m - Distance between the nose tip and the bottom of the nitrous tank
-pos_solidfuel_bottom = 4.856+LENGTH_PORT    #m - Distance between the nose tip and bottom of the solid fuel grain 
+pos_solidfuel_bottom = 4.856+LENGTH_PORT    # m - Distance between the nose tip and bottom of the solid fuel grain 
 ref_area = 0.0305128422                     # m^2 - Reference area for aerodynamic coefficients
 
 '''Set up aerodynamic properties'''
@@ -67,7 +67,8 @@ pulsar = trajectory.Motor(motor_time_data,
                           throat_data, 
                           gamma_data, 
                           nozzle_efficiency_data, 
-                          exit_pres_data, area_ratio_data)
+                          exit_pres_data, 
+                          area_ratio_data)
 
 launch_site = trajectory.LaunchSite(rail_length=10, 
                                     rail_yaw=0, 
@@ -88,7 +89,7 @@ parachute = trajectory.Parachute(main_s = 13.9,
 martlet4 = trajectory.Rocket(mass_model, pulsar, aerodynamic_coefficients, launch_site, h=0.05, variable=True, alt_poll_interval=1, parachute=parachute)
 
 '''Run the simulation'''
-simulation_output = martlet4.run(max_time = 400, debug=True, to_json="output.json")
+#simulation_output = martlet4.run(max_time = 400, debug=True, to_json="output.json")
 
 '''Example of how you can import data from a .csv file'''
 imported_data = trajectory.from_json("output.json")
