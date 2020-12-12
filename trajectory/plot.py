@@ -43,6 +43,57 @@ def set_axes_equal(ax):
     ax.set_ylim3d([y_middle - plot_radius, y_middle + plot_radius])
     ax.set_zlim3d([z_middle - plot_radius, z_middle + plot_radius])
 
+def fix_ypr(point):
+    """if point<0:
+        point = 2*np.pi-abs(point)
+    point = round(point,5)
+    if point==round(2*np.pi,5):
+        point=0"""
+    return point
+
+def plot_ypr(simulation_output, rocket):
+    #Get data
+    output_dict = simulation_output.to_dict(orient="list")
+    
+    yaw=[]
+    pitch=[]
+    roll=[]
+    z_l=[]
+    for index, row in simulation_output.iterrows():#this is ugly but proper way not working
+        ypr=trajectory.Rotation.from_matrix(row["b2imat"]).as_euler("zyx")
+    altitude=[]
+    time = output_dict["time"]
+
+    for i in range(len(time)):
+        ypr = Rotation.from_matrix(output_dict["b2imat"][i]).as_euler("zyx")
+        yaw.append(ypr[0])
+        pitch.append(ypr[1])
+        roll.append(ypr[2])
+        z_l.append(trajectory.pos_i2l(np.array(row["pos_i"]),rocket.launch_site,row["time"])[2])
+    fig, axs = plt.subplots(2, 2)
+
+    axs[0, 0].plot(simulation_output["time"], [fix_ypr(n) for n in yaw])
+    axs[0, 0].set_title('Yaw')
+    axs[0,0].set_xlabel("time/s")
+    axs[0,0].set_ylabel("Angles/ rad")
+
+    axs[0, 1].plot(simulation_output["time"], [fix_ypr(n) for n in pitch])
+    axs[0, 1].set_title('Pitch')
+    axs[0,1].set_xlabel("time/s")
+    axs[0,1].set_ylabel("Angles/ rad")
+
+    axs[1, 0].plot(simulation_output["time"], [fix_ypr(n) for n in roll])
+    axs[1, 0].set_title('Roll')
+    axs[1,0].set_xlabel("time/s")
+    axs[1,0].set_ylabel("Angles/ rad")
+
+    axs[1, 1].plot(simulation_output["time"], z_l)
+    axs[1, 1].set_title('Altitude')
+    axs[1,1].set_xlabel("time/s")
+    axs[1,1].set_ylabel("Altitude /m")
+
+    plt.show()
+
 def plot_launch_trajectory_3d(simulation_output, rocket, show_orientation=False, arrow_frequency = 0.02):
     """
     Plots the trajectory in 3D, given the simulation_output and the rocket
