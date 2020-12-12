@@ -291,7 +291,7 @@ class Rocket:
         Engine burned out? Initialises to False
     
     """   
-    def __init__(self, mass_model, motor, aero, launch_site, h=0.01, variable=False, rtol=1e-7, atol=1e-14, parachute=Parachute(0,0,0,0,0,0),alt_poll_interval=1):   
+    def __init__(self, mass_model, motor, aero, launch_site, h=0.01, variable=False, rtol=1e-7, atol=1e-14, parachute=Parachute(0,0,0,0,0,0), alt_poll_interval=1):   
         self.launch_site = launch_site
         self.motor = motor
         self.aero = aero
