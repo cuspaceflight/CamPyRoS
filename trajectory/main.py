@@ -319,7 +319,7 @@ class RasAeroData:
         COP = 0.0254*np.array([COP_0, COP_2, COP_4])    #Convert inches to m
         alpha = [0,2,4]
                     
-        #Generate functions (note these are funcitons, not variables) which return a coefficient given (Mach, alpha)
+        #Generate functions (note these are functions, not variables) which return a coefficient given (Mach, alpha)
         self.COP = scipy.interpolate.interp2d(Mach, alpha, COP)
         self.CA = scipy.interpolate.interp2d(Mach, alpha, CA)
         self.CN = scipy.interpolate.interp2d(Mach, alpha, CN)
@@ -382,7 +382,7 @@ class Rocket:
         Engine burned out? Initialises to False
     
     """   
-    def __init__(self, mass_model, motor, aero, launch_site, h=0.01, variable=False, rtol=1e-7, atol=1e-14, parachute=Parachute(0,0,0,0,0,0),alt_poll_interval=1):   
+    def __init__(self, mass_model, motor, aero, launch_site, h=0.01, variable=False, rtol=1e-7, atol=1e-14, parachute=Parachute(0,0,0,0,0,0), alt_poll_interval=1):   
         self.launch_site = launch_site
         self.motor = motor
         self.aero = aero

@@ -174,6 +174,57 @@ def plot_altitude_time(simulation_output, rocket):
     fig.tight_layout()
     plt.show() 
 
+def plot_mass(simulation_output, rocket):
+    time = simulation_output.to_dict(orient="list")["time"]
+    burnout_time = rocket.motor.motor_time_data[-1]
+    mass = []
+    ixx = []
+    iyy = []
+    izz = []
+    for t in time:
+        mass.append(rocket.mass_model.mass(t))
+        ixx.append(rocket.mass_model.ixx(t))
+        iyy.append(rocket.mass_model.iyy(t))
+        izz.append(rocket.mass_model.izz(t))
+
+
+    #Plot everything
+    fig, axs = plt.subplots(2, 2)
+    axs[0, 0].plot(time, mass)
+    axs[0, 0].set_title('Mass')
+    axs[0,0].set_xlabel("Time (s)")
+    axs[0,0].set_ylabel("Mass (kg)")
+    axs[0,0].axvline(burnout_time, label="Burnout time", linestyle = '--')
+    axs[0,0].legend()
+    axs[0,0].grid()
+
+    axs[0, 1].plot(time, ixx, 'tab:orange')
+    axs[0, 1].set_title('Ixx')
+    axs[0,1].set_xlabel("time (s)")
+    axs[0,1].set_ylabel("Ixx (kg m^2)")
+    axs[0,1].axvline(burnout_time, label="Burnout time", linestyle = '--', color="orange")
+    axs[0,1].legend()
+    axs[0,1].grid()
+
+    axs[1, 0].plot(time, iyy, 'tab:green')
+    axs[1, 0].set_title('Iyy')
+    axs[1,0].set_xlabel("time (s)")
+    axs[1,0].set_ylabel("Iyy (kg m^2)")
+    axs[1,0].axvline(burnout_time, label="Burnout time", linestyle = '--', color="green")
+    axs[1,0].legend()
+    axs[1,0].grid()
+
+    axs[1, 1].plot(time, izz, 'tab:red')
+    axs[1, 1].set_title('Izz')
+    axs[1,1].set_xlabel("time (s)")
+    axs[1,1].set_ylabel("Izz (kg m^2)")
+    axs[1,1].axvline(burnout_time, label="Burnout time", linestyle = '--', color="red")
+    axs[1,1].legend()
+    axs[1,1].grid()
+
+    fig.tight_layout()
+    plt.show() 
+
 #Non-functional
 
 def plot_aero_forces(simulation_output):
