@@ -2,7 +2,27 @@ import numpy as np
 from scipy.spatial.transform import Rotation
 
 from trajectory.constants import r_earth, ang_vel_earth
-     
+
+def pos_i2alt(pos_i):
+    """Returns the altitude (height from surface in launch frame) from pos_i
+
+    Note
+    ----
+    -Uses a spherical Earth model
+
+    Parameters
+    ----------
+    pos_i : numpy array
+        Position of the rocket in the inertial coordinate system [x,y,z] /m
+
+    Returns
+    -------
+    float
+        Altitude /m
+
+    """         
+    return np.linalg.norm(pos_i) - r_earth     
+
 def pos_l2i(pos_l, launch_site, time):
     """Converts position in launch frame to position in inertial frame.
 
