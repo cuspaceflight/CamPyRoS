@@ -35,14 +35,14 @@ radius = 98.5e-3    # m
 '''Create the objects needed to initialise the Rocket object'''
 mass_model = trajectory.CylindricalMassModel(dry_mass + np.array(prop_mass_data), motor_time_data, length, radius)
 pulsar = trajectory.Motor(motor_time_data, prop_mass_data, cham_pres_data, throat_data, gamma_data, nozzle_efficiency_data, exit_pres_data, area_ratio_data)
-launch_site = trajectory.LaunchSite(rail_length=10, rail_yaw=0, rail_pitch=0, alt=0, longi=0, lat=0, wind=[0,0,0])
+launch_site = trajectory.LaunchSite(rail_length=10, rail_yaw=0, rail_pitch=0, alt=1, longi=0.1160127, lat=52.2079404, variable_wind=True,forcast_plus_time="016")
 parachute=trajectory.Parachute(13.9,0.78,1.13,0.78,1000,0)
 
 """Create the Rocket object"""
 martlet4 = trajectory.Rocket(mass_model, pulsar, aerodynamic_coefficients, launch_site, h=0.05, variable=True,alt_poll_interval=1,parachute=parachute)
 
 '''Run the simulation'''
-simulation_output = martlet4.run(debug=True)
+simulation_output = martlet4.run(debug=True,to_json="output.json")
 
 '''Example of how you can import data from a .csv file'''
 #imported_data = trajectory.from_json("output.json")

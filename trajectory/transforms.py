@@ -188,6 +188,7 @@ def i2lla(pos_i,time):
     #https://uk.mathworks.com/help/aeroblks/ecefpositiontolla.html
     x,y,z=pos_i[0],pos_i[1],pos_i[2]
     longi=np.angle(x+1j*y)
+    
     s=np.sqrt(x**2+y**2)
     e=np.sqrt(1-(1-f)**2)
     
@@ -195,7 +196,7 @@ def i2lla(pos_i,time):
     beta=np.angle(1j*z+(1-f)*s)
     mu=0
     mu_=np.angle((s-e**2*r_earth*np.cos(beta)**3)+1j*(z+e**2*(1-f)*r_earth*np.sin(beta)**3/(1-e**2)))
-    while abs(mu_-mu)>1e-100:#This seems to always converge after one itteration
+    while abs(mu_-mu)>1e-2:#May as well be low since it is only ever used to query wind which is only granular to 0.25 long/lat
         mu=mu_
         beta=np.angle(1j*(1-f)*np.sin(mu)+np.cos(mu))
         mu_=np.angle((s-e**2*r_earth*np.cos(beta)**3)+1j*(z+e**2*(1-f)*r_earth*np.sin(beta)**3/(1-e**2)))
