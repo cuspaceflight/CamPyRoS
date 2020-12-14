@@ -31,24 +31,168 @@ ang_vel_earth : float
     The angular velocity of the Earth
 """
 
-import csv, warnings, os, sys, json
+import csv, warnings, os, sys, json, iris, requests, metpy.calc, os.path
+from metpy.units import units
 import numpy as np
 import pandas as pd
 
 import scipy.interpolate
 from scipy.spatial.transform import Rotation
 import scipy.integrate as integrate
-from datetime import datetime
+from datetime import date
 
 from .constants import r_earth, ang_vel_earth, f
 from .transforms import pos_l2i, pos_i2l, vel_l2i, vel_i2l, direction_l2i, direction_i2l, i2airspeed, i2lla
 from ambiance import Atmosphere
 
 def warning_on_one_line(message, category, filename, lineno, file=None, line=None):
-    return ' %s:%s: %s:%s\n' % (filename, lineno, category.__name__, message)
+    return '\n%s:%s: %s:%s\n' % (filename, lineno, category.__name__, message)
 
 warnings.formatwarning = warning_on_one_line
 
+class Wind:
+    #Data will be strored in data_loc in the format lat_long_date_run_period.grb2 where lat and long are the bottom left values
+    #Run has to be 00, 06, 12 or 18
+
+    def __init__(self,initial_long,initial_lat,variable=True,default=np.array([0,0,0]),data_loc="data/wind/gfs",run_date=date.today().strftime("%Y%m%d"),forcast_time="00",forcast_plus_time="000"):
+        warnings.warn("Wind data becomes problamatic at the poles and when integer long and lat are given")
+        self.centre_lat=initial_lat
+        self.centre_long=initial_long
+        self.data_loc=data_loc#must be in last week for now
+        self.variable = variable
+        self.default=default
+
+        if variable == True:
+            if forcast_time not in ["00","06","12","18"]:
+                warning.warn("The forcast run selected is not valid, must be '00', '06', '12' or '18'. This will be fatal on file load")
+            valid_times=["00%s"%n for n in range(0,10)]+["0%s"%n for n in range(10,100)]+["%s"%n for n in range(100,385)]
+            if forcast_plus_time not in valid_times:
+                warning.warn("The forcast time selected is not valid, must be three digit string time between 000 and 384. Thi siwll be fatal on file load")
+            self.date=run_date
+            self.forcast_time=forcast_time
+            self.run_time=forcast_plus_time
+            self.df,self.lats,self.longs=self.load_data(self.centre_lat,self.centre_long)
+
+    def load_data(self,lat,longi):
+        lat_top=round(lat/.25)*.25
+        if lat_top>lat:
+            lat_bottom=lat_top-.25
+        else:
+            lat_bottom=lat_top+.25
+            lat_top,lat_bottom=lat_bottom,lat_top
+            
+        long_left=round(longi/.25)*.25
+        if long_left<longi:
+            long_right=long_left+.25
+        else:
+            long_right=long_left-.25
+            long_left,long_right=long_right,long_left
+
+        if not os.path.isfile("%s/%s_%s_%s_%s_%s.grb2"%(self.data_loc,lat_bottom,long_left,self.date,self.forcast_time,self.run_time)):
+            #This does download 3 rows that aren't needed but I can't work out how to yeet them
+            print("Downloading files")
+            url="https://nomads.ncep.noaa.gov/cgi-bin/filter_gfs_0p25_1hr.pl?file=gfs.t{run}z.pgrb2.0p25.f{hour}&lev_0.4_mb=on&lev_1000_mb=on&lev_100_mb=on&lev_10_mb=on&lev_150_mb=on&lev_15_mb=on&lev_180-0_mb_above_ground=on&lev_1_mb=on&lev_200_mb=on&lev_20_mb=on&lev_250_mb=on&lev_255-0_mb_above_ground=on&lev_2_mb=on&lev_300_mb=on&lev_30-0_mb_above_ground=on&lev_30_mb=on&lev_350_mb=on&lev_3_mb=on&lev_400_mb=on&lev_40_mb=on&lev_450_mb=on&lev_500_mb=on&lev_50_mb=on&lev_550_mb=on&lev_5_mb=on&lev_600_mb=on&lev_650_mb=on&lev_700_mb=on&lev_70_mb=on&lev_750_mb=on&lev_7_mb=on&lev_800_mb=on&lev_850_mb=on&lev_900_mb=on&lev_925_mb=on&lev_950_mb=on&lev_975_mb=on&var_HGT=on&var_UGRD=on&var_VGRD=on&subregion=&leftlon={leftlon}&rightlon={rightlon}&toplat={toplat}&bottomlat={bottomlat}&dir=%2Fgfs.{date}%2F{run}".format(leftlon=long_left,rightlon=long_right,toplat=lat_top,bottomlat=lat_bottom,date=self.date,run=self.forcast_time,hour=self.run_time)
+            
+            r = requests.get(url, stream=True)
+
+            with open("%s/%s_%s_%s_%s_%s.grb2"%(self.data_loc,lat_bottom,long_left,self.date,self.forcast_time,self.run_time),'wb') as f:
+                for chunk in r.iter_content(chunk_size=1024):
+                    if chunk: 
+                        f.write(chunk)
+
+        if os.path.getsize("%s/%s_%s_%s_%s_%s.grb2"%(self.data_loc,lat_bottom,long_left,self.date,self.forcast_time,self.run_time))<1000:
+            raise RuntimeError("The weather data you requested was not found, this is usually because it was for an invalid date/time")
+
+        print("Loading wind data for N%s E%s for %sh after forcast run at %s on %s"%(lat,longi,self.run_time,self.forcast_time,self.date))
+        data=iris.load("%s/%s_%s_%s_%s_%s.grb2"%(self.data_loc,lat_bottom,long_left,self.date,self.forcast_time,self.run_time))
+        lats=list(data[0].coord("latitude").points)
+        longs=list(data[0].coord("longitude").points)
+        df=pd.DataFrame(columns=["lat","long","alt","w_x","w_y"])
+        for long in longs:
+            for lat in lats:
+                press=data[1].extract(iris.Constraint(latitude=lat,longitude=long)).coord("pressure").points
+                for pres in press:
+                    w_x=data[1].extract(iris.Constraint(latitude=lat,longitude=long,pressure=pres)).data
+                    w_y=data[3].extract(iris.Constraint(latitude=lat,longitude=long,pressure=pres)).data
+                    alt=10*metpy.calc.geopotential_to_height(data[0].extract(iris.Constraint(latitude=lat,longitude=long,pressure=pres)).data*units.m**2/units.s**2).magnitude
+                    row={"lat":lat,"long":long,"alt":alt,"w_x":w_x,"w_y":w_y}
+                    df=df.append(row,ignore_index=True)
+
+        return df,lats,longs
+
+    def get_wind(self,lat,long,alt):
+        if alt<-1000:
+            #This stops the weird yeeting through the earth in the last step
+            lat,long,alt=self.centre_lat,self.centre_long,0
+        elif alt>80000:
+            lat,long,alt=self.centre_lat,self.centre_long,max(self.df["alt"])
+        if self.variable == True:
+            lat_query=[None,None]
+            lat_query[0]=round(lat/.25)*.25
+            if lat_query[0]>lat:
+                lat_query[1]=lat_query[0]-.25
+            else:
+                lat_query[1]=lat_query[0]+.25
+                lat_query[0],lat_query[1]=lat_query[1],lat_query[0]
+            long_query=[None,None]
+            long_query[0]=round(long/.25)*.25
+            if long_query[0]<long:
+                long_query[1]=long_query[0]+.25
+            else:
+                long_query[1]=long_query[0]-.25
+                long_query[0],long_query[1]=long_query[1],long_query[0]
+
+            available=False
+            while available==False:
+                #I don't think this is the most efficient but *should* work
+                if not (min(self.lats)<lat<max(self.lats) and min(self.longs)<long<max(self.longs)).all():
+                    new_df,lats,longs=self.load_data(lat,long)
+                    self.df=self.df.append(new_df)
+                    self.lats+=lats
+                    self.longs+=longs
+                else:
+                    available=True
+
+            points = [[None,None],[None,None]]
+            for n in [0,1]:
+                points[n][0]=self.df.query('lat == %s'%lat_query[n])
+                points[n][1]=self.df.query('lat == %s'%lat_query[n])
+                for m in [0,1]:
+                    points[n][m]=points[n][m].query('long == %s'%long_query[m])
+                    
+            meaning = [[None,None],[None,None]]
+            for n in [0,1]:
+                meaning[n][0]="lat_%s"%n
+                meaning[n][1]="lat_%s"%n
+                for m in [0,1]:
+                    meaning[n][m]+=", long_%s"%m
+                    
+                    
+            wind_x = [[None,None],[None,None]]
+            wind_y = [[None,None],[None,None]]
+            for n in [0,1]:
+                for m in [0,1]:
+                    if alt > min(points[n][m]["alt"]) and alt < max(points[n][m]["alt"]):
+                        wind_x[n][m]=scipy.interpolate.interp1d(points[n][m]["alt"],points[n][m]["w_x"])(alt)
+                        wind_y[n][m]=scipy.interpolate.interp1d(points[n][m]["alt"],points[n][m]["w_y"])(alt)
+                    else:
+                        wind=points[n][m].iloc[(points[n][m]["alt"]-alt).abs().argsort()[:1]]
+                        wind_x[n][m],wind_y[n][m]=wind["w_x"].astype(float).to_numpy()[0],wind["w_y"].astype(float).to_numpy()[0]
+                    
+            wind_lats_x = [None,None]
+            wind_lats_y = [None,None]
+            for n in [0,1]:
+                wind_lats_x[n]=scipy.interpolate.interp1d(long_query,wind_x[n])(long)
+                wind_lats_y[n]=scipy.interpolate.interp1d(long_query,wind_y[n])(long)
+            
+            wind_x=scipy.interpolate.interp1d(lat_query,wind_lats_x)(lat)
+            wind_y=scipy.interpolate.interp1d(lat_query,wind_lats_y)(lat)
+
+            #Until this moment I thought long was a key word since VSCode always hilights it, I realise its not now and apologise for using longi instead when it was unneccasary
+            #I think x is east and y is north, not confirmed, should be checked
+            return np.array([-wind_y,wind_x,0])
+        else:
+            return self.default
 class Parachute:
     """Object holding the parachute information
     Note
@@ -201,14 +345,14 @@ class LaunchSite:
     wind : list, optional
         Wind vector at launch site. Defaults to [0,0,0]. Will increase completness/complexity at some point to include at least altitude variation.
     """
-    def __init__(self, rail_length, rail_yaw, rail_pitch, alt, longi, lat, wind=[0,0,0]):
+    def __init__(self, rail_length, rail_yaw, rail_pitch, alt, longi, lat, variable_wind=True,default_wind=np.array([0,0,0]),wind_data_loc="data/wind/gfs",run_date=date.today().strftime("%Y%m%d"),forcast_time="00",forcast_plus_time="000"):
         self.rail_length = rail_length
         self.rail_yaw = rail_yaw
         self.rail_pitch = rail_pitch
         self.alt = alt
         self.longi = longi
         self.lat = lat
-        self.wind = np.array(wind)
+        self.wind = Wind(longi,lat,variable=variable_wind,default=default_wind,data_loc=wind_data_loc,run_date=run_date,forcast_time=forcast_time,forcast_plus_time=forcast_plus_time)
  
 class RasAeroData: 
     """Object holding aerodynamic data from a RasAero II 'Aero Plots' export file
@@ -437,14 +581,15 @@ class Rocket:
         """        
         #Use np.angle(ja + b) to replace np.arctan(a/b)
         alt = self.altitude(pos_i,time)
+        
+        #Get velocity relative to the wind (i.e. the airspeed vector), in body coordinates
+        lat,long,alt=i2lla(pos_i,time)
         if alt<-5000:
             #I keep getting some weird error where if there is any wind the timesteps go to ~11s long near the ground and then it goes really far under ground, presumably in less than one whole timestep so the simulation can't break
             alt=-5000
         elif alt>81020:
             alt=81020
-        
-        #Get velocity relative to the wind (i.e. the airspeed vector), in body coordinates
-        v_rel_wind = b2i.inv().apply( direction_l2i((i2airspeed(pos_i, vel_i, self.launch_site, time) - self.launch_site.wind), self.launch_site, time) )
+        v_rel_wind = b2i.inv().apply( direction_l2i((i2airspeed(pos_i, vel_i, self.launch_site, time) - self.launch_site.wind.get_wind(lat,long,alt)), self.launch_site, time) )
         v_a = np.linalg.norm(v_rel_wind)
         mach = v_a/(Atmosphere(alt).speed_of_sound[0]*self.env_vars["speed_of_sound"])
 
@@ -605,7 +750,6 @@ class Rocket:
         if self.parachute_deployed==True and self.parachute.main_c_d!=0:
             aero_force_b, cop, q, v_rel_wind = self.aero_forces(pos_i, vel_i, b2i, w_b, time)
             cog = self.mass_model.cog(time)
-            
             parachute_force_i=self.parachute_force(q,b2i.apply(v_rel_wind),self.altitude(pos_i,time))+self.gravity(pos_i,time)
 
             F=parachute_force_i
@@ -770,7 +914,8 @@ class Rocket:
                 b2imat[:,1] = np.array([integrator.y[12],integrator.y[13],integrator.y[14]])      #body y-direction
                 b2imat[:,2] = np.array([integrator.y[15],integrator.y[16],integrator.y[17]])      #body z-direction
             else:
-                wind_inertial =  vel_l2i(self.launch_site.wind, self.launch_site, self.time)
+                lat,long,alt=i2lla(self.pos_i,self.time)
+                wind_inertial =  vel_l2i(self.launch_site.wind.get_wind(lat,long,alt), self.launch_site, self.time)
                 v_rel_wind = self.vel_i-wind_inertial
                 b2imat[:,0] = -v_rel_wind/np.linalg.norm(v_rel_wind)   #body x-direction
                 z=self.b2i.as_matrix()[:,2]
@@ -800,7 +945,7 @@ class Rocket:
             c+=1
 
         #Export a JSON if required
-        if to_json != False:
+        if to_json == True:
             #Convert the DataFrame to a dict first, the in-built Python JSON library works better than panda's does I think
             dict = record.to_dict(orient="list")
 

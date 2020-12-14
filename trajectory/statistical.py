@@ -7,6 +7,7 @@ from .transforms import pos_i2l, vel_i2l
 
 from .plot import *
 from datetime import datetime
+from datetime import date
 
 def variable_name(**variables):
     return [x for x in variables][0]
@@ -17,7 +18,7 @@ def abs_stdev(value,percentage):
 class StatisticalModel:
     """Class for monte carlo modeling of flights
     """    
-    def __init__(self, launch_site_vars, mass_model_vars, aero_file, aero_error, motor, thrust_error, thrust_alignment_error, parachute_vars, env_vars, h=0.05, variable=True,alt_poll_interval=1):
+    def __init__(self, launch_site_vars, mass_model_vars, aero_file, aero_error, motor, thrust_error, thrust_alignment_error, parachute_vars, env_vars, h=0.05, variable=True,alt_poll_interval=1,run_date=date.today().strftime("%Y%m%d"),forcast_time="00",forcast_plus_time="000"):
         """Each variable set should be a list of [value,error]
         launch_site=[rail_length, rail_yaw, rail_pitch, alt, longi, lat, wind=[0,0,0]]
         """     
@@ -34,6 +35,8 @@ class StatisticalModel:
         self.env_vars=env_vars
         self.type_names=["launch_site","mass_model","parachute","enviroment"]
 
+        self.wind_base=model_wind=Wind(self.launch_site_vars["longi"][0],self.launch_site_vars["lat"][0],variable=True,run_date=run_date,forcast_time=forcast_time,forcast_plus_time=forcast_plus_time)
+
     @ray.remote
     def run_itteration(self, id, save_loc):
         run_vars={"launch_site":{k: np.random.normal(v[0],v[1]) for k, v in self.launch_site_vars.items()},#absolute errors given
@@ -42,7 +45,9 @@ class StatisticalModel:
                 "aero":{k: np.random.normal(1,v) for k,v in self.aero_error.items()},
                 "env":{k: np.random.normal(1,v) for k,v in self.env_vars.items()}}
         run_vars["launch_site"]["alt"]=abs(run_vars["launch_site"]["alt"])#This doesn't work when mean alt is non zero but less than a few stdevs
-        launch_site=LaunchSite(run_vars["launch_site"]["rail_length"],run_vars["launch_site"]["rail_yaw"],run_vars["launch_site"]["rail_pitch"],run_vars["launch_site"]["alt"],run_vars["launch_site"]["longi"],run_vars["launch_site"]["lat"],run_vars["launch_site"]["wind"])
+        launch_site=LaunchSite(run_vars["launch_site"]["rail_length"],run_vars["launch_site"]["rail_yaw"],run_vars["launch_site"]["rail_pitch"],run_vars["launch_site"]["alt"],run_vars["launch_site"]["longi"],run_vars["launch_site"]["lat"],variable_wind=False)
+        launch_site.wind=copy.copy(self.wind_base)
+        #wind can now be modified for stats thing
         mass_model=CylindricalMassModel(run_vars["mass_model"]["dry_mass"] + run_vars["mass_model"]["prop_mass"],run_vars["mass_model"]["time_data"],run_vars["mass_model"]["length"],run_vars["mass_model"]["radius"])
         #mass_model=CylindricalMassModel(self.mass_model_vars["dry_mass"][0] + np.array(self.mass_model_vars["prop_mass"][0]),self.mass_model_vars["time_data"][0],self.mass_model_vars["length"][0],self.mass_model_vars["radius"][0])#CylindricalMassModel(run_vars["mass_model"]["dry_mass"] + run_vars["mass_model"]["prop_mass"],run_vars["mass_model"]["time_data"],run_vars["mass_model"]["length"],run_vars["mass_model"]["radius"])
         motor=copy.copy(self.motor_base)
@@ -59,7 +64,7 @@ class StatisticalModel:
 
         
         rocket=Rocket(mass_model, motor, aero, launch_site, h=self.h, variable=self.variable_time,parachute=parachute,thrust_vector=thrust_alignment,errors=run_vars["env"])#,errors=run_vars["enviroment"])
-        run_output = rocket.run()
+        run_output = rocket.run(debug=True)
         run_save = pd.DataFrame()
         run_save["time"]=run_output["time"]
         x,y,z=[],[],[]
@@ -84,7 +89,10 @@ class StatisticalModel:
         run_save["v_z"]=v_z#These were'nt saving properly as vectors but really should
 
         with open("%s/%s.csv"%(save_loc,id), "w+") as f:
+            print(run_save)
             run_save.to_csv(path_or_buf=f)
+        
+        self.wind_base=copy.copy(launch_site.wind)#incase more data has been downloaded
 
         
 
