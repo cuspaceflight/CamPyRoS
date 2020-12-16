@@ -16,8 +16,85 @@ def abs_stdev(value,percentage):
     return value*percentage
 
 class StatisticalModel:
-    """Class for monte carlo modeling of flights
-    """    
+    """Stochastic model for the rocket flight
+
+    Notes
+    -----
+    Every variable specified has a value and a standard deviation in a list (i.e. [mean,st_dev])
+    Currenrly only cylindrical mass model is supported.
+    
+    Parameters
+    ----------
+    launch_site_vars : dict
+        Dictionary of variables for launch site object. Must contain: rail_length, rail_yaw, rail_pitch, alt, longi, lat
+    mass_model_vars : dict
+        Dictionary of variables for mass model object. Must contain: dry_mass, prop_mass, time_data, length, radius
+    aero_file : string
+        Location of RASAero data file
+    aero_error : dict
+        Standard deviaiton for the aero coefficients in format COP, CN and CA
+    motor_base : MotorObject
+        Unpeterbed motor object
+    h : float, optional
+        Default timestep /s, defaults to 0.05 - this doesn't really do anything
+    variable_time : bool, optional
+        Vary timesteps?, defaults to True
+    alt_poll_interval : , optional
+        Parachute altitude polling interval /s defaults to 1
+    run_date : string, optional
+        Date for forcast data in format YYYYMMDD, defaults to current date
+    forcast_time : string, optional
+        Forcast run time, must be 00,06,12 or 18, defaults to 00
+    forcast_plus_time : string, optional
+        Hours forcast forward from forcast time, must be three digits between 000 and 123 (?), defaults to 000
+    thrust_error : float
+        Standard deviation of thrust magnitude error /% 
+    thrust_alignment : float
+        Standard deviation of thrust alignment vector error 
+    parachute_vars : dict
+        Dictionary of variables for parachute object. Must contain: main_s, main_c_d, drogue_s, drogue_c_d, main_alt, attatch_distance
+    env_vars : dictionary
+        Multiplied factor for the gravity, pressure, density and speed of sound used in the model,
+        defaults to {"gravity":1.0,"pressure":1.0,"density":1.0,"speed_of_sound":1.0}
+
+    Attributes
+    ----------
+    launch_site_vars : dict
+        Dictionary of variables for launch site object. Must contain: rail_length, rail_yaw, rail_pitch, alt, longi, lat
+    mass_model_vars : dict
+        Dictionary of variables for mass model object. Must contain: dry_mass, prop_mass, time_data, length, radius
+    aero_file : string
+        Location of RASAero data file
+    aero_error : dict
+        Standard deviaiton for the aero coefficients in format COP, CN and CA
+    motor_base : MotorObject
+        Unpeterbed motor object
+    h : float, optional
+        Default timestep /s, defaults to 0.05 - this doesn't really do anything
+    variable_time : bool, optional
+        Vary timesteps?, defaults to True
+    alt_poll_interval : , optional
+        Parachute altitude polling interval /s defaults to 1
+    run_date : string, optional
+        Date for forcast data in format YYYYMMDD, defaults to current date
+    forcast_time : string, optional
+        Forcast run time, must be 00,06,12 or 18, defaults to 00
+    forcast_plus_time : string, optional
+        Hours forcast forward from forcast time, must be three digits between 000 and 123 (?), defaults to 000
+    thrust_error : float
+        Standard deviation of thrust magnitude error /% 
+    thrust_alignment : float
+        Standard deviation of thrust alignment vector error 
+    parachute_vars : dict
+        Dictionary of variables for parachute object. Must contain: main_s, main_c_d, drogue_s, drogue_c_d, main_alt, attatch_distance
+    env_vars : dictionary
+        Multiplied factor for the gravity, pressure, density and speed of sound used in the model,
+        defaults to {"gravity":1.0,"pressure":1.0,"density":1.0,"speed_of_sound":1.0}
+    type_name : list
+        The different types of errors to itterate over later
+    wind_base : wind object
+        Unpeterbed wind model
+    """  
     def __init__(self, launch_site_vars, mass_model_vars, aero_file, aero_error, motor, thrust_error, thrust_alignment_error, parachute_vars, env_vars, h=0.05, variable=True,alt_poll_interval=1,run_date=date.today().strftime("%Y%m%d"),forcast_time="00",forcast_plus_time="000"):
         """Each variable set should be a list of [value,error]
         launch_site=[rail_length, rail_yaw, rail_pitch, alt, longi, lat, wind=[0,0,0]]
@@ -39,6 +116,19 @@ class StatisticalModel:
 
     @ray.remote
     def run_itteration(self, id, save_loc):
+        """Runs an instance of the rocket with random errors
+
+        Note
+        ----
+        Assumes gaussian errors for all variables, wind currenly not varied.
+
+        Parameters
+        ----------
+        id : int
+            Run number, used to name runs output
+        save_loc : string
+            Folder to store results
+        """    
         run_vars={"launch_site":{k: np.random.normal(v[0],v[1]) for k, v in self.launch_site_vars.items()},#absolute errors given
                 "mass_model":{k: np.array(v[0])*np.random.normal(1,v[1]) for k, v in self.mass_model_vars.items()},
                 "parachute":{k: np.random.normal(v[0],abs_stdev(v[0],v[1])) for k, v in self.parachute_vars.items()},
@@ -97,6 +187,19 @@ class StatisticalModel:
         
 
     def run_model(self,itters,save_loc=None):
+        """Runs the stochastic model
+
+        Parameters
+        ----------
+        itters : int
+            Number of times to run the rocket
+        save_loc : string, optional
+            Folder to store results, defaults to None (is generated based on date if None)
+        Returns
+        -------
+        string
+            save location, if not specified is generated so needs to be returned to be known
+        """    
         if save_loc==None:
             save_loc=os.path.join(os.getcwd(),"results/stat_model_%s"%datetime.now().strftime("%Y%m%d"))
         if not os.path.exists(save_loc):
@@ -109,6 +212,53 @@ class StatisticalModel:
         return save_loc
 
 def analyse(results_path, itterations, full_results=True, velocity=False):
+    """Loads stats model results to put them in a more useful form for use, see stats_analysis_example notebook for example use
+
+    Parameters
+    ----------
+    results_path : string
+        Folder containing results
+    itterations : int
+        Number of runs used for the model
+    full_results : bool, optional
+        Return the full x,y,z,t for every run of the model
+    velocity : bool, optional
+        Return velocity analys, defaults to False - currently not implimented
+
+    Returns
+    -------
+    if full_results=True
+        numpy array
+            landing position mean
+        numpy array
+            landing position covariant matrix
+        numpy array 
+            apogee position mean
+        numpy array
+            apogee position covariant matrix
+        pandas dataframe
+            positions of all apogees (columns x,y,z, row for each run)
+        pandas dataframe
+            positions of all landings (columns x,y,z, row for each run)
+        pandas dataframe
+            x position throughout flight (row for each run)
+        pandas dataframe
+            y position throughout flight (row for each run)
+        pandas dataframe
+            z position throughout flight (row for each run)
+        andas dataframe
+            time throughout flight (row for each run)
+    else
+        numpy array
+            landing position mean
+        numpy array
+            landing position covariant matrix
+        numpy array 
+            apogee position mean
+        numpy array
+            apogee position covariant matrix
+              
+    """
     x,y,z,t=pd.DataFrame(),pd.DataFrame(),pd.DataFrame(),pd.DataFrame()
     itts=range(1,itterations+1)
 
