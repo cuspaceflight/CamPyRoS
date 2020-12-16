@@ -46,11 +46,13 @@ from .transforms import pos_l2i, pos_i2l, vel_l2i, vel_i2l, direction_l2i, direc
 from ambiance import Atmosphere
 
 def warning_on_one_line(message, category, filename, lineno, file=None, line=None):
+    """A one line warning format"""
     return '%s:%s: %s:%s\n' % (filename, lineno, category.__name__, message)
 
 warnings.formatwarning = warning_on_one_line
 
 def validate_lat_long(lat,long):
+    """Makes latitude and longitude valid for wind"""
     if abs(lat)>90:
         lat=np.sign(lat)*(180-abs(lat))
         long+=180
@@ -65,7 +67,53 @@ def validate_lat_long(lat,long):
 class Wind:
     #Data will be strored in data_loc in the format lat_long_date_run_period.grb2 where lat and long are the bottom left values
     #Run has to be 00, 06, 12 or 18
+    """Wind object
+    Note
+    ----
+    Can give the wind vector for any lat long alt in the launch frame.
+    Data collected from the NOAA's 0.25 degree 1 hour GFS forcast (https://nomads.ncep.noaa.gov/)
 
+    Parameters
+    ----------
+    initial_lat : float
+        Initial latitude /degrees
+    initial_long : float
+        Initial longitude /degrees
+    data_loc : string, optional
+        Route to folder where the data will be stored, defaults to data/wind/gfs
+    variable : bool, optional
+        Vary the wind or just use defaut for whole flight, defaults to True
+    default : numpy array, optional
+        Default wind vector [wind_x,wind_y,wind_z]/m/s, defauts to [0,0,0]
+    run_date : string, optional
+        Date for forcast data in format YYYYMMDD, defaults to current date
+    forcast_time : string, optional
+        Forcast run time, must be 00,06,12 or 18, defaults to 00
+    forcast_plus_time : string, optional
+        Hours forcast forward from forcast time, must be three digits between 000 and 123 (?), defaults to 000
+    Attributes
+    ----------
+    centre_lat : float
+        Initial latitude /degrees
+    centre_long : float
+        Initial longitude /degrees
+    data_loc : string
+        Route to folder where the data will be stored
+    variable : bool
+        Vary the wind or just use defaut for whole flight
+    default : numpy array
+        Default wind vector [wind_x,wind_y,wind_z]/m/s
+    points : list
+        List of available [latitude,longitude] points available
+    date : string
+        Date for forcast data in format YYYYMMDD
+    forcast_time : string
+        Forcast run time, must be 00,06,12 or 18
+    run_time : string
+        Hours forcast forward from forcast time, must be three digits between 000 and 123 (?)
+    df : pandas DataFrame
+        Dataframe holding wind data with columns lat, long, alt, wind x, wind y
+    """
     def __init__(self,initial_long,initial_lat,variable=True,default=np.array([0,0,0]),data_loc="data/wind/gfs",run_date=date.today().strftime("%Y%m%d"),forcast_time="00",forcast_plus_time="000"):
         lat,long=validate_lat_long(initial_lat,initial_long)
         self.centre_lat=lat
@@ -93,6 +141,30 @@ class Wind:
             print(self.points)
 
     def load_data(self,lat,longi):
+        """Loads wind data for particualr lat long to the objects df. 
+
+        Notes
+        -----
+        Checks if the file corespondin to the requested lat long at the time and date of the object is available.
+        If not downloads. Then reads into the dataframe.
+        The file has cubes for geopotential height, wind x and wind y by pressure at a square grid of lat longs.
+        The wind x and y are itterated throgh the pressures for each lat long and the altitude found for each point
+        by finding the geopotential height at the particular pressure which can be converted to altitude.
+        Each point is then stored in the df separatly for ease of searching (because the library Iris is complelty inept for this).
+
+        Parameters
+        ----------
+        lat : float:
+            Requested latitude /degrees
+        longi : float:
+            Requested longitude /degrees
+        Returns
+        -------
+        pandas DataFrame
+            The new wind points
+        points
+            list of [lat,long] not available
+        """ 
         lat,longi=validate_lat_long(lat,longi)
         lat_top=round(lat/.25)*.25
         if lat_top>lat:
@@ -172,6 +244,28 @@ class Wind:
         return df,points
 
     def get_wind(self,lat,long,alt):
+        """Returns wind for a specific lat,long,alt 
+
+        Notes
+        -----
+        Works out the grid of lat long around the requested point (since the NOAA only provides data in a 0.25 degree grid).
+        Gets all the df points with these lat longs, interpolates at each lat long to get the wind at the chosen altitude for each.
+        Interpolates between the two longitude points x2.
+        Intepolates between the two by latitude - returns result.
+        
+        Parameters
+        ----------
+        lat : float:
+            Requested latitude /degrees
+        longi : float:
+            Requested longitude /degrees
+        alt : float:
+            Requested altitude /m
+        Returns
+        -------
+        numpy array
+            Wind speed vector [x,y,z]/m/s
+        """ 
         lat,long=validate_lat_long(lat,long)
         
         if alt<-1000:
@@ -385,8 +479,16 @@ class LaunchSite:
         Londditude /degrees
     lat : float
         Latitude /degrees
-    wind : list, optional
-        Wind vector at launch site. Defaults to [0,0,0]. Will increase completness/complexity at some point to include at least altitude variation.
+    variable : bool, optional
+        Vary the wind or just use defaut for whole flight, defaults to True
+    default : numpy array, optional
+        Default wind vector [wind_x,wind_y,wind_z]/m/s, defauts to [0,0,0]
+    run_date : string, optional
+        Date for forcast data in format YYYYMMDD, defaults to current date
+    forcast_time : string, optional
+        Forcast run time, must be 00,06,12 or 18, defaults to 00
+    forcast_plus_time : string, optional
+        Hours forcast forward from forcast time, must be three digits between 000 and 123 (?), defaults to 000
     Attributes
     ----------
     rail_length : float
@@ -523,6 +625,9 @@ class Rocket:
         Relative error tollerance for integration /
     atol : float
         Absolute error tollerance for integration /
+    errors : dictionary, optional
+        Multiplied factor for the gravity, pressure, density and speed of sound used in the model,
+        defaults to {"gravity":1.0,"pressure":1.0,"density":1.0,"speed_of_sound":1.0}
     Attributes
     ----------
     mass_model : Mass Model Object
@@ -557,6 +662,8 @@ class Rocket:
         Rocket still on rail? Initialises to True
     burn_out : bool
         Engine burned out? Initialises to False
+    env_vars : dictionary
+        Stores the coefficiants for the enviromental variables (see above)
     
     """   
     def __init__(self, mass_model, motor, aero, launch_site, h=0.01, variable=True, rtol=1e-7, atol=1e-14, parachute=Parachute(0,0,0,0,0,0),alt_poll_interval=1,thrust_vector=np.array([1,0,0]),errors={"gravity":1.0,"pressure":1.0,"density":1.0,"speed_of_sound":1.0}):
