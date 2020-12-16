@@ -294,7 +294,7 @@ def plot_ypr(simulation_output, rocket):
     
     plt.show()
 
-def plot_attitude(simulation_output,rocket):
+def plot_attitude(simulation_output,rocket,launch_site):
     attitude=[]
     for index, row in simulation_output.iterrows():
         x_b_l = trajectory.direction_i2l(trajectory.Rotation.from_matrix(row["b2imat"]).apply([1,0,0]), launch_site, row["time"])
@@ -592,16 +592,16 @@ def stats_landing(mu,cov,data=pd.DataFrame(),sigma=3):
     cov_elipse = np.matmul(eig_mat,np.array([eig[0][1]**0.5*np.cos(t),eig[0][0]**0.5*np.sin(t)]))
     
     for sig in range(1,sigma+1):
-        ax.plot(sig*cov_elipse[0]+mu[0],sig*cov_elipse[1]+mu[1],label="%s $\sigma$"%sig)
+        ax.plot(sig*cov_elipse[0]+mu[0],sig*cov_elipse[1]+mu[1],label="%s $\sigma$"%sig,linewidth=1)
 
     ax.scatter(0,0,marker="x",color="red",label="Launch site")
-    ax.scatter(mu[0],mu[1],marker="o",s=40,color="green",label="Mean landing point")
+    ax.scatter(mu[0],mu[1],marker="o",s=20,color="black",label="Mean landing point")
 
     ax.set_xlabel("South/m")
     ax.set_ylabel("East/m")
 
     if not data.empty:
-        ax.scatter(data.x,data.y,marker="o",s=50,color="blue",alpha=0.3)
+        ax.scatter(data.x,data.y,marker="o",s=10,color="blue",alpha=0.3)
     ax.legend()
     set_axes_equal(ax,dim=2)
     plt.show()
@@ -631,17 +631,17 @@ def stats_apogee(apogee_mu,apogee_cov,apogee=pd.DataFrame(),sigma=3,landing_mu=n
             z.append(d[2])
 
     for sig in range(1,sigma+1):
-        ax.plot(apogee_mu[0]+sig*np.array(x),apogee_mu[1]+sig*np.array(y),apogee_mu[2]+sig*np.array(z),color="red",alpha=.5)
+        ax.plot(apogee_mu[0]+sig*np.array(x),apogee_mu[1]+sig*np.array(y),apogee_mu[2]+sig*np.array(z),alpha=.2)
 
     ax.plot(apogee_mu[0],apogee_mu[1],apogee_mu[2],label="Mean apogee point")
 
-    ax.scatter(0,0,0,label="Launch Site")
+    ax.scatter(0,0,0,marker="x",color="red",label="Launch site")
     ax.set_xlabel("South/m")
     ax.set_ylabel("East/m")
     ax.set_zlabel("Altitude/m")
 
     if not apogee.empty:
-        ax.scatter(apogee.x,apogee.y,apogee.alt,alpha=.6)
+        ax.scatter(apogee.x,apogee.y,apogee.alt,marker="o",s=10,color="blue",alpha=0.3)
 
     if landing_mu.shape!=(0,) and landing_cov.shape!=(0,):
         t=np.linspace(0,2*np.pi,314)
@@ -651,18 +651,45 @@ def stats_apogee(apogee_mu,apogee_cov,apogee=pd.DataFrame(),sigma=3,landing_mu=n
         landing_cov_elipse = np.matmul(l_eig_mat,np.array([l_eig[0][0]**0.5*np.cos(t),l_eig[0][1]**0.5*np.sin(t)]))
         
         for sig in range(1,sigma+1):
-            ax.plot(sig*landing_cov_elipse[0]+landing_mu[0],sig*landing_cov_elipse[1]+landing_mu[1],0,alpha=0.3,label="%s $\sigma$"%sig)
+            ax.plot(sig*landing_cov_elipse[0]+landing_mu[0],sig*landing_cov_elipse[1]+landing_mu[1],0,label="%s $\sigma$"%sig,linewidth=1)
 
-        ax.scatter(0,0,marker="x",color="red",label="Launch site")
-        ax.scatter(landing_mu[0],landing_mu[1],0,marker="o",s=40,color="green")
+        ax.scatter(landing_mu[0],landing_mu[1],0,marker="o",s=20,color="black",label="Mean landing point")
 
         if not landing.empty:
-            ax.scatter(landing.x,landing.y,0,marker="o",s=1,color="blue",alpha=0.3)
+            ax.scatter(landing.x,landing.y,0,marker="o",s=10,color="blue",alpha=0.3)
 
 
     set_axes_equal(ax)
     ax.legend()
     plt.show()
 
-def stats_plot_paths(df):
-    pass
+def stats_alt(z,t,show_means=False,sigma=3):
+    landing_times=[]
+    for (itt, data) in z.iteritems():
+        plt.plot(t[itt],data,linewidth=1,color="blue",alpha=0.2)
+        landing_times.append(t[itt][z[itt].notna()[::-1].idxmax()])
+    if show_means==True:
+        mean_alts=[10]
+        st_dev=[0]
+        time=0
+        incriments=1
+        t_alts=[10]
+        while max(t_alts)>0:
+            t_alts=[]
+            for (itt,data) in z.iteritems():
+                alt=data[(t[itt]-time).abs().argsort()[:1]].astype(float).to_numpy()[0]
+                t_alts.append(alt)
+            mean_alts.append(np.mean(t_alts))
+            st_dev.append(np.std(t_alts))
+            time+=incriments
+        mean_alts=mean_alts[1:]
+        st_dev=st_dev[1:]
+        plt.plot([incriments*n for n in range(0,len(mean_alts))],mean_alts,color="red",label="Mean")
+        for sig in range(1,sigma+1):
+            plt.plot([incriments*n for n in range(0,len(mean_alts))],np.array(mean_alts)+np.array(st_dev)*sig,alpha=(.9-.1*sig),color="orange",label="%s$\sigma$"%sig,linewidth=1)
+            plt.plot([incriments*n for n in range(0,len(mean_alts))],np.array(mean_alts)-np.array(st_dev)*sig,alpha=(.9-.1*sig),color="orange",label="%s$\sigma$"%sig,linewidth=1)
+    plt.xlabel("Time/s")
+    plt.ylabel("Altitude/m")
+    plt.legend()
+    plt.ylim(0,None)
+    plt.show()
