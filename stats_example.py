@@ -22,7 +22,7 @@ with open('novus_sim_6/motor_out.csv') as csvfile:
         area_ratio_data.append(float(row[7]))      
 
 aero_file="data/Martlet4RasAeroII.CSV"
-aero_error = {"COP":0.05,"CN":0.05,"CA":0.05}
+aero_error = {"COP":[1,0.05],"CN":[1,0.05],"CA":[1,0.05],"ref_area":[0.0305128422,0],"area_per_fin":[0.07369928,0],"fins":[4,0]}
 mass_model_vars={"dry_mass":[60,0.01],"prop_mass":[np.array(prop_mass_data),0.01],"time_data":[motor_time_data,0], "length":[6.529,0.015], "radius":[98.5e-3,0.015]}
 launch_site_vars={"rail_length":[10,.1], "rail_yaw":[0,0.03], "rail_pitch":[0,0.03], "alt":[0,1], "longi":[0.1160127,0.01], "lat":[52.2079404,0.01]}
 motor_base = trajectory.Motor(motor_time_data, prop_mass_data, cham_pres_data, throat_data, gamma_data, nozzle_efficiency_data, exit_pres_data, area_ratio_data)
