@@ -64,7 +64,7 @@ class StatisticalModel:
 
         
         rocket=Rocket(mass_model, motor, aero, launch_site, h=self.h, variable=self.variable_time,parachute=parachute,thrust_vector=thrust_alignment,errors=run_vars["env"])#,errors=run_vars["enviroment"])
-        run_output = rocket.run(debug=True)
+        run_output = rocket.run()
         run_save = pd.DataFrame()
         run_save["time"]=run_output["time"]
         x,y,z=[],[],[]
@@ -84,12 +84,12 @@ class StatisticalModel:
         run_save["x"]=x
         run_save["y"]=y
         run_save["z"]=z
+        print(z[-1])
         run_save["v_x"]=v_x
         run_save["v_y"]=v_y
         run_save["v_z"]=v_z#These were'nt saving properly as vectors but really should
 
         with open("%s/%s.csv"%(save_loc,id), "w+") as f:
-            print(run_save)
             run_save.to_csv(path_or_buf=f)
         
         self.wind_base=copy.copy(launch_site.wind)#incase more data has been downloaded
@@ -109,27 +109,28 @@ class StatisticalModel:
         return save_loc
 
 def analyse(results_path, itterations, full_results=True, velocity=False):
-    x,y,z=pd.DataFrame(),pd.DataFrame(),pd.DataFrame()
+    x,y,z,t=pd.DataFrame(),pd.DataFrame(),pd.DataFrame(),pd.DataFrame()
     itts=range(1,itterations+1)
 
     for itt in itts:
         tmp=pd.read_csv("%s/%s.csv"%(results_path,itt))
     
-        x[itt]=tmp["x"]
-        y[itt]=tmp["y"]
-        z[itt]=tmp["z"]
+        x=pd.concat([x,pd.DataFrame({itt:tmp["x"]})],ignore_index=True,axis=1)
+        y=pd.concat([y,pd.DataFrame({itt:tmp["y"]})],ignore_index=True,axis=1)
+        z=pd.concat([z,pd.DataFrame({itt:tmp["z"]})],ignore_index=True,axis=1)
+        t=pd.concat([t,pd.DataFrame({itt:tmp["time"]})],ignore_index=True,axis=1)
 
     apogee=pd.DataFrame()
     apogee["index"]=z.idxmax()
-    apogee["alt"]=z.max()
     #I know this isn't the proper pandas way todo this but I can't see how todo it right
-    apogee["x"]=[x[itt][apogee["index"][itt]] for itt in itts]
-    apogee["y"]=[y[itt][apogee["index"][itt]] for itt in itts]
+    apogee["x"]=[x[itt][apogee["index"].tolist()[itt]] for itt in range(0,itterations)]
+    apogee["y"]=[y[itt][apogee["index"].tolist()[itt]] for itt in range(0,itterations)]
+    apogee["alt"]=z.max()
     apogee=apogee.drop("index",axis=1)
 
     landing=pd.DataFrame()
-    landing["x"]=[x[itt].dropna().iloc[-1] for itt in itts]
-    landing["y"]=[y[itt].dropna().iloc[-1] for itt in itts]
+    landing["x"]=[x[itt].dropna().iloc[-1] for itt in range(0,itterations)]
+    landing["y"]=[y[itt].dropna().iloc[-1] for itt in range(0,itterations)]
 
     landing_mu=np.array([landing["x"].mean(),landing["y"].mean()])
     landing_cov=landing.cov()
@@ -138,7 +139,8 @@ def analyse(results_path, itterations, full_results=True, velocity=False):
     apogee_cov=apogee.cov()
 
     if full_results==True:
-        return landing_mu,landing_cov,apogee_mu,apogee_cov,apogee,landing
+        return landing_mu,landing_cov,apogee_mu,apogee_cov,apogee,landing,x,y,z,t
+        #return x,y,z,t
     else:
         return landing_mu,landing_cov,apogee_mu,apogee_cov
 
