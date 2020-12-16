@@ -687,9 +687,24 @@ def stats_alt(z,t,show_means=False,sigma=3):
         plt.plot([incriments*n for n in range(0,len(mean_alts))],mean_alts,color="red",label="Mean")
         for sig in range(1,sigma+1):
             plt.plot([incriments*n for n in range(0,len(mean_alts))],np.array(mean_alts)+np.array(st_dev)*sig,alpha=(.9-.1*sig),color="orange",label="%s$\sigma$"%sig,linewidth=1)
-            plt.plot([incriments*n for n in range(0,len(mean_alts))],np.array(mean_alts)-np.array(st_dev)*sig,alpha=(.9-.1*sig),color="orange",label="%s$\sigma$"%sig,linewidth=1)
+            plt.plot([incriments*n for n in range(0,len(mean_alts))],np.array(mean_alts)-np.array(st_dev)*sig,alpha=(.9-.1*sig),color="orange",linewidth=1)
     plt.xlabel("Time/s")
     plt.ylabel("Altitude/m")
     plt.legend()
     plt.ylim(0,None)
+    plt.show()
+def stats_trajectories(x,y,z):
+    fig = plt.figure()
+    ax = plt.axes(projection="3d")
+    
+    for (itt,data) in z.iteritems():
+        ax.plot3D(x[itt],y[itt],data,color="blue",alpha=0.3)
+    
+    ax.scatter(0,0,0,c='red', label="Launch site")
+    ax.set_xlabel('South/m')
+    ax.set_ylabel('East/m')
+    ax.set_zlabel('Altitude/m') 
+    set_axes_equal(ax)
+    ax.legend()
+
     plt.show()
