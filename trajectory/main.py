@@ -82,10 +82,10 @@ class Wind:
 
         if variable == True:
             if forcast_time not in ["00","06","12","18"]:
-                warning.warn("The forcast run selected is not valid, must be '00', '06', '12' or '18'. This will be fatal on file load")
+                warnings.warn("The forcast run selected is not valid, must be '00', '06', '12' or '18'. This will be fatal on file load")
             valid_times=["00%s"%n for n in range(0,10)]+["0%s"%n for n in range(10,100)]+["%s"%n for n in range(100,385)]
             if forcast_plus_time not in valid_times:
-                warning.warn("The forcast time selected is not valid, must be three digit string time between 000 and 384. Thi siwll be fatal on file load")
+                warnings.warn("The forcast time selected is not valid, must be three digit string time between 000 and 384. Thi siwll be fatal on file load")
             self.date=run_date
             self.forcast_time=forcast_time
             self.run_time=forcast_plus_time
