@@ -4,6 +4,7 @@ import pandas as pd
 from .main import *
 from .mass import CylindricalMassModel
 from .transforms import pos_i2l, vel_i2l
+from .aero import *
 
 from .plot import *
 from datetime import datetime
@@ -22,6 +23,7 @@ class StatisticalModel:
     -----
     Every variable specified has a value and a standard deviation in a list (i.e. [mean,st_dev])
     Currenrly only cylindrical mass model is supported.
+    Wind and pitch damping will currently not vary
     
     Parameters
     ----------
@@ -102,7 +104,7 @@ class StatisticalModel:
         self.launch_site_vars=launch_site_vars
         self.mass_model_vars=mass_model_vars
         self.aero_file=aero_file
-        self.aero_error=aero_error
+        self.aero_vars=aero_error
         self.motor_base=motor
         self.h=h
         self.variable_time=variable
@@ -132,7 +134,7 @@ class StatisticalModel:
         run_vars={"launch_site":{k: np.random.normal(v[0],v[1]) for k, v in self.launch_site_vars.items()},#absolute errors given
                 "mass_model":{k: np.array(v[0])*np.random.normal(1,v[1]) for k, v in self.mass_model_vars.items()},
                 "parachute":{k: np.random.normal(v[0],abs_stdev(v[0],v[1])) for k, v in self.parachute_vars.items()},
-                "aero":{k: np.random.normal(1,v) for k,v in self.aero_error.items()},
+                "aero":{k: np.array(v[0])*np.random.normal(1,v[1]) for k, v in self.aero_vars.items()},
                 "env":{k: np.random.normal(1,v) for k,v in self.env_vars.items()}}
         run_vars["launch_site"]["alt"]=abs(run_vars["launch_site"]["alt"])#This doesn't work when mean alt is non zero but less than a few stdevs
         launch_site=LaunchSite(run_vars["launch_site"]["rail_length"],run_vars["launch_site"]["rail_yaw"],run_vars["launch_site"]["rail_pitch"],run_vars["launch_site"]["alt"],run_vars["launch_site"]["longi"],run_vars["launch_site"]["lat"],variable_wind=False)
@@ -143,7 +145,10 @@ class StatisticalModel:
         motor=copy.copy(self.motor_base)
         motor.nozzle_efficiency_data=np.array(motor.nozzle_efficiency_data)*np.random.normal(1,self.thrust_error)
 
-        aero=RasAeroData(self.aero_file,error=run_vars["aero"]) #I'm not convinces this is sufficient, should each datapoint not have its own random or is it okay to apply one error to the whole set?
+        c_damp_pitch = pitch_damping_coefficient(run_vars["mass_model"]["length"], run_vars["mass_model"]["radius"], fin_number = run_vars["aero"]["fins"], area_per_fin = run_vars["aero"]["area_per_fin"])
+        c_damp_roll = 0
+
+        aero=RASAeroData(self.aero_file, run_vars["aero"]["ref_area"], c_damp_pitch, c_damp_roll, error={"COP":run_vars["aero"]["COP"],"CN":run_vars["aero"]["CN"],"CA":run_vars["aero"]["CA"]}) #I'm not convinces this is sufficient, should each datapoint not have its own random or is it okay to apply one error to the whole set?
         
         parachute=Parachute(run_vars["parachute"]["main_s"],run_vars["parachute"]["main_c_d"],run_vars["parachute"]["drogue_s"],run_vars["parachute"]["drogue_c_d"],run_vars["parachute"]["main_alt"],run_vars["parachute"]["attatch_distance"])
         

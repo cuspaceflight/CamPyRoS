@@ -2,7 +2,28 @@ import numpy as np
 from scipy.spatial.transform import Rotation
 
 from trajectory.constants import r_earth, ang_vel_earth, f
-     
+
+def pos_i2alt(pos_i,time):
+    """Returns the altitude (height from surface in launch frame) from pos_i
+
+    Note
+    ----
+    -Uses a spherical Earth model
+
+    Parameters
+    ----------
+    pos_i : numpy array
+        Position of the rocket in the inertial coordinate system [x,y,z] /m
+
+    Returns
+    -------
+    float
+        Altitude /m
+
+    """
+    l,l,a=i2lla(pos_i,time)     
+    return a   
+
 def pos_l2i(pos_l, launch_site, time):
     """Converts position in launch frame to position in inertial frame.
     Note
@@ -148,9 +169,11 @@ def direction_l2i(vector, launch_site, time):
 def i2airspeed(pos_i, vel_i, launch_site, time):
     """Converts velocity in the inertial frame to airspeed (before wind is taken into account) using site launch coordinates
     
+
     Note
     ----
     Assumes that the atmosphere moves at the same angular velocity as the Earth. Hence, at a given altitude, v_atmosphere = w_earth x r_i
+
     Parameters
     ----------
     vel_i : numpy array

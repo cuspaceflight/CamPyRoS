@@ -42,7 +42,7 @@ import scipy.integrate as integrate
 from datetime import date
 
 from .constants import r_earth, ang_vel_earth, f
-from .transforms import pos_l2i, pos_i2l, vel_l2i, vel_i2l, direction_l2i, direction_i2l, i2airspeed, i2lla
+from .transforms import pos_l2i, pos_i2l, vel_l2i, vel_i2l, direction_l2i, direction_i2l, i2airspeed, i2lla, pos_i2alt
 from ambiance import Atmosphere
 
 def warning_on_one_line(message, category, filename, lineno, file=None, line=None):
@@ -463,6 +463,8 @@ class Motor:
         self.exit_pres_data = exit_pres_data
         self.area_ratio_data = area_ratio_data
 
+        self.mdot_data = np.gradient(self.prop_mass_data, self.motor_time_data)       #Get the mass flow rates as an array, by doing d(prop_mass_data)/dt
+
 class LaunchSite:
     """Object holding the launch site information
     Parameters
@@ -515,96 +517,6 @@ class LaunchSite:
         self.lat = lat
         self.wind = Wind(longi,lat,variable=variable_wind,default=default_wind,data_loc=wind_data_loc,run_date=run_date,forcast_time=forcast_time,forcast_plus_time=forcast_plus_time)
  
-class RasAeroData: 
-    """Object holding aerodynamic data from a RasAero II 'Aero Plots' export file
-    Note
-    ----
-    Relies on an axially symetric body
-    Parameters
-    ----------
-    file_location_string : string
-        Location of RASAero file
-    area : float, optional
-        Referance area used to normalise coefficients, defaults to 0.0305128422 /m^2
-    Attributes
-    ----------
-    area : float, optional
-        Referance area used to normalise coefficients, /m^2
-    COP : Scipy Interpolation Function
-        Centre of pressure at time after ignition, when called interpolates to desired time /m
-    CA : Scipy Interpolation Function
-       Axial coefficient of drag, when called interpolates to desired time /
-    CN : Scipy Interpolation Function
-        Normal coefficient of drag, when called interpolates to desired time /
-    
-    """ 
-    def __init__(self, file_location_string, area = 0.0305128422, error={"CA":1.0,"CN":1.0,"COP":1.0}): 
-        self.area = area
-        
-        with open(file_location_string) as csvfile:
-            aero_data = csv.reader(csvfile)
-        
-            Mach_raw = []
-            alpha_raw = []
-            CA_raw = []
-            COP_raw = []
-            CN_raw = []
-    
-            #Extract the raw data from the .csv file
-            next(aero_data)            
-            for row in aero_data:
-                Mach_raw.append(float(row[0]))
-                alpha_raw.append(float(row[1]))
-                CA_raw.append(float(row[5]))
-                COP_raw.append(float(row[12]))
-                CN_raw.append(float(row[8]))
-        
-        #Seperate the data by angle of attack.
-        Mach = []
-        CA_0 = []  #CA at alpha = 0
-        CA_2 = []  #CA at alpha = 2
-        CA_4 = []  #CA at alpha = 4
-        COP_0 = []
-        COP_2 = []
-        COP_4 = []
-        CN_0 = []
-        CN_2 = []
-        CN_4 = []
-             
-        for i in range(len(Mach_raw)):
-            if alpha_raw[i] == 0:
-                Mach.append(Mach_raw[i])
-                CA_0.append(CA_raw[i])
-                COP_0.append(COP_raw[i])
-                CN_0.append(CN_raw[i])
-             
-            elif alpha_raw[i] == 2:
-                CA_2.append(CA_raw[i])
-                COP_2.append(COP_raw[i])
-                CN_2.append(CN_raw[i])    
-              
-            elif alpha_raw[i] == 4:
-                CA_4.append(CA_raw[i])
-                COP_4.append(COP_raw[i])
-                CN_4.append(CN_raw[i])   
-           
-        #Make sure all the lists are the same length - this is needed because it seems the alpha=4 data only has 2499 points, but the others have 2500
-        CA_0, CA_2, CA_4 = CA_0[:2498], CA_2[:2498], CA_4[:2498]
-        CN_0, CN_2, CN_4 = CN_0[:2498], CN_2[:2498], CN_4[:2498]
-        COP_0, COP_2, COP_4 = COP_0[:2498], COP_2[:2498], COP_4[:2498]
-        Mach = Mach[:2498]
-           
-        #Generate grids of the data
-        CA = error["CA"]*np.array([CA_0, CA_2, CA_4])
-        CN = error["CN"]*np.array([CN_0, CN_2, CN_4])
-        COP = error["COP"]*0.0254*np.array([COP_0, COP_2, COP_4])    #Convert inches to m
-        alpha = [0,2,4]
-                    
-        #Generate functions (note these are funcitons, not variables) which return a coefficient given (Mach, alpha)
-        self.COP = scipy.interpolate.interp2d(Mach, alpha, COP)
-        self.CA = scipy.interpolate.interp2d(Mach, alpha, CA)
-        self.CN = scipy.interpolate.interp2d(Mach, alpha, CN)
-                      
 class Rocket:
     """The rocket and key simulation components
     Parameters
@@ -712,7 +624,7 @@ class Rocket:
         self.parachute_deployed=False
         self.parachute=parachute
 
-        self.alt_record=self.altitude(self.pos_i,self.time)
+        self.alt_record=pos_i2alt(self.pos_i,self.time)
         self.alt_poll_watch_interval=alt_poll_interval
         self.alt_poll_watch=self.alt_poll_watch_interval
 
@@ -723,9 +635,9 @@ class Rocket:
         """Returns aerodynamic forces (in the body reference frame and the distance of the centre of pressure (COP) from the front of the vehicle.)
         Note
         ----
-        -This currently ignores the damping moment generated by the rocket is rotating about its long axis
-        -Unsure if the right angles for calculating CN as the angles of attack vary (same for CA as angles of attack vary)
-        -Not sure if using the right density for converting between force coefficients and forces
+        -This currently ignores the damping moment generated by the rocket's rotation rate
+        -Unsure if the right angles of attack for calculating CN and CA
+
         Parameters
         ----------
         pos_i : numpy array
@@ -744,10 +656,7 @@ class Rocket:
             Aerodynamic forces on the rocket in the body frame [x,y,z] /N
         float
             Distance from the front of the rocket that the forces act through /m
-        """        
-        #Use np.angle(ja + b) to replace np.arctan(a/b)
-        alt = self.altitude(pos_i,time)
-        
+        """                
         #Get velocity relative to the wind (i.e. the airspeed vector), in body coordinates
         lat,long,alt=i2lla(pos_i,time)
         if alt<-5000:
@@ -771,7 +680,7 @@ class Rocket:
         q = 0.5*Atmosphere(alt).density[0]*self.env_vars["density"]*(v_a**2)
         
         #Characteristic area
-        S = self.aero.area
+        S = self.aero.ref_area
         
         #Drag/Force coefficients
         Cx = self.aero.CA(mach, abs(delta))[0]         #WARNING: Not sure if I'm using the right angles for these all
@@ -783,18 +692,51 @@ class Rocket:
         Fy = -np.sign(v_rel_wind[1])*Cy*q*S                         
         Fz = -np.sign(v_rel_wind[2])*Cz*q*S
         
-        #Position where moments act:
+        #Distance between rocket's nose tip and the COP:
         COP = self.aero.COP(mach, abs(delta))[0]
         
         #Return the forces (note that they're given using the body coordinate system, [x_b, y_b, z_b]).
         #Also return the distance that the COP is from the front of the rocket.
         return np.array([Fx,Fy,Fz]), COP, q, v_rel_wind
         
+    def aero_damping_moment(self, pos_i, vel_i, b2i, w_b, time):  
+        """Returns aerodynamic damping moments (in the body reference frame).
+
+        Note
+        ----
+        -Assumes the damping coefficients are constants
+
+        Parameters
+        ----------
+        pos_i : numpy array
+            Position of the rocket in the inertial coordinate system [x,y,z] /m
+        vel_i : numpy array
+            Velocity of the rocket in the inertial coordinate system [x,y,z] /m/s
+        b2i : scipy rotation object
+            Defines the orientation of the body frame to the inertial frame
+        w_b : numpy array
+            Angular velocity of the body in the body frame [x,y,z] /rad/s
+        time : float
+            Time since ignition /s
+
+        Returns
+        -------
+        numpy array
+            Aerodynamic damping moments on the rocket in the body frame [x,y,z] /N
+
+        """        
+        lat,long,alt=i2lla(pos_i,time)
+        return np.array([-np.sign(w_b[0])*Atmosphere(alt).density[0] * w_b[0]**2 * self.aero.roll_damping_coefficient, 
+                         -np.sign(w_b[1])*Atmosphere(alt).density[0] * w_b[1]**2 * self.aero.pitch_damping_coefficient,
+                         -np.sign(w_b[2])*Atmosphere(alt).density[0] * w_b[2]**2 * self.aero.pitch_damping_coefficient])                  
+
     def thrust(self, pos_i, vel_i, b2i, w_b, time, vector = [1,0,0]): 
         """Returns thrust and moments generated by the motor, in body frame.
         Note
         ----
-        -Mainly derived from Joe Hunt's NOVUS Simulation
+        - Mainly derived from Joe Hunt's NOVUS Simulation
+        - Jet damping moment is calculated assuming the propellant COG is the same as that for the whole rocket. This will usually be less accurate if you have propellants near the top or bottom of the rocket.
+
         Parameters
         ----------
         pos_i : numpy array
@@ -815,7 +757,7 @@ class Rocket:
             Thrust forces on the rocket in the body frame [x,y,z] /N
         """        
         vector = np.array(vector)
-        alt = self.altitude(pos_i,time)
+        alt = pos_i2alt(pos_i,time)
 
         if time < max(self.motor.motor_time_data):
             #Get the motor parameters at the current moment in time
@@ -825,7 +767,8 @@ class Rocket:
             nozzle_efficiency = np.interp(time, self.motor.motor_time_data, self.motor.nozzle_efficiency_data)
             pres_exit = np.interp(time, self.motor.motor_time_data, self.motor.exit_pres_data)
             nozzle_area_ratio = np.interp(time, self.motor.motor_time_data, self.motor.area_ratio_data)
-            
+            mdot = np.interp(time, self.motor.motor_time_data, self.motor.mdot_data)
+
             #Get atmospheric pressure (to calculate pressure thrust)
             pres_static = Atmosphere(alt).pressure[0]*self.env_vars["pressure"]
             
@@ -840,12 +783,17 @@ class Rocket:
         else:
             #If the engine has finished burning, no thrust is produced
             thrust = 0
+            mdot = 0
             if self.burn_out==False:
                 print("Burnout at t={:.2f} s ".format(time))
             self.burn_out=True
         
-        #Multiply the thrust by the direction it acts in, and return it.
-        return thrust*vector/np.linalg.norm(vector)
+        #Jet damping moment (due to the exhaust gases being rotated at w_b) - page 8 of https://apps.dtic.mil/sti/pdfs/AD0642855.pdf 
+        #We will assume that the propellant COG is the same as the rocket COG.
+        jet_damping_moment = mdot * (self.mass_model.cog(time) - self.mass_model.l)**2 * np.array([0, w_b[1], w_b[2]])
+
+        #Return the thrust as a vector in body coordinates, and the jet damping moment
+        return thrust*vector/np.linalg.norm(vector), jet_damping_moment
         
     def gravity(self, pos_i, time): 
         """Returns the gravity force, as a vector in inertial coordinates.
@@ -877,23 +825,6 @@ class Rocket:
         c_d,s=self.parachute.get(alt)
         return -.5*q*s*c_d*velocity/np.linalg.norm(velocity)
     
-    def altitude(self, pos_i, time):
-        """Returns the altitude (height from surface in launch frame)
-        Note
-        ----
-        -Uses a spherical Earth model
-        Parameters
-        ----------
-        pos_i : numpy array
-            Position of the rocket in the inertial coordinate system [x,y,z] /m
-        Returns
-        -------
-        float
-            Altitude /m
-        """
-        lat,longi,alt=i2lla(pos_i,time)
-        return alt
-    
     def accelerations(self, pos_i, vel_i, b2i, w_b, time):
         """Gathers the foces on the rocket and returns translational and rotational accelerations on the rocket
         Parameters
@@ -916,13 +847,13 @@ class Rocket:
         if self.parachute_deployed==True and self.parachute.main_c_d!=0:
             aero_force_b, cop, q, v_rel_wind = self.aero_forces(pos_i, vel_i, b2i, w_b, time)
             cog = self.mass_model.cog(time)
-            parachute_force_i=self.parachute_force(q,b2i.apply(v_rel_wind),self.altitude(pos_i,time))+self.gravity(pos_i,time)
+            parachute_force_i=self.parachute_force(q,b2i.apply(v_rel_wind),pos_i2alt(pos_i,time))+self.gravity(pos_i,time)
 
             F=parachute_force_i
             Q_b=np.array([0,0,0])
         else:
             #Get all the forces in body coordinates
-            thrust_b = self.thrust(pos_i, vel_i, b2i, w_b, time, self.thrust_vector)
+            thrust_b, jet_damping_moment_b = self.thrust(pos_i, vel_i, b2i, w_b, time)
             aero_force_b, cop, q, v_rel_wind = self.aero_forces(pos_i, vel_i, b2i, w_b, time)
             cog = self.mass_model.cog(time)
         
@@ -940,7 +871,7 @@ class Rocket:
             
             #Get total force and moment
             F = thrust_i + aero_force_i + self.gravity(pos_i,time)
-            Q_b = aero_moment_b + thrust_moment_b 
+            Q_b = aero_moment_b + thrust_moment_b + jet_damping_moment_b + self.aero_damping_moment(pos_i, vel_i, b2i, w_b, time)
         
         #Calculate angular velocities using Euler's equations - IIA Engineering, Module 3C5, Rigid body dynamics handout (page 18)
         i_b = np.array([self.mass_model.ixx(time),
@@ -1066,7 +997,7 @@ class Rocket:
 
         record=pd.DataFrame({})
         c=0
-        while (self.altitude(self.pos_i,self.time)>=0 and self.time<max_time):
+        while (pos_i2alt(self.pos_i,self.time)>=0 and self.time<max_time):
             if self.variable_time==False:
                 integrator.h_abs=self.h
             events=self.check_phase(debug=debug)
@@ -1107,7 +1038,7 @@ class Rocket:
 
             record=record.append(new_row, ignore_index=True)
             if (c%100==0 and debug==True):
-                print("t={:.2f} s alt={:.2f} km (h={} s). Step number {}".format(self.time, self.altitude(self.pos_i,self.time)/1000, integrator.h_abs, c))
+                print("t={:.2f} s alt={:.2f} km (h={} s). Step number {}".format(self.time, pos_i2alt(self.pos_i,self.time)/1000, integrator.h_abs, c))
             c+=1
 
         #Export a JSON if required
@@ -1148,7 +1079,7 @@ class Rocket:
             if flight_distance>=self.launch_site.rail_length:
                 if debug == True:
                     print("Cleared rail at t={:.2f} s with alt={:.2f} m and TtW={:.2f}".format(self.time,
-                self.altitude(self.pos_i,self.time),
+                pos_i2alt(self.pos_i,self.time),
                 np.linalg.norm(self.accelerations(self.pos_i, self.vel_i, self.b2i, self.w_b, self.time)[0])/9.81)
                 )
                 self.on_rail=False
@@ -1156,10 +1087,10 @@ class Rocket:
 
         if self.parachute_deployed==False:
             if (self.alt_poll_watch<self.time-self.alt_poll_watch_interval):
-                current_alt=self.altitude(self.pos_i,self.time)
+                current_alt=pos_i2alt(self.pos_i,self.time)
                 if self.alt_record>current_alt:
                     if debug==True:
-                        print("Parachute deployed at %sm at %ss"%(self.altitude(self.pos_i,self.time),self.time))
+                        print("Parachute deployed at %sm at %ss"%(pos_i2alt(self.pos_i),self.time))
                     events.append("Parachute deployed")
                     self.parachute_deployed=True
                     self.w_b=np.array([0,0,0])
