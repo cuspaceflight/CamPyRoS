@@ -46,21 +46,39 @@ from .transforms import pos_l2i, pos_i2l, vel_l2i, vel_i2l, direction_l2i, direc
 from ambiance import Atmosphere
 
 def warning_on_one_line(message, category, filename, lineno, file=None, line=None):
-    return '\n%s:%s: %s:%s\n' % (filename, lineno, category.__name__, message)
+    return '%s:%s: %s:%s\n' % (filename, lineno, category.__name__, message)
 
 warnings.formatwarning = warning_on_one_line
 
+def validate_lat_long(lat,long):
+    if abs(lat)>90:
+        lat=np.sign(lat)*(180-abs(lat))
+        long+=180
+    if long==-0.0:
+        long=-0.0
+    if long<0:
+        long+=360
+    long=np.mod(long,360)
+    if lat==-0.0:
+        lat=0.0
+    return round(lat,4),round(long,4)
 class Wind:
     #Data will be strored in data_loc in the format lat_long_date_run_period.grb2 where lat and long are the bottom left values
     #Run has to be 00, 06, 12 or 18
 
     def __init__(self,initial_long,initial_lat,variable=True,default=np.array([0,0,0]),data_loc="data/wind/gfs",run_date=date.today().strftime("%Y%m%d"),forcast_time="00",forcast_plus_time="000"):
-        warnings.warn("Wind data becomes problamatic at the poles and when integer long and lat are given")
-        self.centre_lat=initial_lat
-        self.centre_long=initial_long
+        lat,long=validate_lat_long(initial_lat,initial_long)
+        self.centre_lat=lat
+        self.centre_long=long
         self.data_loc=data_loc#must be in last week for now
         self.variable = variable
         self.default=default
+        self.points=[]
+
+        if lat<2:
+            warnings.warn("Wind data robustness has not yet been tested for the equator")
+        if abs(lat)>87:
+            warnings.warn("Wind data robustness has not yet been tested near the poles")
 
         if variable == True:
             if forcast_time not in ["00","06","12","18"]:
@@ -71,9 +89,11 @@ class Wind:
             self.date=run_date
             self.forcast_time=forcast_time
             self.run_time=forcast_plus_time
-            self.df,self.lats,self.longs=self.load_data(self.centre_lat,self.centre_long)
+            self.df,self.points=self.load_data(self.centre_lat,self.centre_long)
+            print(self.points)
 
     def load_data(self,lat,longi):
+        lat,longi=validate_lat_long(lat,longi)
         lat_top=round(lat/.25)*.25
         if lat_top>lat:
             lat_bottom=lat_top-.25
@@ -88,10 +108,18 @@ class Wind:
             long_right=long_left-.25
             long_left,long_right=long_right,long_left
 
+        lat_top,long_left=validate_lat_long(lat_top,long_left)
+        lat_bottom,long_right=validate_lat_long(lat_bottom,long_right)
+
         if not os.path.isfile("%s/%s_%s_%s_%s_%s.grb2"%(self.data_loc,lat_bottom,long_left,self.date,self.forcast_time,self.run_time)):
             #This does download 3 rows that aren't needed but I can't work out how to yeet them
             print("Downloading files")
-            url="https://nomads.ncep.noaa.gov/cgi-bin/filter_gfs_0p25_1hr.pl?file=gfs.t{run}z.pgrb2.0p25.f{hour}&lev_0.4_mb=on&lev_1000_mb=on&lev_100_mb=on&lev_10_mb=on&lev_150_mb=on&lev_15_mb=on&lev_180-0_mb_above_ground=on&lev_1_mb=on&lev_200_mb=on&lev_20_mb=on&lev_250_mb=on&lev_255-0_mb_above_ground=on&lev_2_mb=on&lev_300_mb=on&lev_30-0_mb_above_ground=on&lev_30_mb=on&lev_350_mb=on&lev_3_mb=on&lev_400_mb=on&lev_40_mb=on&lev_450_mb=on&lev_500_mb=on&lev_50_mb=on&lev_550_mb=on&lev_5_mb=on&lev_600_mb=on&lev_650_mb=on&lev_700_mb=on&lev_70_mb=on&lev_750_mb=on&lev_7_mb=on&lev_800_mb=on&lev_850_mb=on&lev_900_mb=on&lev_925_mb=on&lev_950_mb=on&lev_975_mb=on&var_HGT=on&var_UGRD=on&var_VGRD=on&subregion=&leftlon={leftlon}&rightlon={rightlon}&toplat={toplat}&bottomlat={bottomlat}&dir=%2Fgfs.{date}%2F{run}".format(leftlon=long_left,rightlon=long_right,toplat=lat_top,bottomlat=lat_bottom,date=self.date,run=self.forcast_time,hour=self.run_time)
+            if long_left>long_right:
+                long_left_request=long_left-360
+            else:
+                long_left_request=long_left
+            
+            url="https://nomads.ncep.noaa.gov/cgi-bin/filter_gfs_0p25_1hr.pl?file=gfs.t{run}z.pgrb2.0p25.f{hour}&lev_0.4_mb=on&lev_1000_mb=on&lev_100_mb=on&lev_10_mb=on&lev_150_mb=on&lev_15_mb=on&lev_180-0_mb_above_ground=on&lev_1_mb=on&lev_200_mb=on&lev_20_mb=on&lev_250_mb=on&lev_255-0_mb_above_ground=on&lev_2_mb=on&lev_300_mb=on&lev_30-0_mb_above_ground=on&lev_30_mb=on&lev_350_mb=on&lev_3_mb=on&lev_400_mb=on&lev_40_mb=on&lev_450_mb=on&lev_500_mb=on&lev_50_mb=on&lev_550_mb=on&lev_5_mb=on&lev_600_mb=on&lev_650_mb=on&lev_700_mb=on&lev_70_mb=on&lev_750_mb=on&lev_7_mb=on&lev_800_mb=on&lev_850_mb=on&lev_900_mb=on&lev_925_mb=on&lev_950_mb=on&lev_975_mb=on&var_HGT=on&var_UGRD=on&var_VGRD=on&subregion=&leftlon={leftlon}&rightlon={rightlon}&toplat={toplat}&bottomlat={bottomlat}&dir=%2Fgfs.{date}%2F{run}".format(leftlon=long_left_request,rightlon=long_right,toplat=lat_top,bottomlat=lat_bottom,date=self.date,run=self.forcast_time,hour=self.run_time)
             
             r = requests.get(url, stream=True)
 
@@ -99,33 +127,59 @@ class Wind:
                 for chunk in r.iter_content(chunk_size=1024):
                     if chunk: 
                         f.write(chunk)
-
         if os.path.getsize("%s/%s_%s_%s_%s_%s.grb2"%(self.data_loc,lat_bottom,long_left,self.date,self.forcast_time,self.run_time))<1000:
-            raise RuntimeError("The weather data you requested was not found, this is usually because it was for an invalid date/time")
-
-        print("Loading wind data for N%s E%s for %sh after forcast run at %s on %s"%(lat,longi,self.run_time,self.forcast_time,self.date))
+            raise RuntimeError("The weather data you requested was not found, this is usually because it was for an invalid date/time. lat=%s,long=%s was requested"%(lat,longi))
         data=iris.load("%s/%s_%s_%s_%s_%s.grb2"%(self.data_loc,lat_bottom,long_left,self.date,self.forcast_time,self.run_time))
-        lats=list(data[0].coord("latitude").points)
-        longs=list(data[0].coord("longitude").points)
+        for index,row in enumerate(data):
+            try:
+                row.coord("pressure")
+                if row.standard_name=="x_wind":
+                    row_x_wind=index
+                elif row.standard_name=="y_wind":
+                    row_y_wind=index
+                elif row.standard_name=="geopotential_height":
+                    row_geo=index
+            except:
+                pass
+        lats=list(data[row_geo].coord("latitude").points)
+        longs=list(data[row_geo].coord("longitude").points)
         df=pd.DataFrame(columns=["lat","long","alt","w_x","w_y"])
+        points=[]
         for long in longs:
             for lat in lats:
-                press=data[1].extract(iris.Constraint(latitude=lat,longitude=long)).coord("pressure").points
+                press_1=data[row_x_wind].extract(iris.Constraint(latitude=lat,longitude=long)).coord("pressure").points
+                press_2=data[row_y_wind].extract(iris.Constraint(latitude=lat,longitude=long)).coord("pressure").points
+                press_3=data[row_geo].extract(iris.Constraint(latitude=lat,longitude=long)).coord("pressure").points
+                press=[]
+                for pres in press_1:
+                    if (pres in press_2 and pres in press_3):
+                        press.append(pres)
                 for pres in press:
-                    w_x=data[1].extract(iris.Constraint(latitude=lat,longitude=long,pressure=pres)).data
-                    w_y=data[3].extract(iris.Constraint(latitude=lat,longitude=long,pressure=pres)).data
-                    alt=10*metpy.calc.geopotential_to_height(data[0].extract(iris.Constraint(latitude=lat,longitude=long,pressure=pres)).data*units.m**2/units.s**2).magnitude
-                    row={"lat":lat,"long":long,"alt":alt,"w_x":w_x,"w_y":w_y}
-                    df=df.append(row,ignore_index=True)
-
-        return df,lats,longs
+                    try:
+                        if ([lat,long] not in self.points or [lat,long] not in points):
+                            w_x=data[row_x_wind].extract(iris.Constraint(latitude=lat,longitude=long,pressure=pres)).data
+                            w_y=data[row_y_wind].extract(iris.Constraint(latitude=lat,longitude=long,pressure=pres)).data
+                            alt=10*metpy.calc.geopotential_to_height(data[row_geo].extract(iris.Constraint(latitude=lat,longitude=long,pressure=pres)).data*units.m**2/units.s**2).magnitude
+                            row={"lat":lat,"long":np.mod(long,360),"alt":alt,"w_x":w_x,"w_y":w_y}
+                            df=df.append(row,ignore_index=True)
+                    except KeyError:
+                        warnings.warn("Wind datapoint lat=%s, long=%s, pres=%s was missed because of an unknown Iris error, this is non fatal as it will be interpolated from other values"%(lat,longi,pres))
+                    except:
+                        warnings.warn("Wind datapoint lat=%s, long=%s, pres=%s was missed because of an unknown Iris error, this may be a fatal result if there are many instances in one dataset"%(lat,longi,pres))
+                if len(df)!=0:
+                    points.append([lat,long])
+        
+        return df,points
 
     def get_wind(self,lat,long,alt):
+        lat,long=validate_lat_long(lat,long)
+        
         if alt<-1000:
             #This stops the weird yeeting through the earth in the last step
             lat,long,alt=self.centre_lat,self.centre_long,0
         elif alt>80000:
             lat,long,alt=self.centre_lat,self.centre_long,max(self.df["alt"])
+            
         if self.variable == True:
             lat_query=[None,None]
             lat_query[0]=round(lat/.25)*.25
@@ -141,15 +195,16 @@ class Wind:
             else:
                 long_query[1]=long_query[0]-.25
                 long_query[0],long_query[1]=long_query[1],long_query[0]
-
+            lat_query[0],long_query[0]=validate_lat_long(lat_query[0],long_query[0])
+            lat_query[1],long_query[1]=validate_lat_long(lat_query[1],long_query[1])
             available=False
             while available==False:
                 #I don't think this is the most efficient but *should* work
-                if not (min(self.lats)<lat<max(self.lats) and min(self.longs)<long<max(self.longs)).all():
-                    new_df,lats,longs=self.load_data(lat,long)
+                if not ([lat_query[0],long_query[0]] in self.points and [lat_query[0],long_query[1]]in self.points and [lat_query[1],long_query[0]]in self.points and [lat_query[1],long_query[1]]in self.points):
+                    print("Loading for %s,%s"%(lat_query,long_query))
+                    new_df,points=self.load_data(lat,long)
                     self.df=self.df.append(new_df)
-                    self.lats+=lats
-                    self.longs+=longs
+                    self.points+=points
                 else:
                     available=True
 
@@ -158,21 +213,17 @@ class Wind:
                 points[n][0]=self.df.query('lat == %s'%lat_query[n])
                 points[n][1]=self.df.query('lat == %s'%lat_query[n])
                 for m in [0,1]:
-                    points[n][m]=points[n][m].query('long == %s'%long_query[m])
-                    
-            meaning = [[None,None],[None,None]]
-            for n in [0,1]:
-                meaning[n][0]="lat_%s"%n
-                meaning[n][1]="lat_%s"%n
-                for m in [0,1]:
-                    meaning[n][m]+=", long_%s"%m
-                    
+                    if points[n][m].query('long == %s'%long_query[m]).empty:
+                        print(lat,long)
+                        print(self.points)
+                        print(lat_query[n],long_query[m])
+                    points[n][m]=points[n][m].query('long == %s'%long_query[m])          
                     
             wind_x = [[None,None],[None,None]]
             wind_y = [[None,None],[None,None]]
             for n in [0,1]:
                 for m in [0,1]:
-                    if alt > min(points[n][m]["alt"]) and alt < max(points[n][m]["alt"]):
+                    if alt >= min(points[n][m]["alt"]) and alt <= max(points[n][m]["alt"]):
                         wind_x[n][m]=scipy.interpolate.interp1d(points[n][m]["alt"],points[n][m]["w_x"])(alt)
                         wind_y[n][m]=scipy.interpolate.interp1d(points[n][m]["alt"],points[n][m]["w_y"])(alt)
                     else:
@@ -182,8 +233,16 @@ class Wind:
             wind_lats_x = [None,None]
             wind_lats_y = [None,None]
             for n in [0,1]:
-                wind_lats_x[n]=scipy.interpolate.interp1d(long_query,wind_x[n])(long)
-                wind_lats_y[n]=scipy.interpolate.interp1d(long_query,wind_y[n])(long)
+                if long_query[0]>long_query[1]:
+                    long_query_interp=[long_query[0]-360,long_query[1]]
+                else:
+                    long_query_interp=[long_query[0],long_query[1]]
+                if long>long_query[1]:
+                    long_interp=long-360
+                else:
+                    long_interp=long
+                wind_lats_x[n]=scipy.interpolate.interp1d(long_query_interp,wind_x[n])(long_interp)
+                wind_lats_y[n]=scipy.interpolate.interp1d(long_query_interp,wind_y[n])(long_interp)
             
             wind_x=scipy.interpolate.interp1d(lat_query,wind_lats_x)(lat)
             wind_y=scipy.interpolate.interp1d(lat_query,wind_lats_y)(lat)
@@ -349,7 +408,7 @@ class LaunchSite:
         self.rail_length = rail_length
         self.rail_yaw = rail_yaw
         self.rail_pitch = rail_pitch
-        self.alt = alt
+        self.alt = alt+1e-5
         self.longi = longi
         self.lat = lat
         self.wind = Wind(longi,lat,variable=variable_wind,default=default_wind,data_loc=wind_data_loc,run_date=run_date,forcast_time=forcast_time,forcast_plus_time=forcast_plus_time)
@@ -997,16 +1056,6 @@ class Rocket:
                     events.append("Parachute deployed")
                     self.parachute_deployed=True
                     self.w_b=np.array([0,0,0])
-                    """wind_inertial =  vel_l2i(self.launch_site.wind, self.launch_site, self.time)
-                    v_rel_wind = self.b2i.inv().apply(self.vel_i-wind_inertial)
-                    xb_i = direction_l2i([0,0,1], self.launch_site, self.time)
-                    yb_i = direction_l2i([0,1,0], self.launch_site, self.time)
-                    zb_i = direction_l2i([-1,0,0], self.launch_site, self.time)
-                    mat_b2i = np.zeros([3,3])
-                    mat_b2i[:,0] = xb_i
-                    mat_b2i[:,1] = yb_i
-                    mat_b2i[:,2] = zb_i
-                    self.b2i = Rotation.from_matrix(mat_b2i)  """ 
                 else:
                     self.alt_poll_watch=self.time
                     self.alt_record=current_alt
