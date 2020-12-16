@@ -17,7 +17,7 @@ def get_velocity_magnitude(df):
     return (np.sqrt(df["vx_l"]**2+df["vy_l"]**2+df["vz_l"]**2))
 
 #Functional
-def set_axes_equal(ax):
+def set_axes_equal(ax,dim=3):
     '''Make axes of 3D plot have equal scale so that spheres appear as spheres,
     cubes as cubes, etc..  This is one possible solution to Matplotlib's
     ax.set_aspect('equal') and ax.axis('equal') not working for 3D.
@@ -27,25 +27,40 @@ def set_axes_equal(ax):
     Input
       ax: a matplotlib axis, e.g., as output from plt.gca().
     '''
+    if dim==3:
+        x_limits = ax.get_xlim3d()
+        y_limits = ax.get_ylim3d()
+        z_limits = ax.get_zlim3d()
 
-    x_limits = ax.get_xlim3d()
-    y_limits = ax.get_ylim3d()
-    z_limits = ax.get_zlim3d()
+        x_range = abs(x_limits[1] - x_limits[0])
+        x_middle = np.mean(x_limits)
+        y_range = abs(y_limits[1] - y_limits[0])
+        y_middle = np.mean(y_limits)
+        z_range = abs(z_limits[1] - z_limits[0])
+        z_middle = np.mean(z_limits)
 
-    x_range = abs(x_limits[1] - x_limits[0])
-    x_middle = np.mean(x_limits)
-    y_range = abs(y_limits[1] - y_limits[0])
-    y_middle = np.mean(y_limits)
-    z_range = abs(z_limits[1] - z_limits[0])
-    z_middle = np.mean(z_limits)
+        # The plot bounding box is a sphere in the sense of the infinity
+        # norm, hence I call half the max range the plot radius.
+        plot_radius = 0.5*max([x_range, y_range, z_range])
 
-    # The plot bounding box is a sphere in the sense of the infinity
-    # norm, hence I call half the max range the plot radius.
-    plot_radius = 0.5*max([x_range, y_range, z_range])
+        ax.set_xlim3d([x_middle - plot_radius, x_middle + plot_radius])
+        ax.set_ylim3d([y_middle - plot_radius, y_middle + plot_radius])
+        ax.set_zlim3d([z_middle - plot_radius, z_middle + plot_radius])
+    elif dim==2:
+        x_limits = ax.get_xlim()
+        y_limits = ax.get_ylim()
 
-    ax.set_xlim3d([x_middle - plot_radius, x_middle + plot_radius])
-    ax.set_ylim3d([y_middle - plot_radius, y_middle + plot_radius])
-    ax.set_zlim3d([z_middle - plot_radius, z_middle + plot_radius])
+        x_range = abs(x_limits[1] - x_limits[0])
+        x_middle = np.mean(x_limits)
+        y_range = abs(y_limits[1] - y_limits[0])
+        y_middle = np.mean(y_limits)
+
+        # The plot bounding box is a sphere in the sense of the infinity
+        # norm, hence I call half the max range the plot radius.
+        plot_radius = 0.5*max([x_range, y_range])
+
+        ax.set_xlim([x_middle - plot_radius, x_middle + plot_radius])
+        ax.set_ylim([y_middle - plot_radius, y_middle + plot_radius])
 
 def plot_launch_trajectory_3d(simulation_output, rocket, show_orientation=False, arrow_frequency = 0.02):
     """
@@ -570,24 +585,25 @@ def animate_orientation(simulation_output, frames=500):
 
 def stats_landing(mu,cov,data=pd.DataFrame(),sigma=3):
     t=np.linspace(0,2*np.pi,314)
-
+    fig=plt.figure()
+    ax=fig.gca()
     eig=np.linalg.eig(cov)
-    eig_mat=np.array([[eig[1][0][0],eig[1][1][0]],[eig[1][0][1],eig[1][1][1]]])
-    cov_elipse = np.matmul(eig_mat,np.array([eig[0][0]**0.5*np.cos(t),eig[0][1]**0.5*np.sin(t)]))
+    eig_mat=np.array([[eig[1][0][1],eig[1][1][1]],[eig[1][0][0],eig[1][1][0]]])
+    cov_elipse = np.matmul(eig_mat,np.array([eig[0][1]**0.5*np.cos(t),eig[0][0]**0.5*np.sin(t)]))
     
     for sig in range(1,sigma+1):
-        plt.plot(sig*cov_elipse[0]+mu[0],sig*cov_elipse[1]+mu[1],label="%s $\sigma$"%sig)
+        ax.plot(sig*cov_elipse[0]+mu[0],sig*cov_elipse[1]+mu[1],label="%s $\sigma$"%sig)
 
-    plt.scatter(0,0,marker="x",color="red",label="Launch site")
-    plt.scatter(mu[0],mu[1],marker="o",s=40,color="green",label="Mean landing point")
+    ax.scatter(0,0,marker="x",color="red",label="Launch site")
+    ax.scatter(mu[0],mu[1],marker="o",s=40,color="green",label="Mean landing point")
 
-    plt.xlabel("South/m")
-    plt.ylabel("East/m")
+    ax.set_xlabel("South/m")
+    ax.set_ylabel("East/m")
 
     if not data.empty:
-        plt.scatter(data.x,data.y,marker="o",s=50,color="blue",alpha=0.3)
-
-    plt.legend()
+        ax.scatter(data.x,data.y,marker="o",s=50,color="blue",alpha=0.3)
+    ax.legend()
+    set_axes_equal(ax,dim=2)
     plt.show()
 
 def elipse(u,v,a,b,c):
@@ -596,52 +612,57 @@ def elipse(u,v,a,b,c):
     z=c*np.cos(v)
     return np.array([x,y,z])
 
-def stats_apogee(mu,cov,data=pd.DataFrame(),sigma=3,landing_mu=np.array([]),landing_cov=np.array([]),landing_data=pd.DataFrame()):
-    eig=np.linalg.eig(cov)
-    eig_mat=np.array([[eig[1][0][0],eig[1][1][0],eig[1][2][0]],[eig[1][0][1],eig[1][1][1],eig[1][2][1]],[eig[1][0][2],eig[1][1][2],eig[1][2][2]]])
-
+def stats_apogee(apogee_mu,apogee_cov,apogee=pd.DataFrame(),sigma=3,landing_mu=np.array([]),landing_cov=np.array([]),landing=pd.DataFrame()):
     fig = plt.figure()
     ax = fig.gca(projection = '3d')
+    
+    ap_eig=np.linalg.eig(apogee_cov)
+    ap_eig_mat=np.array([[ap_eig[1][0][0],ap_eig[1][1][0],ap_eig[1][2][0]],[ap_eig[1][0][1],ap_eig[1][1][1],ap_eig[1][2][1]],[ap_eig[1][0][2],ap_eig[1][1][2],ap_eig[1][2][2]]])
+
 
     x,y,z=[],[],[]
 
     for v in np.linspace(0,np.pi,100):
         for u in np.linspace(0,2*np.pi,200):
-            d=elipse(u,v,eig[0][2]**.5,eig[0][1]**.5,eig[0][0]**.5)
-            d=np.matmul(eig_mat,d)
+            d=elipse(u,v,ap_eig[0][2]**.5,ap_eig[0][1]**.5,ap_eig[0][0]**.5)
+            d=np.matmul(ap_eig_mat,d)
             x.append(d[0])
             y.append(d[1])
             z.append(d[2])
 
     for sig in range(1,sigma+1):
-        ax.plot(mu[0]+np.array(x)*sig,mu[1]+np.array(y)*sig,mu[2]+np.array(z)*sig,color="green",alpha=.3,label="%s $\sigma$"%sig)
+        ax.plot(apogee_mu[0]+sig*np.array(x),apogee_mu[1]+sig*np.array(y),apogee_mu[2]+sig*np.array(z),color="red",alpha=.5)
 
-    ax.plot(mu[0],mu[1],mu[2],label="Mean apogee point")
+    ax.plot(apogee_mu[0],apogee_mu[1],apogee_mu[2],label="Mean apogee point")
 
-    ax.scatter(0,0)
+    ax.scatter(0,0,0,label="Launch Site")
     ax.set_xlabel("South/m")
     ax.set_ylabel("East/m")
     ax.set_zlabel("Altitude/m")
 
-    if not data.empty:
-        ax.scatter(data.x,data.y,data.alt,alpha=.1)
+    if not apogee.empty:
+        ax.scatter(apogee.x,apogee.y,apogee.alt,alpha=.6)
 
     if landing_mu.shape!=(0,) and landing_cov.shape!=(0,):
         t=np.linspace(0,2*np.pi,314)
 
-        eig=np.linalg.eig(landing_cov)
-        eig_mat=np.array([[eig[1][0][0],eig[1][1][0]],[eig[1][0][1],eig[1][1][1]]])
-        cov_elipse = np.matmul(eig_mat,np.array([eig[0][0]**0.5*np.cos(t),eig[0][1]**0.5*np.sin(t)]))
+        l_eig=np.linalg.eig(landing_cov)
+        l_eig_mat=np.array([[l_eig[1][0][0],l_eig[1][1][0]],[l_eig[1][0][1],l_eig[1][1][1]]])
+        landing_cov_elipse = np.matmul(l_eig_mat,np.array([l_eig[0][0]**0.5*np.cos(t),l_eig[0][1]**0.5*np.sin(t)]))
         
         for sig in range(1,sigma+1):
-            ax.plot(sig*cov_elipse[0]+landing_mu[0],sig*cov_elipse[1]+landing_mu[1],label="%s $\sigma$"%sig)
+            ax.plot(sig*landing_cov_elipse[0]+landing_mu[0],sig*landing_cov_elipse[1]+landing_mu[1],0,alpha=0.3,label="%s $\sigma$"%sig)
 
         ax.scatter(0,0,marker="x",color="red",label="Launch site")
-        ax.scatter(mu[0],mu[1],marker="o",s=40,color="green",label="Mean landing point")
+        ax.scatter(landing_mu[0],landing_mu[1],0,marker="o",s=40,color="green")
 
-        if not landing_data.empty:
-            ax.scatter(data.x,data.y,marker="o",s=1,color="blue",alpha=0.3)   
+        if not landing.empty:
+            ax.scatter(landing.x,landing.y,0,marker="o",s=1,color="blue",alpha=0.3)
+
 
     set_axes_equal(ax)
     ax.legend()
     plt.show()
+
+def stats_plot_paths(df):
+    pass
