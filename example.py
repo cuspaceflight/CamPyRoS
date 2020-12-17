@@ -76,7 +76,7 @@ launch_site = trajectory.LaunchSite(rail_length=10,
                                     alt=0, 
                                     longi=0, 
                                     lat=0, 
-                                    wind=[4.94975,4.94975,0])
+                                    wind=[5,0,0])
 
 parachute = trajectory.Parachute(main_s = 13.9,
                                  main_c_d = 0.78,
@@ -98,10 +98,10 @@ imported_data = trajectory.from_json("output.json")
 
 trajectory.plot_launch_trajectory_3d(imported_data, martlet4, show_orientation=False) #Could have also used simulation_output instead of imported_data
 trajectory.plot_altitude_time(imported_data, martlet4)
-trajectory.plot_ypr(imported_data, martlet4)
-trajectory.animate_orientation(imported_data)
+#trajectory.plot_ypr(imported_data, martlet4)
+#trajectory.animate_orientation(imported_data)
 
 '''Extra plots you could make'''
-trajectory.plot_mass(imported_data, martlet4)
-trajectory.plot_aero(imported_data, martlet4)
+#trajectory.plot_mass(imported_data, martlet4)
+#trajectory.plot_aero(imported_data, martlet4)
 
