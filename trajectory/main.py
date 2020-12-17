@@ -64,6 +64,22 @@ def validate_lat_long(lat,long):
     if lat==-0.0:
         lat=0.0
     return round(lat,4),round(long,4)
+
+def closest(num,incriment):
+    a=round(num/incriment)*incriment
+    if a>num:
+        b=a-.25
+    else:
+        b=a+.25
+    return [a,b]
+
+def points(lats,longs):
+    points=[]
+    for n in [0,1]:
+        for m in [0,1]:
+            points.append([lats[n],longs[m]])
+    return points
+
 class Wind:
     #Data will be strored in data_loc in the format lat_long_date_run_period.grb2 where lat and long are the bottom left values
     #Run has to be 00, 06, 12 or 18
@@ -114,7 +130,7 @@ class Wind:
     df : pandas DataFrame
         Dataframe holding wind data with columns lat, long, alt, wind x, wind y
     """
-    def __init__(self,initial_long,initial_lat,variable=True,default=np.array([0,0,0]),data_loc="data/wind/gfs",run_date=date.today().strftime("%Y%m%d"),forcast_time="00",forcast_plus_time="000"):
+    def __init__(self,initial_long,initial_lat,variable=True,default=np.array([0,0,0]),data_loc="data/wind/gfs",run_date=date.today().strftime("%Y%m%d"),forcast_time="00",forcast_plus_time="000",fast=False):
         lat,long=validate_lat_long(initial_lat,initial_long)
         self.centre_lat=lat
         self.centre_long=long
@@ -122,6 +138,7 @@ class Wind:
         self.variable = variable
         self.default=default
         self.points=[]
+        self.fast=fast
 
         if lat<2:
             warnings.warn("Wind data robustness has not yet been tested for the equator")
@@ -137,10 +154,28 @@ class Wind:
             self.date=run_date
             self.forcast_time=forcast_time
             self.run_time=forcast_plus_time
-            self.df,self.points=self.load_data(self.centre_lat,self.centre_long)
-            print(self.points)
+            self.df,self.points=self.load_data(closest(self.centre_lat,.25),closest(self.centre_long,.25))
+            
+            if self.fast == True:
+                self.winds=self.load_fast(lat,long)
+    
+    def load_fast(self,lat,long):
+        mean=[]
+        lats=closest(lat,.25)
+        longs=closest(long,.25)
+        x=[]
+        y=[]
+        for n in [0,1]:
+            for m in [0,1]:
+                x.append(scipy.interpolate.interp1d(self.df.query("lat==%s"%lats[n]).query("long==%s"%longs[m])["alt"],self.df.query("lat==%s"%lats[n]).query("long==%s"%longs[m])["w_x"], fill_value='extrapolate'))
+                y.append(scipy.interpolate.interp1d(self.df.query("lat==%s"%lats[n]).query("long==%s"%longs[m])["alt"],self.df.query("lat==%s"%lats[n]).query("long==%s"%longs[m])["w_y"], fill_value='extrapolate'))
+        
+        for alt in np.linspace(0,45000,1000):
+            mean.append(np.array([np.mean([x[0](alt),x[1](alt),x[2](alt),x[3](alt)]),np.mean([x[0](alt),x[1](alt),x[2](alt),x[3](alt)]),0]))
+    
+        return scipy.interpolate.interp1d(np.linspace(0,45000,1000),mean,fill_value='extrapolate')
 
-    def load_data(self,lat,longi):
+    def load_data(self,lats,longs):
         """Loads wind data for particualr lat long to the objects df. 
 
         Notes
@@ -165,20 +200,10 @@ class Wind:
         points
             list of [lat,long] not available
         """ 
-        lat,longi=validate_lat_long(lat,longi)
-        lat_top=round(lat/.25)*.25
-        if lat_top>lat:
-            lat_bottom=lat_top-.25
-        else:
-            lat_bottom=lat_top+.25
-            lat_top,lat_bottom=lat_bottom,lat_top
-            
-        long_left=round(longi/.25)*.25
-        if long_left<longi:
-            long_right=long_left+.25
-        else:
-            long_right=long_left-.25
-            long_left,long_right=long_right,long_left
+        lat_top=max(lats)
+        lat_bottom=min(lats)
+        long_left=min(longs)
+        long_right=max(longs)
 
         lat_top,long_left=validate_lat_long(lat_top,long_left)
         lat_bottom,long_right=validate_lat_long(lat_bottom,long_right)
@@ -245,13 +270,6 @@ class Wind:
 
     def get_wind(self,lat,long,alt):
         """Returns wind for a specific lat,long,alt 
-
-        Notes
-        -----
-        Works out the grid of lat long around the requested point (since the NOAA only provides data in a 0.25 degree grid).
-        Gets all the df points with these lat longs, interpolates at each lat long to get the wind at the chosen altitude for each.
-        Interpolates between the two longitude points x2.
-        Intepolates between the two by latitude - returns result.
         
         Parameters
         ----------
@@ -267,83 +285,23 @@ class Wind:
             Wind speed vector [x,y,z]/m/s
         """ 
         lat,long=validate_lat_long(lat,long)
-        
-        if alt<-1000:
-            #This stops the weird yeeting through the earth in the last step
-            lat,long,alt=self.centre_lat,self.centre_long,0
-        elif alt>80000:
-            lat,long,alt=self.centre_lat,self.centre_long,max(self.df["alt"])
+        if self.variable == True and self.fast==False:
+            lats=closest(lat,.25)
+            longs=closest(long,.25)
+            availables=[[52.0,0.0],[52.25,0.25],[52.0,0.25],[52.25,0]]
+            if not all(point in availables for point in points(lats,longs)):
+                self.load_data(lats,longs)
             
-        if self.variable == True:
-            lat_query=[None,None]
-            lat_query[0]=round(lat/.25)*.25
-            if lat_query[0]>lat:
-                lat_query[1]=lat_query[0]-.25
-            else:
-                lat_query[1]=lat_query[0]+.25
-                lat_query[0],lat_query[1]=lat_query[1],lat_query[0]
-            long_query=[None,None]
-            long_query[0]=round(long/.25)*.25
-            if long_query[0]<long:
-                long_query[1]=long_query[0]+.25
-            else:
-                long_query[1]=long_query[0]-.25
-                long_query[0],long_query[1]=long_query[1],long_query[0]
-            lat_query[0],long_query[0]=validate_lat_long(lat_query[0],long_query[0])
-            lat_query[1],long_query[1]=validate_lat_long(lat_query[1],long_query[1])
-            available=False
-            while available==False:
-                #I don't think this is the most efficient but *should* work
-                if not ([lat_query[0],long_query[0]] in self.points and [lat_query[0],long_query[1]]in self.points and [lat_query[1],long_query[0]]in self.points and [lat_query[1],long_query[1]]in self.points):
-                    print("Loading for %s,%s"%(lat_query,long_query))
-                    new_df,points=self.load_data(lat,long)
-                    self.df=self.df.append(new_df)
-                    self.points+=points
-                else:
-                    available=True
-
-            points = [[None,None],[None,None]]
-            for n in [0,1]:
-                points[n][0]=self.df.query('lat == %s'%lat_query[n])
-                points[n][1]=self.df.query('lat == %s'%lat_query[n])
-                for m in [0,1]:
-                    if points[n][m].query('long == %s'%long_query[m]).empty:
-                        print(lat,long)
-                        print(self.points)
-                        print(lat_query[n],long_query[m])
-                    points[n][m]=points[n][m].query('long == %s'%long_query[m])          
-                    
-            wind_x = [[None,None],[None,None]]
-            wind_y = [[None,None],[None,None]]
+            w=[[None,None],[None,None]]
+            y=[None,None]
             for n in [0,1]:
                 for m in [0,1]:
-                    if alt >= min(points[n][m]["alt"]) and alt <= max(points[n][m]["alt"]):
-                        wind_x[n][m]=scipy.interpolate.interp1d(points[n][m]["alt"],points[n][m]["w_x"])(alt)
-                        wind_y[n][m]=scipy.interpolate.interp1d(points[n][m]["alt"],points[n][m]["w_y"])(alt)
-                    else:
-                        wind=points[n][m].iloc[(points[n][m]["alt"]-alt).abs().argsort()[:1]]
-                        wind_x[n][m],wind_y[n][m]=wind["w_x"].astype(float).to_numpy()[0],wind["w_y"].astype(float).to_numpy()[0]
-                    
-            wind_lats_x = [None,None]
-            wind_lats_y = [None,None]
-            for n in [0,1]:
-                if long_query[0]>long_query[1]:
-                    long_query_interp=[long_query[0]-360,long_query[1]]
-                else:
-                    long_query_interp=[long_query[0],long_query[1]]
-                if long>long_query[1]:
-                    long_interp=long-360
-                else:
-                    long_interp=long
-                wind_lats_x[n]=scipy.interpolate.interp1d(long_query_interp,wind_x[n])(long_interp)
-                wind_lats_y[n]=scipy.interpolate.interp1d(long_query_interp,wind_y[n])(long_interp)
-            
-            wind_x=scipy.interpolate.interp1d(lat_query,wind_lats_x)(lat)
-            wind_y=scipy.interpolate.interp1d(lat_query,wind_lats_y)(lat)
-
-            #Until this moment I thought long was a key word since VSCode always hilights it, I realise its not now and apologise for using longi instead when it was unneccasary
-            #I think x is east and y is north, not confirmed, should be checked
-            return np.array([-wind_y,wind_x,0])
+                    w[n][m]=scipy.interpolate.interp1d(self.df.query("lat==%s"%lats[n]).query("long==%s"%longs[m])["alt"],np.array([self.df.query("lat==%s"%lats[n]).query("long==%s"%longs[m])["w_x"],self.df.query("lat==%s"%lats[n]).query("long==%s"%longs[m])["w_y"],np.zeros(len(self.df.query("lat==%s"%lats[n]).query("long==%s"%longs[m])["w_y"]))]), fill_value='extrapolate')(alt)
+                y[n]=w[n][0]+(long-longs[0])*(w[n][1]-w[n][0])/(longs[1]-longs[0])
+                
+            return y[0]+(lat-lats[0])*(y[1]-y[0])/(lats[1]-lats[0])
+        elif self.variable == True and self.fast==True:
+            return self.winds(alt)
         else:
             return self.default
 class Parachute:
@@ -508,14 +466,14 @@ class LaunchSite:
     wind : list, optional
         Wind vector at launch site. Defaults to [0,0,0]. Will increase completness/complexity at some point to include at least altitude variation.
     """
-    def __init__(self, rail_length, rail_yaw, rail_pitch, alt, longi, lat, variable_wind=True,default_wind=np.array([0,0,0]),wind_data_loc="data/wind/gfs",run_date=date.today().strftime("%Y%m%d"),forcast_time="00",forcast_plus_time="000"):
+    def __init__(self, rail_length, rail_yaw, rail_pitch, alt, longi, lat, variable_wind=True,default_wind=np.array([0,0,0]),wind_data_loc="data/wind/gfs",run_date=date.today().strftime("%Y%m%d"),forcast_time="00",forcast_plus_time="000",fast_wind=False):
         self.rail_length = rail_length
         self.rail_yaw = rail_yaw
         self.rail_pitch = rail_pitch
         self.alt = alt+1e-5
         self.longi = longi
         self.lat = lat
-        self.wind = Wind(longi,lat,variable=variable_wind,default=default_wind,data_loc=wind_data_loc,run_date=run_date,forcast_time=forcast_time,forcast_plus_time=forcast_plus_time)
+        self.wind = Wind(longi,lat,variable=variable_wind,default=default_wind,data_loc=wind_data_loc,run_date=run_date,forcast_time=forcast_time,forcast_plus_time=forcast_plus_time,fast=fast_wind)
  
 class Rocket:
     """The rocket and key simulation components
@@ -1090,7 +1048,7 @@ class Rocket:
                 current_alt=pos_i2alt(self.pos_i,self.time)
                 if self.alt_record>current_alt:
                     if debug==True:
-                        print("Parachute deployed at %sm at %ss"%(pos_i2alt(self.pos_i),self.time))
+                        print("Parachute deployed at %sm at %ss"%(pos_i2alt(self.pos_i,self.time),self.time))
                     events.append("Parachute deployed")
                     self.parachute_deployed=True
                     self.w_b=np.array([0,0,0])

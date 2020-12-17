@@ -159,7 +159,7 @@ class StatisticalModel:
 
         
         rocket=Rocket(mass_model, motor, aero, launch_site, h=self.h, variable=self.variable_time,parachute=parachute,thrust_vector=thrust_alignment,errors=run_vars["env"])#,errors=run_vars["enviroment"])
-        run_output = rocket.run()
+        run_output = rocket.run(debug=True)
         run_save = pd.DataFrame()
         run_save["time"]=run_output["time"]
         x,y,z=[],[],[]
