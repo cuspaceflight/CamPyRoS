@@ -1,7 +1,7 @@
-import trajectory, trajectory.aero, csv
-
+import trajectory, trajectory.post, trajectory.aero, csv
 import numpy as np
-import pandas as pd
+
+#Need to set up the rocket again:
 
 '''Import motor data - copied from Joe Hunt's simulation'''
 with open('novus_sim_6.1/motor_out.csv') as csvfile:
@@ -57,9 +57,6 @@ mass_model = trajectory.HybridMassModel(rocket_length, solid_fuel, liquid_fuel, 
                                         dry_mass_model.mass, dry_mass_model.ixx(), dry_mass_model.iyy(), dry_mass_model.izz(), 
                                         dry_cog = rocket_length/2)
 
-#Alterative, simpler, solid cylinder mass model:
-#mass_model = trajectory.CylindricalMassModel(dry_mass + np.array(prop_mass_data), motor_time_data, rocket_length, rocket_radius)
-
 '''Create the other objects needed to initialise the Rocket object'''
 pulsar = trajectory.Motor(motor_time_data, 
                           prop_mass_data, 
@@ -88,20 +85,11 @@ parachute = trajectory.Parachute(main_s = 13.9,
 """Create the Rocket object"""
 martlet4 = trajectory.Rocket(mass_model, pulsar, aerodynamic_coefficients, launch_site, h=0.05, variable=True, alt_poll_interval=1, parachute=parachute)
 
-'''Run the simulation'''
-#simulation_output = martlet4.run(max_time = 400, debug=True, to_json="output.json")
 
-'''Example of how you can import data from a .csv file'''
+#Now we can do the aerodynamic heating analysis
 imported_data = trajectory.from_json("output.json")
 
-'''Plot the results'''
+tangent_ogive = trajectory.post.TangentOgive(73.7e-2, (19.7e-2)/2)
 
-trajectory.plot_launch_trajectory_3d(imported_data, martlet4, show_orientation=False) #Could have also used simulation_output instead of imported_data
-trajectory.plot_altitude_time(imported_data, martlet4)
-trajectory.plot_ypr(imported_data, martlet4)
-#trajectory.animate_orientation(imported_data)
-
-'''Extra plots you could make'''
-trajectory.plot_mass(imported_data, martlet4)
-trajectory.plot_aero(imported_data, martlet4)
-
+analysis = trajectory.post.HeatTransfer(tangent_ogive, imported_data, martlet4)
+analysis.step()
