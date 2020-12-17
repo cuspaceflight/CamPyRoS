@@ -77,7 +77,15 @@ launch_site = trajectory.LaunchSite(rail_length=10,
                                     longi=0.1160127, 
                                     lat=52.2079404, 
                                     variable_wind=True,
-                                    forcast_plus_time="016")
+                                    forcast_plus_time="016",
+                                    fast_wind=True)
+"""launch_site = trajectory.LaunchSite(rail_length=10, 
+                                    rail_yaw=0, 
+                                    rail_pitch=0, 
+                                    alt=1, 
+                                    longi=0.1160127, 
+                                    lat=52.2079404, 
+                                    variable_wind=False)"""#Use this version if you don't want to use the real wind (e.g. to test something else)
 
 parachute = trajectory.Parachute(main_s = 13.9,
                                  main_c_d = 0.78,
