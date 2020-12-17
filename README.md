@@ -53,6 +53,8 @@ https://www.precice.org/ - Precise Code Interaction Coupling Environment - Can b
 
 http://ohllab.org/CFD_course/index.html - PyCFD
 
+https://arc.aiaa.org/doi/pdf/10.2514/3.62081 - Aerodynamic heating
+
 ## Program Workflow
 ![Rough flowchart](img/flowchart1.jpeg)
 
