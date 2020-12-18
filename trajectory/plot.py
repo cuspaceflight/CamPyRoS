@@ -10,8 +10,10 @@ import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
 from mpl_toolkits.mplot3d import Axes3D
 import trajectory
-from trajectory.transforms import pos_l2i, pos_i2l, vel_l2i, vel_i2l, direction_l2i, direction_i2l, pos_i2alt, i2airspeed
+from trajectory.transforms import pos_l2i, pos_i2l, vel_l2i, vel_i2l, direction_l2i, direction_i2l, pos_i2alt, i2airspeed,i2lla
 import pandas as pd
+from scipy.spatial.transform import Rotation
+from ambiance import Atmosphere
 
 def get_velocity_magnitude(df):
     return (np.sqrt(df["vx_l"]**2+df["vy_l"]**2+df["vz_l"]**2))
@@ -260,39 +262,97 @@ def plot_aero(simulation_output, rocket):
     output_dict = simulation_output.to_dict(orient="list")
     burnout_time = rocket.motor.motor_time_data[-1]
 
-    aero_x_b = []
-    aero_y_b = []
-    aero_z_b = []
-    q_data = []
+    force_x_b = []
+    force_y_b = []
+    force_z_b = []
 
+    moment_x_b = []
+    moment_y_b = []
+    moment_z_b = []
+
+    q_data = []
     cop_data = []
     cog_data = []
+    alpha_data = []
 
-    #Angles of attack (as defined in https://apps.dtic.mil/sti/pdfs/AD0642855.pdf)
-    alpha_star_data = []
-    beta_data = []
-    delta_data = []
-
+    print("Generating data for aerodynamic plot - may take a while")
+    message = False
     for i in range(len(output_dict["time"])):
         b2i = Rotation.from_matrix(output_dict["b2imat"][i])
 
-        aero_b, cop, q = rocket.aero_forces(output_dict["pos_i"][i], output_dict["vel_i"][i], b2i, output_dict["w_b"][i], output_dict["time"][i])
-        aero_x_b.append(aero_b[0])
-        aero_y_b.append(aero_b[1])
-        aero_z_b.append(aero_b[2])
-        q_data.append(q/1000)
+        force_b, cop, q = rocket.aero_forces(output_dict["pos_i"][i], output_dict["vel_i"][i], b2i, output_dict["w_b"][i], output_dict["time"][i])
 
+        force_x_b.append(force_b[0])
+        force_y_b.append(force_b[1])
+        force_z_b.append(force_b[2])
+
+        damping_moment = rocket.aero_damping_moment(output_dict["pos_i"][i], output_dict["vel_i"][i], b2i, output_dict["w_b"][i], output_dict["time"][i])
+
+        moment_x_b.append(damping_moment[0])
+        moment_y_b.append(damping_moment[1])
+        moment_z_b.append(damping_moment[2])
+
+        q_data.append(q)
         cop_data.append(-cop)
         cog_data.append(-rocket.mass_model.cog(output_dict["time"][i]))
+        lat,long,alt=i2lla(output_dict["pos_i"][i],output_dict["time"][i])
+        v_rel_wind = b2i.inv().apply( direction_l2i((i2airspeed(output_dict["pos_i"][i], output_dict["vel_i"][i], rocket.launch_site, output_dict["time"][i]) - rocket.launch_site.wind.get_wind(lat,long,alt)), rocket.launch_site,  output_dict["time"][i]) )
+        airspeed = np.linalg.norm(v_rel_wind)
+        alpha_data.append(np.arccos(np.dot(v_rel_wind/airspeed, [1,0,0])))
 
-        v_rel_wind = b2i.inv().apply( direction_l2i((i2airspeed(output_dict["pos_i"][i], output_dict["vel_i"][i], rocket.launch_site, output_dict["time"][i]) - rocket.launch_site.wind), rocket.launch_site,  output_dict["time"][i]) )
-        beta = np.arctan2(v_rel_wind[1], (v_rel_wind[0]**2 + v_rel_wind[2]**2 )**0.5 )
-        delta = np.arctan2((v_rel_wind[2]**2 + v_rel_wind[1]**2)**0.5, v_rel_wind[0])
-        alpha_star = np.arctan2(v_rel_wind[2], (v_rel_wind[0]**2 + v_rel_wind[1]**2 )**0.5 )
+        if message==False and i>len(output_dict["time"])/2:
+            print("50% complete")
+            message = True
+    
+    
+    print("Finished")
 
-        alpha_star_data.append(alpha_star*180/np.pi)
-        beta_data.append(beta*180/np.pi)
-        delta_data.append(delta*180/np.pi)
+    fig, axs = plt.subplots(2, 2)
+
+    axs[0, 0].set_title('Aerodynamic Force')
+    axs[0, 0].plot(output_dict["time"], force_x_b, label="X-force (body-coordinates)", color="red")
+    axs[0, 0].plot(output_dict["time"], force_y_b, label="Y-force (body-coordinates)", color="green")
+    axs[0, 0].plot(output_dict["time"], force_z_b, label = "Z-force (body-coordinates)", color="blue")
+    axs[0, 0].axvline(burnout_time, label="Burnout time", linestyle = '--', color="black")
+    axs[0,0].set_xlabel("Time (s)")
+    axs[0,0].set_ylabel("Force (N)")
+    axs[0,0].legend()
+    axs[0,0].grid()
+
+    axs[0, 1].set_title('Aerodynamic Damping Moment')
+    axs[0, 1].plot(output_dict["time"], moment_x_b, label="X-moment (body-coordinates)", color="red")
+    axs[0, 1].plot(output_dict["time"], moment_y_b, label="Y-moment (body-coordinates)", color="green")
+    axs[0, 1].plot(output_dict["time"], moment_z_b, label = "Z-moment (body-coordinates)", color="blue")
+    axs[0, 1].axvline(burnout_time, label="Burnout time", linestyle = '--', color="black")
+    axs[0,1].set_xlabel("Time (s)")
+    axs[0,1].set_ylabel("Moment (Nm)")
+    axs[0,1].legend()
+    axs[0,1].grid()
+
+    axs[1,0].set_title('Dynamic pressure')
+    axs[1,0].plot(output_dict["time"], np.array(q_data)/1000, label="Dynamic pressure")
+    axs[1,0].axvline(burnout_time, label="Burnout time", linestyle = '--', color="black")
+    axs[1,0].set_xlabel("Time (s)")
+    axs[1,0].set_ylabel("Dynamic Pressure (kPa)")
+    axs[1,0].legend()
+    axs[1,0].grid()
+
+    axs[1,1].set_title('Angle of attack, centre of pressure (COP), and centre of gravity (COG)')
+    axs[1,1].plot(output_dict["time"], np.array(alpha_data) * 180/np.pi, color="red", label="Angle of attack")
+
+    cop_axis = axs[1,1].twinx() #Plot COP and COG on the same graph as the angle of attack, but use a different y-scale
+    cop_axis.plot(output_dict["time"], cop_data, label="COP", color="green")
+    cop_axis.plot(output_dict["time"], cog_data, label="COG", color="blue")
+    cop_axis.set_ylabel("COP and COG position (m)")
+    cop_axis.legend()
+
+    axs[1,1].axvline(burnout_time, label="Burnout time", linestyle = '--', color="black")
+    axs[1,1].set_xlabel("Time (s)")
+    axs[1,1].set_ylabel("Angle of attack (deg)")
+    axs[1,1].legend()
+    axs[1,1].grid()
+
+    plt.show()
 
 def plot_thrust(simulation_output, rocket):
     """
