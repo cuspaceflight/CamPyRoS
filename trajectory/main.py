@@ -84,7 +84,7 @@ class Wind:
     #Data will be strored in data_loc in the format lat_long_date_run_period.grb2 where lat and long are the bottom left values
     #Run has to be 00, 06, 12 or 18
     """Wind object
-    
+
     Note
     ----
     Can give the wind vector for any lat long alt in the launch frame.
@@ -1020,7 +1020,7 @@ class Rocket:
             dict = record.to_dict(orient="list")
 
             #Now use the inbuilt json module to export it
-            with open(to_json, "w") as write_file:
+            with open(to_json, "w+") as write_file:
                 json.dump(dict, write_file)
             
             #How you could do this without the json module - but the JSON is stored in a less intuitive format:
