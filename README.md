@@ -53,6 +53,14 @@ https://www.precice.org/ - Precise Code Interaction Coupling Environment - Can b
 
 http://ohllab.org/CFD_course/index.html - PyCFD
 
+#### Stats
+https://www.umass.edu/remp/Papers/Smith&Wells_NERA06.pdf - How many samples
+https://apps.dtic.mil/dtic/tr/fulltext/u2/a621501.pdf - " " "
+https://ascelibrary.org/doi/pdf/10.1061/%28ASCE%29AS.1943-5525.0000051 - Basically what we're aiming for 
+- we should add random altitude parachute failures
+- can we add the ability to cant the fins and simulate roll stabalisation
+- Atmo needs to be way more complicated
+
 https://arc.aiaa.org/doi/pdf/10.2514/3.62081 - Aerodynamic heating
 
 ## Program Workflow
@@ -63,3 +71,15 @@ https://arc.aiaa.org/doi/pdf/10.2514/3.62081 - Aerodynamic heating
 RK4 chosen with the aid of [this](https://www.sciencedirect.com/science/article/pii/0045794981900675) paper.
 
 ![Rough flowchart](img/euler.png)
+
+## Variables that can vary
+- Rail pointing
+- Aero coefficients
+- Engine parameters
+- Gravitational force
+- Dry mass
+- Wet mass
+- Moment of inertia
+- Thrust miss alignment
+- Air density, temperature and pressure
+
