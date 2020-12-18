@@ -1,173 +1,184 @@
 
-
 <!DOCTYPE html>
-<html class="writer-html5" lang="en" >
-<head>
-  <meta charset="utf-8">
-  
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  
-  <title>trajectory package &mdash; 6DOF Rocket Trajectory Simulation 0.0.1 documentation</title>
-  
 
-  
-  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-
-  
-  
-  
-  
-
-  
-  <!--[if lt IE 9]>
-    <script src="_static/js/html5shiv.min.js"></script>
-  <![endif]-->
-  
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>trajectory package &#8212; 6DOF Rocket Trajectory Simulation 0.0.1 documentation</title>
     
-      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
-        <script src="_static/jquery.js"></script>
-        <script src="_static/underscore.js"></script>
-        <script src="_static/doctools.js"></script>
-        <script src="_static/language_data.js"></script>
-    
-    <script type="text/javascript" src="_static/js/theme.js"></script>
+  <link rel="stylesheet" href="_static/css/index.73d71520a4ca3b99cfee5594769eaaae.css">
 
     
+  <link rel="stylesheet"
+    href="_static/vendor/fontawesome/5.13.0/css/all.min.css">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="_static/vendor/fontawesome/5.13.0/webfonts/fa-solid-900.woff2">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="_static/vendor/fontawesome/5.13.0/webfonts/fa-brands-400.woff2">
+
+    
+      
+  <link rel="stylesheet"
+    href="_static/vendor/open-sans_all/1.44.1/index.css">
+  <link rel="stylesheet"
+    href="_static/vendor/lato_latin-ext/1.44.1/index.css">
+
+    
+    <link rel="stylesheet" href="_static/basic.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+  <link rel="preload" as="script" href="_static/js/index.3da636dd464baa7582d2.js">
+
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/language_data.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="prev" title="trajectory" href="modules.html" /> 
-</head>
-
-<body class="wy-body-for-nav">
-
-   
-  <div class="wy-grid-for-nav">
+    <link rel="prev" title="trajectory" href="modules.html" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="docsearch:language" content="en" />
+  </head>
+  <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="80">
     
-    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
-      <div class="wy-side-scroll">
-        <div class="wy-side-nav-search" >
-          
+    <nav class="navbar navbar-light navbar-expand-lg bg-light fixed-top bd-navbar" id="navbar-main">
+<div class="container-xl">
 
-          
-            <a href="index.html" class="icon icon-home" alt="Documentation Home"> 6DOF Rocket Trajectory Simulation
-          
+    <a class="navbar-brand" href="index.html">
+    
+      <p class="title">6DOF Rocket Trajectory Simulation</p>
+    
+    </a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbar-menu" aria-controls="navbar-menu" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+    </button>
 
-          
-          </a>
-
-          
-            
-            
-          
-
-          
-<div role="search">
-  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" />
-    <input type="hidden" name="check_keywords" value="yes" />
-    <input type="hidden" name="area" value="default" />
-  </form>
-</div>
-
-          
-        </div>
-
+    <div id="navbar-menu" class="col-lg-9 collapse navbar-collapse">
+      <ul id="navbar-main-elements" class="navbar-nav mr-auto">
         
-        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
-          
-            
-            
-              
-            
-            
-              <p class="caption"><span class="caption-text">Contents</span></p>
-<ul class="current">
-<li class="toctree-l1"><a class="reference internal" href="licences.html">License</a></li>
-<li class="toctree-l1"><a class="reference internal" href="licences.html#contact">Contact</a></li>
-<li class="toctree-l1"><a class="reference internal" href="help.html">Need help</a></li>
-<li class="toctree-l1 current"><a class="reference internal" href="modules.html">trajectory</a><ul class="current">
-<li class="toctree-l2 current"><a class="current reference internal" href="#">trajectory package</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#submodules">Submodules</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#module-trajectory.aero">aero module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#module-trajectory.constants">constants module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#module-trajectory.mass">mass module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#module-trajectory.plot">plot module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#module-trajectory.statistical">statistical module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#module-trajectory.transforms">transforms module</a></li>
-</ul>
-</li>
-</ul>
-</li>
-</ul>
-
-            
-          
-        </div>
         
-      </div>
-    </nav>
+        <li class="nav-item ">
+            <a class="nav-link" href="licences.html">License</a>
+        </li>
+        
+        <li class="nav-item ">
+            <a class="nav-link" href=""></a>
+        </li>
+        
+        <li class="nav-item ">
+            <a class="nav-link" href="help.html">Need help</a>
+        </li>
+        
+        <li class="nav-item active">
+            <a class="nav-link" href="modules.html">trajectory</a>
+        </li>
+        
+        
+      </ul>
 
-    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
 
       
-      <nav class="wy-nav-top" aria-label="top navigation">
+
+      <ul class="navbar-nav">
         
-          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-          <a href="index.html">6DOF Rocket Trajectory Simulation</a>
         
-      </nav>
-
-
-      <div class="wy-nav-content">
-        
-        <div class="rst-content">
-        
-          
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<div role="navigation" aria-label="breadcrumbs navigation">
-
-  <ul class="wy-breadcrumbs">
-    
-      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
-        
-          <li><a href="modules.html">trajectory</a> &raquo;</li>
-        
-      <li>trajectory package</li>
-    
-    
-      <li class="wy-breadcrumbs-aside">
-        
-            
-            <a href="_sources/trajectory.rst.txt" rel="nofollow"> View page source</a>
-          
-        
-      </li>
-    
-  </ul>
-
-  
-  <hr/>
+      </ul>
+    </div>
 </div>
-          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
-           <div itemprop="articleBody">
+    </nav>
+    
+
+    <div class="container-xl">
+      <div class="row">
+          
+          <div class="col-12 col-md-3 bd-sidebar"><form class="bd-search d-flex align-items-center" action="search.html" method="get">
+  <i class="icon fas fa-search"></i>
+  <input type="search" class="form-control" name="q" id="search-input" placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off" >
+</form>
+<nav class="bd-links" id="bd-docs-nav" aria-label="Main navigation">
+
+    <div class="bd-toc-item active">
+    
+  
+    <ul class="nav bd-sidenav">
+        
+        
+        
+        
+        
+        
+        
+        
+          
             
-  <div class="section" id="module-trajectory">
-<span id="trajectory-package"></span><h1>trajectory package<a class="headerlink" href="#module-trajectory" title="Permalink to this headline">¶</a></h1>
+                <li class="active">
+                    <a href="">trajectory package</a>
+                </li>
+            
+          
+        
+        
+      </ul>
+  
+  </nav>
+          </div>
+          
+
+          
+          <div class="d-none d-xl-block col-xl-2 bd-toc">
+              
+<div class="tocsection onthispage pt-5 pb-3">
+    <i class="fas fa-list"></i> On this page
+</div>
+
+<nav id="bd-toc-nav">
+    <ul class="nav section-nav flex-column">
+    
+        <li class="nav-item toc-entry toc-h2">
+            <a href="#submodules" class="nav-link">Submodules</a>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h2">
+            <a href="#module-trajectory.aero" class="nav-link">aero module</a>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h2">
+            <a href="#module-trajectory.constants" class="nav-link">constants module</a>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h2">
+            <a href="#module-trajectory.mass" class="nav-link">mass module</a>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h2">
+            <a href="#module-trajectory.plot" class="nav-link">plot module</a>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h2">
+            <a href="#module-trajectory.statistical" class="nav-link">statistical module</a>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h2">
+            <a href="#module-trajectory.transforms" class="nav-link">transforms module</a>
+        </li>
+    
+    </ul>
+</nav>
+
+
+              
+          </div>
+          
+
+          
+          <main class="col-12 col-md-9 col-xl-7 py-md-5 pl-md-5 pr-md-4 bd-content" role="main">
+              
+              <div>
+                
+  <div class="section" id="module-trajectory.main">
+<span id="trajectory-package"></span><h1>trajectory package<a class="headerlink" href="#module-trajectory.main" title="Permalink to this headline">¶</a></h1>
 <p>6DOF Trajectory Simulator
 Contains the classes and functions for the core trajectory simulation
 .. rubric:: Example</p>
@@ -201,8 +212,8 @@ z points to north from centre of earth, x aligned with launchsite at start and y
 </li>
 </ul>
 <dl class="py attribute">
-<dt id="trajectory.r_earth">
-<code class="sig-prename descclassname">trajectory.</code><code class="sig-name descname">r_earth</code><a class="headerlink" href="#trajectory.r_earth" title="Permalink to this definition">¶</a></dt>
+<dt id="trajectory.main.r_earth">
+<code class="sig-prename descclassname">trajectory.main.</code><code class="sig-name descname">r_earth</code><a class="headerlink" href="#trajectory.main.r_earth" title="Permalink to this definition">¶</a></dt>
 <dd><p>Radius of Earth/m</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type</dt>
@@ -212,8 +223,8 @@ z points to north from centre of earth, x aligned with launchsite at start and y
 </dd></dl>
 
 <dl class="py attribute">
-<dt id="trajectory.e_earth">
-<code class="sig-prename descclassname">trajectory.</code><code class="sig-name descname">e_earth</code><a class="headerlink" href="#trajectory.e_earth" title="Permalink to this definition">¶</a></dt>
+<dt id="trajectory.main.e_earth">
+<code class="sig-prename descclassname">trajectory.main.</code><code class="sig-name descname">e_earth</code><a class="headerlink" href="#trajectory.main.e_earth" title="Permalink to this definition">¶</a></dt>
 <dd><p>Eccentricity of the Earth, currently set to zero to simplify calculations (i.e. spherical Earth model is being used)</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type</dt>
@@ -223,8 +234,8 @@ z points to north from centre of earth, x aligned with launchsite at start and y
 </dd></dl>
 
 <dl class="py attribute">
-<dt id="trajectory.ang_vel_earth">
-<code class="sig-prename descclassname">trajectory.</code><code class="sig-name descname">ang_vel_earth</code><a class="headerlink" href="#trajectory.ang_vel_earth" title="Permalink to this definition">¶</a></dt>
+<dt id="trajectory.main.ang_vel_earth">
+<code class="sig-prename descclassname">trajectory.main.</code><code class="sig-name descname">ang_vel_earth</code><a class="headerlink" href="#trajectory.main.ang_vel_earth" title="Permalink to this definition">¶</a></dt>
 <dd><p>The angular velocity of the Earth</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type</dt>
@@ -234,8 +245,8 @@ z points to north from centre of earth, x aligned with launchsite at start and y
 </dd></dl>
 
 <dl class="py class">
-<dt id="trajectory.LaunchSite">
-<em class="property">class </em><code class="sig-prename descclassname">trajectory.</code><code class="sig-name descname">LaunchSite</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">rail_length</span></em>, <em class="sig-param"><span class="n">rail_yaw</span></em>, <em class="sig-param"><span class="n">rail_pitch</span></em>, <em class="sig-param"><span class="n">alt</span></em>, <em class="sig-param"><span class="n">longi</span></em>, <em class="sig-param"><span class="n">lat</span></em>, <em class="sig-param"><span class="n">variable_wind</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">default_wind</span><span class="o">=</span><span class="default_value">array([0, 0, 0])</span></em>, <em class="sig-param"><span class="n">wind_data_loc</span><span class="o">=</span><span class="default_value">'data/wind/gfs'</span></em>, <em class="sig-param"><span class="n">run_date</span><span class="o">=</span><span class="default_value">'20201218'</span></em>, <em class="sig-param"><span class="n">forcast_time</span><span class="o">=</span><span class="default_value">'00'</span></em>, <em class="sig-param"><span class="n">forcast_plus_time</span><span class="o">=</span><span class="default_value">'000'</span></em>, <em class="sig-param"><span class="n">fast_wind</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="headerlink" href="#trajectory.LaunchSite" title="Permalink to this definition">¶</a></dt>
+<dt id="trajectory.main.LaunchSite">
+<em class="property">class </em><code class="sig-prename descclassname">trajectory.main.</code><code class="sig-name descname">LaunchSite</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">rail_length</span></em>, <em class="sig-param"><span class="n">rail_yaw</span></em>, <em class="sig-param"><span class="n">rail_pitch</span></em>, <em class="sig-param"><span class="n">alt</span></em>, <em class="sig-param"><span class="n">longi</span></em>, <em class="sig-param"><span class="n">lat</span></em>, <em class="sig-param"><span class="n">variable_wind</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">default_wind</span><span class="o">=</span><span class="default_value">array([0, 0, 0])</span></em>, <em class="sig-param"><span class="n">wind_data_loc</span><span class="o">=</span><span class="default_value">'data/wind/gfs'</span></em>, <em class="sig-param"><span class="n">run_date</span><span class="o">=</span><span class="default_value">'20201218'</span></em>, <em class="sig-param"><span class="n">forcast_time</span><span class="o">=</span><span class="default_value">'00'</span></em>, <em class="sig-param"><span class="n">forcast_plus_time</span><span class="o">=</span><span class="default_value">'000'</span></em>, <em class="sig-param"><span class="n">fast_wind</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="headerlink" href="#trajectory.main.LaunchSite" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>Object holding the launch site information
 :param rail_length: Length of launch rail /m
@@ -261,8 +272,8 @@ z points to north from centre of earth, x aligned with launchsite at start and y
 :param forcast_plus_time: Hours forcast forward from forcast time, must be three digits between 000 and 123 (?), defaults to 000
 :type forcast_plus_time: string, optional</p>
 <dl class="py attribute">
-<dt id="trajectory.LaunchSite.rail_length">
-<code class="sig-name descname">rail_length</code><a class="headerlink" href="#trajectory.LaunchSite.rail_length" title="Permalink to this definition">¶</a></dt>
+<dt id="trajectory.main.LaunchSite.rail_length">
+<code class="sig-name descname">rail_length</code><a class="headerlink" href="#trajectory.main.LaunchSite.rail_length" title="Permalink to this definition">¶</a></dt>
 <dd><p>Length of launch rail /m</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type</dt>
@@ -272,8 +283,8 @@ z points to north from centre of earth, x aligned with launchsite at start and y
 </dd></dl>
 
 <dl class="py attribute">
-<dt id="trajectory.LaunchSite.rail_yaw">
-<code class="sig-name descname">rail_yaw</code><a class="headerlink" href="#trajectory.LaunchSite.rail_yaw" title="Permalink to this definition">¶</a></dt>
+<dt id="trajectory.main.LaunchSite.rail_yaw">
+<code class="sig-name descname">rail_yaw</code><a class="headerlink" href="#trajectory.main.LaunchSite.rail_yaw" title="Permalink to this definition">¶</a></dt>
 <dd><p>Angle of rotation about the z axis (north pointing) /rad</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type</dt>
@@ -283,8 +294,8 @@ z points to north from centre of earth, x aligned with launchsite at start and y
 </dd></dl>
 
 <dl class="py attribute">
-<dt id="trajectory.LaunchSite.rail_pitch">
-<code class="sig-name descname">rail_pitch</code><a class="headerlink" href="#trajectory.LaunchSite.rail_pitch" title="Permalink to this definition">¶</a></dt>
+<dt id="trajectory.main.LaunchSite.rail_pitch">
+<code class="sig-name descname">rail_pitch</code><a class="headerlink" href="#trajectory.main.LaunchSite.rail_pitch" title="Permalink to this definition">¶</a></dt>
 <dd><p>Angle of rotation about “East” pointing y axis - in order to simplify calculations below this needs to be measured in the yaw then pitch order rad</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type</dt>
@@ -294,8 +305,8 @@ z points to north from centre of earth, x aligned with launchsite at start and y
 </dd></dl>
 
 <dl class="py attribute">
-<dt id="trajectory.LaunchSite.alt">
-<code class="sig-name descname">alt</code><a class="headerlink" href="#trajectory.LaunchSite.alt" title="Permalink to this definition">¶</a></dt>
+<dt id="trajectory.main.LaunchSite.alt">
+<code class="sig-name descname">alt</code><a class="headerlink" href="#trajectory.main.LaunchSite.alt" title="Permalink to this definition">¶</a></dt>
 <dd><p>Altitude /m</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type</dt>
@@ -305,8 +316,8 @@ z points to north from centre of earth, x aligned with launchsite at start and y
 </dd></dl>
 
 <dl class="py attribute">
-<dt id="trajectory.LaunchSite.longi">
-<code class="sig-name descname">longi</code><a class="headerlink" href="#trajectory.LaunchSite.longi" title="Permalink to this definition">¶</a></dt>
+<dt id="trajectory.main.LaunchSite.longi">
+<code class="sig-name descname">longi</code><a class="headerlink" href="#trajectory.main.LaunchSite.longi" title="Permalink to this definition">¶</a></dt>
 <dd><p>Londditude /degrees</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type</dt>
@@ -316,8 +327,8 @@ z points to north from centre of earth, x aligned with launchsite at start and y
 </dd></dl>
 
 <dl class="py attribute">
-<dt id="trajectory.LaunchSite.lat">
-<code class="sig-name descname">lat</code><a class="headerlink" href="#trajectory.LaunchSite.lat" title="Permalink to this definition">¶</a></dt>
+<dt id="trajectory.main.LaunchSite.lat">
+<code class="sig-name descname">lat</code><a class="headerlink" href="#trajectory.main.LaunchSite.lat" title="Permalink to this definition">¶</a></dt>
 <dd><p>Latitude /degrees</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type</dt>
@@ -327,8 +338,8 @@ z points to north from centre of earth, x aligned with launchsite at start and y
 </dd></dl>
 
 <dl class="py attribute">
-<dt id="trajectory.LaunchSite.wind">
-<code class="sig-name descname">wind</code><a class="headerlink" href="#trajectory.LaunchSite.wind" title="Permalink to this definition">¶</a></dt>
+<dt id="trajectory.main.LaunchSite.wind">
+<code class="sig-name descname">wind</code><a class="headerlink" href="#trajectory.main.LaunchSite.wind" title="Permalink to this definition">¶</a></dt>
 <dd><p>Wind object for launch site</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type</dt>
@@ -340,8 +351,8 @@ z points to north from centre of earth, x aligned with launchsite at start and y
 </dd></dl>
 
 <dl class="py class">
-<dt id="trajectory.Motor">
-<em class="property">class </em><code class="sig-prename descclassname">trajectory.</code><code class="sig-name descname">Motor</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">motor_time_data</span></em>, <em class="sig-param"><span class="n">prop_mass_data</span></em>, <em class="sig-param"><span class="n">cham_pres_data</span></em>, <em class="sig-param"><span class="n">throat_data</span></em>, <em class="sig-param"><span class="n">gamma_data</span></em>, <em class="sig-param"><span class="n">nozzle_efficiency_data</span></em>, <em class="sig-param"><span class="n">exit_pres_data</span></em>, <em class="sig-param"><span class="n">area_ratio_data</span></em><span class="sig-paren">)</span><a class="headerlink" href="#trajectory.Motor" title="Permalink to this definition">¶</a></dt>
+<dt id="trajectory.main.Motor">
+<em class="property">class </em><code class="sig-prename descclassname">trajectory.main.</code><code class="sig-name descname">Motor</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">motor_time_data</span></em>, <em class="sig-param"><span class="n">prop_mass_data</span></em>, <em class="sig-param"><span class="n">cham_pres_data</span></em>, <em class="sig-param"><span class="n">throat_data</span></em>, <em class="sig-param"><span class="n">gamma_data</span></em>, <em class="sig-param"><span class="n">nozzle_efficiency_data</span></em>, <em class="sig-param"><span class="n">exit_pres_data</span></em>, <em class="sig-param"><span class="n">area_ratio_data</span></em><span class="sig-paren">)</span><a class="headerlink" href="#trajectory.main.Motor" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>Object holding the performance data for the engine
 :param motor_time_data: Time since ignition (with times corresponding to the other input lists) /s
@@ -361,8 +372,8 @@ z points to north from centre of earth, x aligned with launchsite at start and y
 :param area_ratio_data: Area ratio
 :type area_ratio_data: list</p>
 <dl class="py attribute">
-<dt id="trajectory.Motor.motor_time_data">
-<code class="sig-name descname">motor_time_data</code><a class="headerlink" href="#trajectory.Motor.motor_time_data" title="Permalink to this definition">¶</a></dt>
+<dt id="trajectory.main.Motor.motor_time_data">
+<code class="sig-name descname">motor_time_data</code><a class="headerlink" href="#trajectory.main.Motor.motor_time_data" title="Permalink to this definition">¶</a></dt>
 <dd><p>Time since ignition (with times corresponding to the other input lists) /s</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type</dt>
@@ -372,8 +383,8 @@ z points to north from centre of earth, x aligned with launchsite at start and y
 </dd></dl>
 
 <dl class="py attribute">
-<dt id="trajectory.Motor.prop_mass_data">
-<code class="sig-name descname">prop_mass_data</code><a class="headerlink" href="#trajectory.Motor.prop_mass_data" title="Permalink to this definition">¶</a></dt>
+<dt id="trajectory.main.Motor.prop_mass_data">
+<code class="sig-name descname">prop_mass_data</code><a class="headerlink" href="#trajectory.main.Motor.prop_mass_data" title="Permalink to this definition">¶</a></dt>
 <dd><p>Propellant mass /kg</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type</dt>
@@ -383,8 +394,8 @@ z points to north from centre of earth, x aligned with launchsite at start and y
 </dd></dl>
 
 <dl class="py attribute">
-<dt id="trajectory.Motor.cham_pres_data">
-<code class="sig-name descname">cham_pres_data</code><a class="headerlink" href="#trajectory.Motor.cham_pres_data" title="Permalink to this definition">¶</a></dt>
+<dt id="trajectory.main.Motor.cham_pres_data">
+<code class="sig-name descname">cham_pres_data</code><a class="headerlink" href="#trajectory.main.Motor.cham_pres_data" title="Permalink to this definition">¶</a></dt>
 <dd><p>Chamber Pressure /Pa</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type</dt>
@@ -394,8 +405,8 @@ z points to north from centre of earth, x aligned with launchsite at start and y
 </dd></dl>
 
 <dl class="py attribute">
-<dt id="trajectory.Motor.throat_data">
-<code class="sig-name descname">throat_data</code><a class="headerlink" href="#trajectory.Motor.throat_data" title="Permalink to this definition">¶</a></dt>
+<dt id="trajectory.main.Motor.throat_data">
+<code class="sig-name descname">throat_data</code><a class="headerlink" href="#trajectory.main.Motor.throat_data" title="Permalink to this definition">¶</a></dt>
 <dd><p>Throat diameter /m</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type</dt>
@@ -405,8 +416,8 @@ z points to north from centre of earth, x aligned with launchsite at start and y
 </dd></dl>
 
 <dl class="py attribute">
-<dt id="trajectory.Motor.gamma_data">
-<code class="sig-name descname">gamma_data</code><a class="headerlink" href="#trajectory.Motor.gamma_data" title="Permalink to this definition">¶</a></dt>
+<dt id="trajectory.main.Motor.gamma_data">
+<code class="sig-name descname">gamma_data</code><a class="headerlink" href="#trajectory.main.Motor.gamma_data" title="Permalink to this definition">¶</a></dt>
 <dd><p>Nozzle inlet gamma (ratio of specific heats)</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type</dt>
@@ -416,8 +427,8 @@ z points to north from centre of earth, x aligned with launchsite at start and y
 </dd></dl>
 
 <dl class="py attribute">
-<dt id="trajectory.Motor.nozzle_efficiency_data">
-<code class="sig-name descname">nozzle_efficiency_data</code><a class="headerlink" href="#trajectory.Motor.nozzle_efficiency_data" title="Permalink to this definition">¶</a></dt>
+<dt id="trajectory.main.Motor.nozzle_efficiency_data">
+<code class="sig-name descname">nozzle_efficiency_data</code><a class="headerlink" href="#trajectory.main.Motor.nozzle_efficiency_data" title="Permalink to this definition">¶</a></dt>
 <dd><p>Nozzle efficiency</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type</dt>
@@ -427,8 +438,8 @@ z points to north from centre of earth, x aligned with launchsite at start and y
 </dd></dl>
 
 <dl class="py attribute">
-<dt id="trajectory.Motor.exit_pres_data">
-<code class="sig-name descname">exit_pres_data</code><a class="headerlink" href="#trajectory.Motor.exit_pres_data" title="Permalink to this definition">¶</a></dt>
+<dt id="trajectory.main.Motor.exit_pres_data">
+<code class="sig-name descname">exit_pres_data</code><a class="headerlink" href="#trajectory.main.Motor.exit_pres_data" title="Permalink to this definition">¶</a></dt>
 <dd><p>Exit pressure /Pa</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type</dt>
@@ -438,8 +449,8 @@ z points to north from centre of earth, x aligned with launchsite at start and y
 </dd></dl>
 
 <dl class="py attribute">
-<dt id="trajectory.Motor.area_ratio_data">
-<code class="sig-name descname">area_ratio_data</code><a class="headerlink" href="#trajectory.Motor.area_ratio_data" title="Permalink to this definition">¶</a></dt>
+<dt id="trajectory.main.Motor.area_ratio_data">
+<code class="sig-name descname">area_ratio_data</code><a class="headerlink" href="#trajectory.main.Motor.area_ratio_data" title="Permalink to this definition">¶</a></dt>
 <dd><p>Area ratio</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type</dt>
@@ -451,8 +462,8 @@ z points to north from centre of earth, x aligned with launchsite at start and y
 </dd></dl>
 
 <dl class="py class">
-<dt id="trajectory.Parachute">
-<em class="property">class </em><code class="sig-prename descclassname">trajectory.</code><code class="sig-name descname">Parachute</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">main_s</span></em>, <em class="sig-param"><span class="n">main_c_d</span></em>, <em class="sig-param"><span class="n">drogue_s</span></em>, <em class="sig-param"><span class="n">drogue_c_d</span></em>, <em class="sig-param"><span class="n">main_alt</span></em>, <em class="sig-param"><span class="n">attatch_distance</span></em><span class="sig-paren">)</span><a class="headerlink" href="#trajectory.Parachute" title="Permalink to this definition">¶</a></dt>
+<dt id="trajectory.main.Parachute">
+<em class="property">class </em><code class="sig-prename descclassname">trajectory.main.</code><code class="sig-name descname">Parachute</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">main_s</span></em>, <em class="sig-param"><span class="n">main_c_d</span></em>, <em class="sig-param"><span class="n">drogue_s</span></em>, <em class="sig-param"><span class="n">drogue_c_d</span></em>, <em class="sig-param"><span class="n">main_alt</span></em>, <em class="sig-param"><span class="n">attatch_distance</span></em><span class="sig-paren">)</span><a class="headerlink" href="#trajectory.main.Parachute" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>Object holding the parachute information
 .. note:</p>
@@ -475,8 +486,8 @@ z points to north from centre of earth, x aligned with launchsite at start and y
 </dd>
 </dl>
 <dl class="py attribute">
-<dt id="trajectory.Parachute.main_s">
-<code class="sig-name descname">main_s</code><a class="headerlink" href="#trajectory.Parachute.main_s" title="Permalink to this definition">¶</a></dt>
+<dt id="trajectory.main.Parachute.main_s">
+<code class="sig-name descname">main_s</code><a class="headerlink" href="#trajectory.main.Parachute.main_s" title="Permalink to this definition">¶</a></dt>
 <dd><p>Area of main chute/m^2</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type</dt>
@@ -486,8 +497,8 @@ z points to north from centre of earth, x aligned with launchsite at start and y
 </dd></dl>
 
 <dl class="py attribute">
-<dt id="trajectory.Parachute.main_c_d">
-<code class="sig-name descname">main_c_d</code><a class="headerlink" href="#trajectory.Parachute.main_c_d" title="Permalink to this definition">¶</a></dt>
+<dt id="trajectory.main.Parachute.main_c_d">
+<code class="sig-name descname">main_c_d</code><a class="headerlink" href="#trajectory.main.Parachute.main_c_d" title="Permalink to this definition">¶</a></dt>
 <dd><p>Coefficient of drag for main chute/</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type</dt>
@@ -497,8 +508,8 @@ z points to north from centre of earth, x aligned with launchsite at start and y
 </dd></dl>
 
 <dl class="py attribute">
-<dt id="trajectory.Parachute.drogue_s">
-<code class="sig-name descname">drogue_s</code><a class="headerlink" href="#trajectory.Parachute.drogue_s" title="Permalink to this definition">¶</a></dt>
+<dt id="trajectory.main.Parachute.drogue_s">
+<code class="sig-name descname">drogue_s</code><a class="headerlink" href="#trajectory.main.Parachute.drogue_s" title="Permalink to this definition">¶</a></dt>
 <dd><p>Area of main chute/m^2</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type</dt>
@@ -508,8 +519,8 @@ z points to north from centre of earth, x aligned with launchsite at start and y
 </dd></dl>
 
 <dl class="py attribute">
-<dt id="trajectory.Parachute.drogue_c_d">
-<code class="sig-name descname">drogue_c_d</code><a class="headerlink" href="#trajectory.Parachute.drogue_c_d" title="Permalink to this definition">¶</a></dt>
+<dt id="trajectory.main.Parachute.drogue_c_d">
+<code class="sig-name descname">drogue_c_d</code><a class="headerlink" href="#trajectory.main.Parachute.drogue_c_d" title="Permalink to this definition">¶</a></dt>
 <dd><p>Coefficient of drag for main chute/</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type</dt>
@@ -519,8 +530,8 @@ z points to north from centre of earth, x aligned with launchsite at start and y
 </dd></dl>
 
 <dl class="py attribute">
-<dt id="trajectory.Parachute.main_alt">
-<code class="sig-name descname">main_alt</code><a class="headerlink" href="#trajectory.Parachute.main_alt" title="Permalink to this definition">¶</a></dt>
+<dt id="trajectory.main.Parachute.main_alt">
+<code class="sig-name descname">main_alt</code><a class="headerlink" href="#trajectory.main.Parachute.main_alt" title="Permalink to this definition">¶</a></dt>
 <dd><p>Altitude at which main deploys</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type</dt>
@@ -530,8 +541,8 @@ z points to north from centre of earth, x aligned with launchsite at start and y
 </dd></dl>
 
 <dl class="py attribute">
-<dt id="trajectory.Parachute.attatch_distance">
-<code class="sig-name descname">attatch_distance</code><a class="headerlink" href="#trajectory.Parachute.attatch_distance" title="Permalink to this definition">¶</a></dt>
+<dt id="trajectory.main.Parachute.attatch_distance">
+<code class="sig-name descname">attatch_distance</code><a class="headerlink" href="#trajectory.main.Parachute.attatch_distance" title="Permalink to this definition">¶</a></dt>
 <dd><p>Distance from the nose of the rocket that the parachute is attatched /m</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type</dt>
@@ -541,8 +552,8 @@ z points to north from centre of earth, x aligned with launchsite at start and y
 </dd></dl>
 
 <dl class="py method">
-<dt id="trajectory.Parachute.get">
-<code class="sig-name descname">get</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">alt</span></em><span class="sig-paren">)</span><a class="headerlink" href="#trajectory.Parachute.get" title="Permalink to this definition">¶</a></dt>
+<dt id="trajectory.main.Parachute.get">
+<code class="sig-name descname">get</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">alt</span></em><span class="sig-paren">)</span><a class="headerlink" href="#trajectory.main.Parachute.get" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns the current parachute area and drag coefficient (checks if main is deployed)
 :param alt: Rocket altitude /m
 :type alt: float</p>
@@ -560,8 +571,8 @@ Area /m^2</p>
 </dd></dl>
 
 <dl class="py class">
-<dt id="trajectory.Rocket">
-<em class="property">class </em><code class="sig-prename descclassname">trajectory.</code><code class="sig-name descname">Rocket</code><span class="sig-paren">(</span><em class="sig-param">mass_model</em>, <em class="sig-param">motor</em>, <em class="sig-param">aero</em>, <em class="sig-param">launch_site</em>, <em class="sig-param">h=0.01</em>, <em class="sig-param">variable=True</em>, <em class="sig-param">rtol=1e-07</em>, <em class="sig-param">atol=1e-14</em>, <em class="sig-param">parachute=&lt;trajectory.Parachute object&gt;</em>, <em class="sig-param">alt_poll_interval=1</em>, <em class="sig-param">thrust_vector=array([1</em>, <em class="sig-param">0</em>, <em class="sig-param">0])</em>, <em class="sig-param">errors={'density': 1.0</em>, <em class="sig-param">'gravity': 1.0</em>, <em class="sig-param">'pressure': 1.0</em>, <em class="sig-param">'speed_of_sound': 1.0}</em><span class="sig-paren">)</span><a class="headerlink" href="#trajectory.Rocket" title="Permalink to this definition">¶</a></dt>
+<dt id="trajectory.main.Rocket">
+<em class="property">class </em><code class="sig-prename descclassname">trajectory.main.</code><code class="sig-name descname">Rocket</code><span class="sig-paren">(</span><em class="sig-param">mass_model</em>, <em class="sig-param">motor</em>, <em class="sig-param">aero</em>, <em class="sig-param">launch_site</em>, <em class="sig-param">h=0.01</em>, <em class="sig-param">variable=True</em>, <em class="sig-param">rtol=1e-07</em>, <em class="sig-param">atol=1e-14</em>, <em class="sig-param">parachute=&lt;trajectory.main.Parachute object&gt;</em>, <em class="sig-param">alt_poll_interval=1</em>, <em class="sig-param">thrust_vector=array([1</em>, <em class="sig-param">0</em>, <em class="sig-param">0])</em>, <em class="sig-param">errors={'density': 1.0</em>, <em class="sig-param">'gravity': 1.0</em>, <em class="sig-param">'pressure': 1.0</em>, <em class="sig-param">'speed_of_sound': 1.0}</em><span class="sig-paren">)</span><a class="headerlink" href="#trajectory.main.Rocket" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>The rocket and key simulation components
 :param mass_model: Mass model object, must have mass, ixx, iyy, izz, cog class methods which return them at time
@@ -587,8 +598,8 @@ Area /m^2</p>
 <dl class="field-list simple">
 </dl>
 <dl class="py attribute">
-<dt id="trajectory.Rocket.mass_model">
-<code class="sig-name descname">mass_model</code><a class="headerlink" href="#trajectory.Rocket.mass_model" title="Permalink to this definition">¶</a></dt>
+<dt id="trajectory.main.Rocket.mass_model">
+<code class="sig-name descname">mass_model</code><a class="headerlink" href="#trajectory.main.Rocket.mass_model" title="Permalink to this definition">¶</a></dt>
 <dd><p>Mass model object, must have mass, ixx, iyy, izz, cog class methods which return them at time</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type</dt>
@@ -598,8 +609,8 @@ Area /m^2</p>
 </dd></dl>
 
 <dl class="py attribute">
-<dt id="trajectory.Rocket.motor">
-<code class="sig-name descname">motor</code><a class="headerlink" href="#trajectory.Rocket.motor" title="Permalink to this definition">¶</a></dt>
+<dt id="trajectory.main.Rocket.motor">
+<code class="sig-name descname">motor</code><a class="headerlink" href="#trajectory.main.Rocket.motor" title="Permalink to this definition">¶</a></dt>
 <dd><p>Motor object that stores peformace parameters over time</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type</dt>
@@ -609,8 +620,8 @@ Area /m^2</p>
 </dd></dl>
 
 <dl class="py attribute">
-<dt id="trajectory.Rocket.aero">
-<code class="sig-name descname">aero</code><a class="headerlink" href="#trajectory.Rocket.aero" title="Permalink to this definition">¶</a></dt>
+<dt id="trajectory.main.Rocket.aero">
+<code class="sig-name descname">aero</code><a class="headerlink" href="#trajectory.main.Rocket.aero" title="Permalink to this definition">¶</a></dt>
 <dd><p>Most have area, cop, cn and ca class methods which return that at time</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type</dt>
@@ -620,8 +631,8 @@ Area /m^2</p>
 </dd></dl>
 
 <dl class="py attribute">
-<dt id="trajectory.Rocket.launch_site">
-<code class="sig-name descname">launch_site</code><a class="headerlink" href="#trajectory.Rocket.launch_site" title="Permalink to this definition">¶</a></dt>
+<dt id="trajectory.main.Rocket.launch_site">
+<code class="sig-name descname">launch_site</code><a class="headerlink" href="#trajectory.main.Rocket.launch_site" title="Permalink to this definition">¶</a></dt>
 <dd><p>Stores launch site parameters</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type</dt>
@@ -631,8 +642,8 @@ Area /m^2</p>
 </dd></dl>
 
 <dl class="py attribute">
-<dt id="trajectory.Rocket.h">
-<code class="sig-name descname">h</code><a class="headerlink" href="#trajectory.Rocket.h" title="Permalink to this definition">¶</a></dt>
+<dt id="trajectory.main.Rocket.h">
+<code class="sig-name descname">h</code><a class="headerlink" href="#trajectory.main.Rocket.h" title="Permalink to this definition">¶</a></dt>
 <dd><p>Timestep for integration (only required when variable is off) /s</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type</dt>
@@ -642,8 +653,8 @@ Area /m^2</p>
 </dd></dl>
 
 <dl class="py attribute">
-<dt id="trajectory.Rocket.variable">
-<code class="sig-name descname">variable</code><a class="headerlink" href="#trajectory.Rocket.variable" title="Permalink to this definition">¶</a></dt>
+<dt id="trajectory.main.Rocket.variable">
+<code class="sig-name descname">variable</code><a class="headerlink" href="#trajectory.main.Rocket.variable" title="Permalink to this definition">¶</a></dt>
 <dd><p>Adaptive timesteps?, defaults to False</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type</dt>
@@ -653,8 +664,8 @@ Area /m^2</p>
 </dd></dl>
 
 <dl class="py attribute">
-<dt id="trajectory.Rocket.rtol">
-<code class="sig-name descname">rtol</code><a class="headerlink" href="#trajectory.Rocket.rtol" title="Permalink to this definition">¶</a></dt>
+<dt id="trajectory.main.Rocket.rtol">
+<code class="sig-name descname">rtol</code><a class="headerlink" href="#trajectory.main.Rocket.rtol" title="Permalink to this definition">¶</a></dt>
 <dd><p>Relative error tollerance for integration /</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type</dt>
@@ -664,8 +675,8 @@ Area /m^2</p>
 </dd></dl>
 
 <dl class="py attribute">
-<dt id="trajectory.Rocket.atol">
-<code class="sig-name descname">atol</code><a class="headerlink" href="#trajectory.Rocket.atol" title="Permalink to this definition">¶</a></dt>
+<dt id="trajectory.main.Rocket.atol">
+<code class="sig-name descname">atol</code><a class="headerlink" href="#trajectory.main.Rocket.atol" title="Permalink to this definition">¶</a></dt>
 <dd><p>Absolute error tollerance for integration /</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type</dt>
@@ -675,8 +686,8 @@ Area /m^2</p>
 </dd></dl>
 
 <dl class="py attribute">
-<dt id="trajectory.Rocket.b2i">
-<code class="sig-name descname">b2i</code><a class="headerlink" href="#trajectory.Rocket.b2i" title="Permalink to this definition">¶</a></dt>
+<dt id="trajectory.main.Rocket.b2i">
+<code class="sig-name descname">b2i</code><a class="headerlink" href="#trajectory.main.Rocket.b2i" title="Permalink to this definition">¶</a></dt>
 <dd><p>Specifies the rotation from the body to inertial frame</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type</dt>
@@ -686,8 +697,8 @@ Area /m^2</p>
 </dd></dl>
 
 <dl class="py attribute">
-<dt id="trajectory.Rocket.i2b">
-<code class="sig-name descname">i2b</code><a class="headerlink" href="#trajectory.Rocket.i2b" title="Permalink to this definition">¶</a></dt>
+<dt id="trajectory.main.Rocket.i2b">
+<code class="sig-name descname">i2b</code><a class="headerlink" href="#trajectory.main.Rocket.i2b" title="Permalink to this definition">¶</a></dt>
 <dd><p>Specifies the rotation from the inertial to body frame</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type</dt>
@@ -697,8 +708,8 @@ Area /m^2</p>
 </dd></dl>
 
 <dl class="py attribute">
-<dt id="trajectory.Rocket.pos_i">
-<code class="sig-name descname">pos_i</code><a class="headerlink" href="#trajectory.Rocket.pos_i" title="Permalink to this definition">¶</a></dt>
+<dt id="trajectory.main.Rocket.pos_i">
+<code class="sig-name descname">pos_i</code><a class="headerlink" href="#trajectory.main.Rocket.pos_i" title="Permalink to this definition">¶</a></dt>
 <dd><p>Position of the rocket in the inertial coordinate system [x,y,z] /m</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type</dt>
@@ -708,8 +719,8 @@ Area /m^2</p>
 </dd></dl>
 
 <dl class="py attribute">
-<dt id="trajectory.Rocket.vel_i">
-<code class="sig-name descname">vel_i</code><a class="headerlink" href="#trajectory.Rocket.vel_i" title="Permalink to this definition">¶</a></dt>
+<dt id="trajectory.main.Rocket.vel_i">
+<code class="sig-name descname">vel_i</code><a class="headerlink" href="#trajectory.main.Rocket.vel_i" title="Permalink to this definition">¶</a></dt>
 <dd><p>Velocity of the rocket in the inertial coordinate system [x,y,z] /m/s</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type</dt>
@@ -719,8 +730,8 @@ Area /m^2</p>
 </dd></dl>
 
 <dl class="py attribute">
-<dt id="trajectory.Rocket.w_b">
-<code class="sig-name descname">w_b</code><a class="headerlink" href="#trajectory.Rocket.w_b" title="Permalink to this definition">¶</a></dt>
+<dt id="trajectory.main.Rocket.w_b">
+<code class="sig-name descname">w_b</code><a class="headerlink" href="#trajectory.main.Rocket.w_b" title="Permalink to this definition">¶</a></dt>
 <dd><p>Angular velocity of the body coordinate system in the inertial frame [x,y,z]/rad/s</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type</dt>
@@ -730,8 +741,8 @@ Area /m^2</p>
 </dd></dl>
 
 <dl class="py attribute">
-<dt id="trajectory.Rocket.alt">
-<code class="sig-name descname">alt</code><a class="headerlink" href="#trajectory.Rocket.alt" title="Permalink to this definition">¶</a></dt>
+<dt id="trajectory.main.Rocket.alt">
+<code class="sig-name descname">alt</code><a class="headerlink" href="#trajectory.main.Rocket.alt" title="Permalink to this definition">¶</a></dt>
 <dd><p>Altitude of the rocket (height abover surface in the launchsite frame) /m</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type</dt>
@@ -741,8 +752,8 @@ Area /m^2</p>
 </dd></dl>
 
 <dl class="py attribute">
-<dt id="trajectory.Rocket.on_rail">
-<code class="sig-name descname">on_rail</code><a class="headerlink" href="#trajectory.Rocket.on_rail" title="Permalink to this definition">¶</a></dt>
+<dt id="trajectory.main.Rocket.on_rail">
+<code class="sig-name descname">on_rail</code><a class="headerlink" href="#trajectory.main.Rocket.on_rail" title="Permalink to this definition">¶</a></dt>
 <dd><p>Rocket still on rail? Initialises to True</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type</dt>
@@ -752,8 +763,8 @@ Area /m^2</p>
 </dd></dl>
 
 <dl class="py attribute">
-<dt id="trajectory.Rocket.burn_out">
-<code class="sig-name descname">burn_out</code><a class="headerlink" href="#trajectory.Rocket.burn_out" title="Permalink to this definition">¶</a></dt>
+<dt id="trajectory.main.Rocket.burn_out">
+<code class="sig-name descname">burn_out</code><a class="headerlink" href="#trajectory.main.Rocket.burn_out" title="Permalink to this definition">¶</a></dt>
 <dd><p>Engine burned out? Initialises to False</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type</dt>
@@ -763,8 +774,8 @@ Area /m^2</p>
 </dd></dl>
 
 <dl class="py attribute">
-<dt id="trajectory.Rocket.env_vars">
-<code class="sig-name descname">env_vars</code><a class="headerlink" href="#trajectory.Rocket.env_vars" title="Permalink to this definition">¶</a></dt>
+<dt id="trajectory.main.Rocket.env_vars">
+<code class="sig-name descname">env_vars</code><a class="headerlink" href="#trajectory.main.Rocket.env_vars" title="Permalink to this definition">¶</a></dt>
 <dd><p>Stores the coefficiants for the enviromental variables (see above)</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type</dt>
@@ -774,8 +785,8 @@ Area /m^2</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="trajectory.Rocket.accelerations">
-<code class="sig-name descname">accelerations</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">pos_i</span></em>, <em class="sig-param"><span class="n">vel_i</span></em>, <em class="sig-param"><span class="n">b2i</span></em>, <em class="sig-param"><span class="n">w_b</span></em>, <em class="sig-param"><span class="n">time</span></em><span class="sig-paren">)</span><a class="headerlink" href="#trajectory.Rocket.accelerations" title="Permalink to this definition">¶</a></dt>
+<dt id="trajectory.main.Rocket.accelerations">
+<code class="sig-name descname">accelerations</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">pos_i</span></em>, <em class="sig-param"><span class="n">vel_i</span></em>, <em class="sig-param"><span class="n">b2i</span></em>, <em class="sig-param"><span class="n">w_b</span></em>, <em class="sig-param"><span class="n">time</span></em><span class="sig-paren">)</span><a class="headerlink" href="#trajectory.main.Rocket.accelerations" title="Permalink to this definition">¶</a></dt>
 <dd><p>Gathers the foces on the rocket and returns translational and rotational accelerations on the rocket
 :param pos_i: Position of the rocket in the inertial coordinate system [x,y,z] /m
 :type pos_i: numpy array
@@ -798,8 +809,8 @@ Area /m^2</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="trajectory.Rocket.aero_damping_moment">
-<code class="sig-name descname">aero_damping_moment</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">pos_i</span></em>, <em class="sig-param"><span class="n">vel_i</span></em>, <em class="sig-param"><span class="n">b2i</span></em>, <em class="sig-param"><span class="n">w_b</span></em>, <em class="sig-param"><span class="n">time</span></em><span class="sig-paren">)</span><a class="headerlink" href="#trajectory.Rocket.aero_damping_moment" title="Permalink to this definition">¶</a></dt>
+<dt id="trajectory.main.Rocket.aero_damping_moment">
+<code class="sig-name descname">aero_damping_moment</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">pos_i</span></em>, <em class="sig-param"><span class="n">vel_i</span></em>, <em class="sig-param"><span class="n">b2i</span></em>, <em class="sig-param"><span class="n">w_b</span></em>, <em class="sig-param"><span class="n">time</span></em><span class="sig-paren">)</span><a class="headerlink" href="#trajectory.main.Rocket.aero_damping_moment" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns aerodynamic damping moments (in the body reference frame).</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
@@ -825,8 +836,8 @@ Area /m^2</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="trajectory.Rocket.aero_forces">
-<code class="sig-name descname">aero_forces</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">pos_i</span></em>, <em class="sig-param"><span class="n">vel_i</span></em>, <em class="sig-param"><span class="n">b2i</span></em>, <em class="sig-param"><span class="n">w_b</span></em>, <em class="sig-param"><span class="n">time</span></em><span class="sig-paren">)</span><a class="headerlink" href="#trajectory.Rocket.aero_forces" title="Permalink to this definition">¶</a></dt>
+<dt id="trajectory.main.Rocket.aero_forces">
+<code class="sig-name descname">aero_forces</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">pos_i</span></em>, <em class="sig-param"><span class="n">vel_i</span></em>, <em class="sig-param"><span class="n">b2i</span></em>, <em class="sig-param"><span class="n">w_b</span></em>, <em class="sig-param"><span class="n">time</span></em><span class="sig-paren">)</span><a class="headerlink" href="#trajectory.main.Rocket.aero_forces" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns aerodynamic forces (in the body reference frame and the distance of the centre of pressure (COP) from the front of the vehicle).</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
@@ -855,8 +866,8 @@ Area /m^2</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="trajectory.Rocket.check_phase">
-<code class="sig-name descname">check_phase</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">debug</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="headerlink" href="#trajectory.Rocket.check_phase" title="Permalink to this definition">¶</a></dt>
+<dt id="trajectory.main.Rocket.check_phase">
+<code class="sig-name descname">check_phase</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">debug</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="headerlink" href="#trajectory.main.Rocket.check_phase" title="Permalink to this definition">¶</a></dt>
 <dd><p>Checks phase of flight between steps
 .. rubric:: Notes</p>
 <p>-Since this only checks between steps there may be a very short period where the rocket is still orientated as if its still on the rail when it is not
@@ -875,8 +886,8 @@ Area /m^2</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="trajectory.Rocket.fdot">
-<code class="sig-name descname">fdot</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">time</span></em>, <em class="sig-param"><span class="n">fn</span></em><span class="sig-paren">)</span><a class="headerlink" href="#trajectory.Rocket.fdot" title="Permalink to this definition">¶</a></dt>
+<dt id="trajectory.main.Rocket.fdot">
+<code class="sig-name descname">fdot</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">time</span></em>, <em class="sig-param"><span class="n">fn</span></em><span class="sig-paren">)</span><a class="headerlink" href="#trajectory.main.Rocket.fdot" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns the rate of change of the Rocket’s state array, f
 .. rubric:: Notes</p>
 <p>-‘fdot’ here is the same as ‘ydot’ in the 2P1 (2nd Year) Engineering Lagrangian dynamics notes RK4 section</p>
@@ -910,8 +921,8 @@ zbdot[0], zbdot[1], zbdot[2]]</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="trajectory.Rocket.gravity">
-<code class="sig-name descname">gravity</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">pos_i</span></em>, <em class="sig-param"><span class="n">time</span></em><span class="sig-paren">)</span><a class="headerlink" href="#trajectory.Rocket.gravity" title="Permalink to this definition">¶</a></dt>
+<dt id="trajectory.main.Rocket.gravity">
+<code class="sig-name descname">gravity</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">pos_i</span></em>, <em class="sig-param"><span class="n">time</span></em><span class="sig-paren">)</span><a class="headerlink" href="#trajectory.main.Rocket.gravity" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns the gravity force, as a vector in inertial coordinates.
 .. note:: -Uses a spherical Earth gravity model</p>
 <dl class="field-list simple">
@@ -934,13 +945,13 @@ zbdot[0], zbdot[1], zbdot[2]]</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="trajectory.Rocket.parachute_force">
-<code class="sig-name descname">parachute_force</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">q</span></em>, <em class="sig-param"><span class="n">velocity</span></em>, <em class="sig-param"><span class="n">alt</span></em><span class="sig-paren">)</span><a class="headerlink" href="#trajectory.Rocket.parachute_force" title="Permalink to this definition">¶</a></dt>
+<dt id="trajectory.main.Rocket.parachute_force">
+<code class="sig-name descname">parachute_force</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">q</span></em>, <em class="sig-param"><span class="n">velocity</span></em>, <em class="sig-param"><span class="n">alt</span></em><span class="sig-paren">)</span><a class="headerlink" href="#trajectory.main.Rocket.parachute_force" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
-<dt id="trajectory.Rocket.run">
-<code class="sig-name descname">run</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">max_time</span><span class="o">=</span><span class="default_value">1000</span></em>, <em class="sig-param"><span class="n">debug</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">to_json</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="headerlink" href="#trajectory.Rocket.run" title="Permalink to this definition">¶</a></dt>
+<dt id="trajectory.main.Rocket.run">
+<code class="sig-name descname">run</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">max_time</span><span class="o">=</span><span class="default_value">1000</span></em>, <em class="sig-param"><span class="n">debug</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">to_json</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="headerlink" href="#trajectory.main.Rocket.run" title="Permalink to this definition">¶</a></dt>
 <dd><p>Runs the rocket simulation
 .. rubric:: Notes</p>
 <p>-Uses the scipy DOP853 O(h^8) integrator</p>
@@ -981,8 +992,8 @@ Most information can be derived from this in post processing.
 </dd></dl>
 
 <dl class="py method">
-<dt id="trajectory.Rocket.thrust">
-<code class="sig-name descname">thrust</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">pos_i</span></em>, <em class="sig-param"><span class="n">vel_i</span></em>, <em class="sig-param"><span class="n">b2i</span></em>, <em class="sig-param"><span class="n">w_b</span></em>, <em class="sig-param"><span class="n">time</span></em>, <em class="sig-param"><span class="n">vector</span><span class="o">=</span><span class="default_value">[1, 0, 0]</span></em><span class="sig-paren">)</span><a class="headerlink" href="#trajectory.Rocket.thrust" title="Permalink to this definition">¶</a></dt>
+<dt id="trajectory.main.Rocket.thrust">
+<code class="sig-name descname">thrust</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">pos_i</span></em>, <em class="sig-param"><span class="n">vel_i</span></em>, <em class="sig-param"><span class="n">b2i</span></em>, <em class="sig-param"><span class="n">w_b</span></em>, <em class="sig-param"><span class="n">time</span></em>, <em class="sig-param"><span class="n">vector</span><span class="o">=</span><span class="default_value">[1, 0, 0]</span></em><span class="sig-paren">)</span><a class="headerlink" href="#trajectory.main.Rocket.thrust" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns thrust and moments generated by the motor, in body frame.
 .. note:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">-</span> <span class="n">Mainly</span> <span class="n">derived</span> <span class="kn">from</span> <span class="nn">Joe</span> <span class="n">Hunt</span><span class="s1">&#39;s NOVUS Simulation</span>
@@ -1012,8 +1023,8 @@ Most information can be derived from this in post processing.
 </dd></dl>
 
 <dl class="py class">
-<dt id="trajectory.Wind">
-<em class="property">class </em><code class="sig-prename descclassname">trajectory.</code><code class="sig-name descname">Wind</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">initial_long</span></em>, <em class="sig-param"><span class="n">initial_lat</span></em>, <em class="sig-param"><span class="n">variable</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">default</span><span class="o">=</span><span class="default_value">array([0, 0, 0])</span></em>, <em class="sig-param"><span class="n">data_loc</span><span class="o">=</span><span class="default_value">'data/wind/gfs'</span></em>, <em class="sig-param"><span class="n">run_date</span><span class="o">=</span><span class="default_value">'20201218'</span></em>, <em class="sig-param"><span class="n">forcast_time</span><span class="o">=</span><span class="default_value">'00'</span></em>, <em class="sig-param"><span class="n">forcast_plus_time</span><span class="o">=</span><span class="default_value">'000'</span></em>, <em class="sig-param"><span class="n">fast</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="headerlink" href="#trajectory.Wind" title="Permalink to this definition">¶</a></dt>
+<dt id="trajectory.main.Wind">
+<em class="property">class </em><code class="sig-prename descclassname">trajectory.main.</code><code class="sig-name descname">Wind</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">initial_long</span></em>, <em class="sig-param"><span class="n">initial_lat</span></em>, <em class="sig-param"><span class="n">variable</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">default</span><span class="o">=</span><span class="default_value">array([0, 0, 0])</span></em>, <em class="sig-param"><span class="n">data_loc</span><span class="o">=</span><span class="default_value">'data/wind/gfs'</span></em>, <em class="sig-param"><span class="n">run_date</span><span class="o">=</span><span class="default_value">'20201218'</span></em>, <em class="sig-param"><span class="n">forcast_time</span><span class="o">=</span><span class="default_value">'00'</span></em>, <em class="sig-param"><span class="n">forcast_plus_time</span><span class="o">=</span><span class="default_value">'000'</span></em>, <em class="sig-param"><span class="n">fast</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="headerlink" href="#trajectory.main.Wind" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>Wind object</p>
 <div class="admonition note">
@@ -1036,8 +1047,8 @@ Data collected from the NOAA’s 0.25 degree 1 hour GFS forcast (<a class="refer
 </dd>
 </dl>
 <dl class="py attribute">
-<dt id="trajectory.Wind.centre_lat">
-<code class="sig-name descname">centre_lat</code><a class="headerlink" href="#trajectory.Wind.centre_lat" title="Permalink to this definition">¶</a></dt>
+<dt id="trajectory.main.Wind.centre_lat">
+<code class="sig-name descname">centre_lat</code><a class="headerlink" href="#trajectory.main.Wind.centre_lat" title="Permalink to this definition">¶</a></dt>
 <dd><p>Initial latitude /degrees</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type</dt>
@@ -1047,8 +1058,8 @@ Data collected from the NOAA’s 0.25 degree 1 hour GFS forcast (<a class="refer
 </dd></dl>
 
 <dl class="py attribute">
-<dt id="trajectory.Wind.centre_long">
-<code class="sig-name descname">centre_long</code><a class="headerlink" href="#trajectory.Wind.centre_long" title="Permalink to this definition">¶</a></dt>
+<dt id="trajectory.main.Wind.centre_long">
+<code class="sig-name descname">centre_long</code><a class="headerlink" href="#trajectory.main.Wind.centre_long" title="Permalink to this definition">¶</a></dt>
 <dd><p>Initial longitude /degrees</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type</dt>
@@ -1058,8 +1069,8 @@ Data collected from the NOAA’s 0.25 degree 1 hour GFS forcast (<a class="refer
 </dd></dl>
 
 <dl class="py attribute">
-<dt id="trajectory.Wind.data_loc">
-<code class="sig-name descname">data_loc</code><a class="headerlink" href="#trajectory.Wind.data_loc" title="Permalink to this definition">¶</a></dt>
+<dt id="trajectory.main.Wind.data_loc">
+<code class="sig-name descname">data_loc</code><a class="headerlink" href="#trajectory.main.Wind.data_loc" title="Permalink to this definition">¶</a></dt>
 <dd><p>Route to folder where the data will be stored</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type</dt>
@@ -1069,8 +1080,8 @@ Data collected from the NOAA’s 0.25 degree 1 hour GFS forcast (<a class="refer
 </dd></dl>
 
 <dl class="py attribute">
-<dt id="trajectory.Wind.variable">
-<code class="sig-name descname">variable</code><a class="headerlink" href="#trajectory.Wind.variable" title="Permalink to this definition">¶</a></dt>
+<dt id="trajectory.main.Wind.variable">
+<code class="sig-name descname">variable</code><a class="headerlink" href="#trajectory.main.Wind.variable" title="Permalink to this definition">¶</a></dt>
 <dd><p>Vary the wind or just use defaut for whole flight</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type</dt>
@@ -1080,8 +1091,8 @@ Data collected from the NOAA’s 0.25 degree 1 hour GFS forcast (<a class="refer
 </dd></dl>
 
 <dl class="py attribute">
-<dt id="trajectory.Wind.default">
-<code class="sig-name descname">default</code><a class="headerlink" href="#trajectory.Wind.default" title="Permalink to this definition">¶</a></dt>
+<dt id="trajectory.main.Wind.default">
+<code class="sig-name descname">default</code><a class="headerlink" href="#trajectory.main.Wind.default" title="Permalink to this definition">¶</a></dt>
 <dd><p>Default wind vector [wind_x,wind_y,wind_z]/m/s</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type</dt>
@@ -1091,8 +1102,8 @@ Data collected from the NOAA’s 0.25 degree 1 hour GFS forcast (<a class="refer
 </dd></dl>
 
 <dl class="py attribute">
-<dt id="trajectory.Wind.points">
-<code class="sig-name descname">points</code><a class="headerlink" href="#trajectory.Wind.points" title="Permalink to this definition">¶</a></dt>
+<dt id="trajectory.main.Wind.points">
+<code class="sig-name descname">points</code><a class="headerlink" href="#trajectory.main.Wind.points" title="Permalink to this definition">¶</a></dt>
 <dd><p>List of available [latitude,longitude] points available</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type</dt>
@@ -1102,8 +1113,8 @@ Data collected from the NOAA’s 0.25 degree 1 hour GFS forcast (<a class="refer
 </dd></dl>
 
 <dl class="py attribute">
-<dt id="trajectory.Wind.date">
-<code class="sig-name descname">date</code><a class="headerlink" href="#trajectory.Wind.date" title="Permalink to this definition">¶</a></dt>
+<dt id="trajectory.main.Wind.date">
+<code class="sig-name descname">date</code><a class="headerlink" href="#trajectory.main.Wind.date" title="Permalink to this definition">¶</a></dt>
 <dd><p>Date for forcast data in format YYYYMMDD</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type</dt>
@@ -1113,8 +1124,8 @@ Data collected from the NOAA’s 0.25 degree 1 hour GFS forcast (<a class="refer
 </dd></dl>
 
 <dl class="py attribute">
-<dt id="trajectory.Wind.forcast_time">
-<code class="sig-name descname">forcast_time</code><a class="headerlink" href="#trajectory.Wind.forcast_time" title="Permalink to this definition">¶</a></dt>
+<dt id="trajectory.main.Wind.forcast_time">
+<code class="sig-name descname">forcast_time</code><a class="headerlink" href="#trajectory.main.Wind.forcast_time" title="Permalink to this definition">¶</a></dt>
 <dd><p>Forcast run time, must be 00,06,12 or 18</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type</dt>
@@ -1124,8 +1135,8 @@ Data collected from the NOAA’s 0.25 degree 1 hour GFS forcast (<a class="refer
 </dd></dl>
 
 <dl class="py attribute">
-<dt id="trajectory.Wind.run_time">
-<code class="sig-name descname">run_time</code><a class="headerlink" href="#trajectory.Wind.run_time" title="Permalink to this definition">¶</a></dt>
+<dt id="trajectory.main.Wind.run_time">
+<code class="sig-name descname">run_time</code><a class="headerlink" href="#trajectory.main.Wind.run_time" title="Permalink to this definition">¶</a></dt>
 <dd><p>Hours forcast forward from forcast time, must be three digits between 000 and 123 (?)</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type</dt>
@@ -1135,8 +1146,8 @@ Data collected from the NOAA’s 0.25 degree 1 hour GFS forcast (<a class="refer
 </dd></dl>
 
 <dl class="py attribute">
-<dt id="trajectory.Wind.df">
-<code class="sig-name descname">df</code><a class="headerlink" href="#trajectory.Wind.df" title="Permalink to this definition">¶</a></dt>
+<dt id="trajectory.main.Wind.df">
+<code class="sig-name descname">df</code><a class="headerlink" href="#trajectory.main.Wind.df" title="Permalink to this definition">¶</a></dt>
 <dd><p>Dataframe holding wind data with columns lat, long, alt, wind x, wind y</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type</dt>
@@ -1146,8 +1157,8 @@ Data collected from the NOAA’s 0.25 degree 1 hour GFS forcast (<a class="refer
 </dd></dl>
 
 <dl class="py method">
-<dt id="trajectory.Wind.get_wind">
-<code class="sig-name descname">get_wind</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">lat</span></em>, <em class="sig-param"><span class="n">long</span></em>, <em class="sig-param"><span class="n">alt</span></em><span class="sig-paren">)</span><a class="headerlink" href="#trajectory.Wind.get_wind" title="Permalink to this definition">¶</a></dt>
+<dt id="trajectory.main.Wind.get_wind">
+<code class="sig-name descname">get_wind</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">lat</span></em>, <em class="sig-param"><span class="n">long</span></em>, <em class="sig-param"><span class="n">alt</span></em><span class="sig-paren">)</span><a class="headerlink" href="#trajectory.main.Wind.get_wind" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns wind for a specific lat,long,alt</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -1167,48 +1178,25 @@ Data collected from the NOAA’s 0.25 degree 1 hour GFS forcast (<a class="refer
 </dd></dl>
 
 <dl class="py method">
-<dt id="trajectory.Wind.load_data">
-<code class="sig-name descname">load_data</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">lats</span></em>, <em class="sig-param"><span class="n">longs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#trajectory.Wind.load_data" title="Permalink to this definition">¶</a></dt>
-<dd><p>Loads wind data for particualr lat long to the objects df.</p>
-<p class="rubric">Notes</p>
-<p>Checks if the file corespondin to the requested lat long at the time and date of the object is available.
-If not downloads. Then reads into the dataframe.
-The file has cubes for geopotential height, wind x and wind y by pressure at a square grid of lat longs.
-The wind x and y are itterated throgh the pressures for each lat long and the altitude found for each point
-by finding the geopotential height at the particular pressure which can be converted to altitude.
-Each point is then stored in the df separatly for ease of searching (because the library Iris is complelty inept for this).</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>lat</strong> (<em>float:</em>) – Requested latitude /degrees</p></li>
-<li><p><strong>longi</strong> (<em>float:</em>) – Requested longitude /degrees</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p><ul class="simple">
-<li><p><em>pandas DataFrame</em> – The new wind points</p></li>
-<li><p><em>points</em> – list of [lat,long] not available</p></li>
-</ul>
-</p>
-</dd>
-</dl>
-</dd></dl>
+<dt id="trajectory.main.Wind.load_data">
+<code class="sig-name descname">load_data</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">lats</span></em>, <em class="sig-param"><span class="n">longs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#trajectory.main.Wind.load_data" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
 
 <dl class="py method">
-<dt id="trajectory.Wind.load_fast">
-<code class="sig-name descname">load_fast</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">lat</span></em>, <em class="sig-param"><span class="n">long</span></em><span class="sig-paren">)</span><a class="headerlink" href="#trajectory.Wind.load_fast" title="Permalink to this definition">¶</a></dt>
+<dt id="trajectory.main.Wind.load_fast">
+<code class="sig-name descname">load_fast</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">lat</span></em>, <em class="sig-param"><span class="n">long</span></em><span class="sig-paren">)</span><a class="headerlink" href="#trajectory.main.Wind.load_fast" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
 <dl class="py function">
-<dt id="trajectory.closest">
-<code class="sig-prename descclassname">trajectory.</code><code class="sig-name descname">closest</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">num</span></em>, <em class="sig-param"><span class="n">incriment</span></em><span class="sig-paren">)</span><a class="headerlink" href="#trajectory.closest" title="Permalink to this definition">¶</a></dt>
+<dt id="trajectory.main.closest">
+<code class="sig-prename descclassname">trajectory.main.</code><code class="sig-name descname">closest</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">num</span></em>, <em class="sig-param"><span class="n">incriment</span></em><span class="sig-paren">)</span><a class="headerlink" href="#trajectory.main.closest" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py function">
-<dt id="trajectory.from_json">
-<code class="sig-prename descclassname">trajectory.</code><code class="sig-name descname">from_json</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">directory</span></em><span class="sig-paren">)</span><a class="headerlink" href="#trajectory.from_json" title="Permalink to this definition">¶</a></dt>
+<dt id="trajectory.main.from_json">
+<code class="sig-prename descclassname">trajectory.main.</code><code class="sig-name descname">from_json</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">directory</span></em><span class="sig-paren">)</span><a class="headerlink" href="#trajectory.main.from_json" title="Permalink to this definition">¶</a></dt>
 <dd><p>Imports simulation data from a JSON file
 :param directory: The directory of the simulation data .JSON file
 :type directory: string</p>
@@ -1241,19 +1229,19 @@ Most information can be derived from this in post processing.
 </dd></dl>
 
 <dl class="py function">
-<dt id="trajectory.points">
-<code class="sig-prename descclassname">trajectory.</code><code class="sig-name descname">points</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">lats</span></em>, <em class="sig-param"><span class="n">longs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#trajectory.points" title="Permalink to this definition">¶</a></dt>
+<dt id="trajectory.main.points">
+<code class="sig-prename descclassname">trajectory.main.</code><code class="sig-name descname">points</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">lats</span></em>, <em class="sig-param"><span class="n">longs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#trajectory.main.points" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py function">
-<dt id="trajectory.validate_lat_long">
-<code class="sig-prename descclassname">trajectory.</code><code class="sig-name descname">validate_lat_long</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">lat</span></em>, <em class="sig-param"><span class="n">long</span></em><span class="sig-paren">)</span><a class="headerlink" href="#trajectory.validate_lat_long" title="Permalink to this definition">¶</a></dt>
+<dt id="trajectory.main.validate_lat_long">
+<code class="sig-prename descclassname">trajectory.main.</code><code class="sig-name descname">validate_lat_long</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">lat</span></em>, <em class="sig-param"><span class="n">long</span></em><span class="sig-paren">)</span><a class="headerlink" href="#trajectory.main.validate_lat_long" title="Permalink to this definition">¶</a></dt>
 <dd><p>Makes latitude and longitude valid for wind</p>
 </dd></dl>
 
 <dl class="py function">
-<dt id="trajectory.warning_on_one_line">
-<code class="sig-prename descclassname">trajectory.</code><code class="sig-name descname">warning_on_one_line</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">message</span></em>, <em class="sig-param"><span class="n">category</span></em>, <em class="sig-param"><span class="n">filename</span></em>, <em class="sig-param"><span class="n">lineno</span></em>, <em class="sig-param"><span class="n">file</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">line</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#trajectory.warning_on_one_line" title="Permalink to this definition">¶</a></dt>
+<dt id="trajectory.main.warning_on_one_line">
+<code class="sig-prename descclassname">trajectory.main.</code><code class="sig-name descname">warning_on_one_line</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">message</span></em>, <em class="sig-param"><span class="n">category</span></em>, <em class="sig-param"><span class="n">filename</span></em>, <em class="sig-param"><span class="n">lineno</span></em>, <em class="sig-param"><span class="n">file</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">line</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#trajectory.main.warning_on_one_line" title="Permalink to this definition">¶</a></dt>
 <dd><p>A one line warning format</p>
 </dd></dl>
 
@@ -2804,57 +2792,32 @@ defaults to {“gravity”:1.0,”pressure”:1.0,”density”:1.0,”speed_of_
 </div>
 
 
-           </div>
-           
-          </div>
-          <footer>
-  
-    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-      
-      
-        <a href="modules.html" class="btn btn-neutral float-left" title="trajectory" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
-      
+              </div>
+              
+              
+              <div class='prev-next-bottom'>
+                
+    <a class='left-prev' id="prev-link" href="modules.html" title="previous page">trajectory</a>
+
+              </div>
+              
+          </main>
+          
+
+      </div>
     </div>
-  
 
-  <hr/>
+    
+  <script src="_static/js/index.3da636dd464baa7582d2.js"></script>
 
-  <div role="contentinfo">
+
+    <footer class="footer mt-5 mt-md-0">
+  <div class="container">
     <p>
-        
-        &copy; Copyright 2020, Jago Strong-Wright and Daniel Gibbons
-
+          &copy; Copyright 2020, Jago Strong-Wright and Daniel Gibbons.<br/>
+        Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.2.1.<br/>
     </p>
   </div>
-    
-    
-    
-    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
-    
-    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
-    
-    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
-
 </footer>
-
-        </div>
-      </div>
-
-    </section>
-
-  </div>
-  
-
-  <script type="text/javascript">
-      jQuery(function () {
-          SphinxRtdTheme.Navigation.enable(true);
-      });
-  </script>
-
-  
-  
-    
-   
-
-</body>
+  </body>
 </html>
