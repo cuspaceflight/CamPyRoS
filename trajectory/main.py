@@ -84,6 +84,7 @@ class Wind:
     #Data will be strored in data_loc in the format lat_long_date_run_period.grb2 where lat and long are the bottom left values
     #Run has to be 00, 06, 12 or 18
     """Wind object
+    
     Note
     ----
     Can give the wind vector for any lat long alt in the launch frame.
@@ -467,8 +468,8 @@ class LaunchSite:
         Londditude /degrees
     lat : float
         Latitude /degrees
-    wind : list, optional
-        Wind vector at launch site. Defaults to [0,0,0]. Will increase completness/complexity at some point to include at least altitude variation.
+    wind : wind object
+        Wind object for launch site
     """
     def __init__(self, rail_length, rail_yaw, rail_pitch, alt, longi, lat, variable_wind=True,default_wind=np.array([0,0,0]),wind_data_loc="data/wind/gfs",run_date=date.today().strftime("%Y%m%d"),forcast_time="00",forcast_plus_time="000",fast_wind=False):
         self.rail_length = rail_length
