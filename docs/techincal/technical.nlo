@@ -1,0 +1,36 @@
+\nomenclatureentry{z-cif$CIF$@[{$CIF$}]\begingroup Cauchy's Integral Formula\nomeqref {1.1}|nompageref}{1}
+\nomenclatureentry{a-F$F$@[{$F$}]\begingroup complex function\nomeqref {1.1}|nompageref}{1}
+\nomenclatureentry{g-p$\pi$@[{$\pi$}]\begingroup  $\simeq 3.14\ldots$\nomeqref {1.1}|nompageref}{1}
+\nomenclatureentry{g-i$\iota$@[{$\iota$}]\begingroup unit imaginary number $\sqrt{-1}$\nomeqref {1.1}|nompageref}{1}
+\nomenclatureentry{g-g$\gamma$@[{$\gamma$}]\begingroup a simply closed curve on a complex plane\nomeqref {1.1}|nompageref}{1}
+\nomenclatureentry{x-i$\oint_\gamma$@[{$\oint_\gamma$}]\begingroup integration around a curve $\gamma$\nomeqref {1.1}|nompageref}{1}
+\nomenclatureentry{r-j$j$@[{$j$}]\begingroup superscript index\nomeqref {1.1}|nompageref}{1}
+\nomenclatureentry{s-0$0$@[{$0$}]\begingroup subscript index\nomeqref {1.1}|nompageref}{1}
+\nomenclatureentry{z-DEMDEM@[{DEM}]\begingroup Discrete Element Method\nomeqref {1.1}|nompageref}{3}
+\nomenclatureentry{z-FEMFEM@[{FEM}]\begingroup Finite Element Method\nomeqref {1.1}|nompageref}{3}
+\nomenclatureentry{z-PFEMPFEM@[{PFEM}]\begingroup Particle Finite Element Method\nomeqref {1.1}|nompageref}{3}
+\nomenclatureentry{z-FVMFVM@[{FVM}]\begingroup Finite Volume Method\nomeqref {1.1}|nompageref}{3}
+\nomenclatureentry{z-BEMBEM@[{BEM}]\begingroup Boundary Element Method\nomeqref {1.1}|nompageref}{3}
+\nomenclatureentry{z-MPMMPM@[{MPM}]\begingroup Material Point Method\nomeqref {1.1}|nompageref}{3}
+\nomenclatureentry{z-LBMLBM@[{LBM}]\begingroup Lattice Boltzmann Method\nomeqref {1.1}|nompageref}{3}
+\nomenclatureentry{z-MRTMRT@[{MRT}]\begingroup Multi-Relaxation Time\nomeqref {1.1}|nompageref}{3}
+\nomenclatureentry{z-RVERVE@[{RVE}]\begingroup Representative Elemental Volume\nomeqref {1.1}|nompageref}{3}
+\nomenclatureentry{z-GPUGPU@[{GPU}]\begingroup Graphics Processing Unit\nomeqref {1.1}|nompageref}{3}
+\nomenclatureentry{z-SHSH@[{SH}]\begingroup Savage Hutter\nomeqref {1.1}|nompageref}{3}
+\nomenclatureentry{z-CFDCFD@[{CFD}]\begingroup Computational Fluid Dynamics\nomeqref {1.1}|nompageref}{3}
+\nomenclatureentry{z-LESLES@[{LES}]\begingroup Large Eddy Simulation\nomeqref {1.1}|nompageref}{3}
+\nomenclatureentry{z-FLOPFLOP@[{FLOP}]\begingroup Floating Point Operations\nomeqref {1.1}|nompageref}{3}
+\nomenclatureentry{z-ALUALU@[{ALU}]\begingroup Arithmetic Logic Unit\nomeqref {1.1}|nompageref}{3}
+\nomenclatureentry{z-FPUFPU@[{FPU}]\begingroup Floating Point Unit\nomeqref {1.1}|nompageref}{3}
+\nomenclatureentry{z-SMSM@[{SM}]\begingroup Streaming Multiprocessors\nomeqref {1.1}|nompageref}{3}
+\nomenclatureentry{z-PCIPCI@[{PCI}]\begingroup Peripheral Component Interconnect\nomeqref {1.1}|nompageref}{3}
+\nomenclatureentry{z-CKCK@[{CK}]\begingroup Carman - Kozeny\nomeqref {1.1}|nompageref}{3}
+\nomenclatureentry{z-CDCD@[{CD}]\begingroup Contact Dynamics\nomeqref {1.1}|nompageref}{3}
+\nomenclatureentry{z-DNSDNS@[{DNS}]\begingroup Direct Numerical Simulation\nomeqref {1.1}|nompageref}{3}
+\nomenclatureentry{z-EFGEFG@[{EFG}]\begingroup Element-Free Galerkin\nomeqref {1.1}|nompageref}{3}
+\nomenclatureentry{z-PICPIC@[{PIC}]\begingroup Particle-in-cell\nomeqref {1.1}|nompageref}{3}
+\nomenclatureentry{z-USFUSF@[{USF}]\begingroup Update Stress First\nomeqref {1.1}|nompageref}{3}
+\nomenclatureentry{z-USLUSL@[{USL}]\begingroup Update Stress Last\nomeqref {1.1}|nompageref}{3}
+\nomenclatureentry{s-critcrit@[{crit}]\begingroup Critical state\nomeqref {1.1}|nompageref}{3}
+\nomenclatureentry{z-DKTDKT@[{DKT}]\begingroup Draft Kiss Tumble\nomeqref {1.1}|nompageref}{3}
+\nomenclatureentry{z-PPCPPC@[{PPC}]\begingroup Particles per cell\nomeqref {1.1}|nompageref}{3}

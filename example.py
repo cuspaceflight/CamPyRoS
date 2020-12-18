@@ -1,4 +1,4 @@
-import trajectory, trajectory.aero, csv
+import trajectory, csv
 
 import numpy as np
 import pandas as pd
@@ -42,11 +42,11 @@ ref_area = 0.0305128422                     # m^2 - Reference area for aerodynam
 
 '''Set up aerodynamic properties'''
 #Get approximate values for the rotational damping coefficients
-c_damp_pitch = trajectory.aero.pitch_damping_coefficient(rocket_length, rocket_radius, fin_number = 4, area_per_fin = 0.07369928)
+c_damp_pitch = trajectory.pitch_damping_coefficient(rocket_length, rocket_radius, fin_number = 4, area_per_fin = 0.07369928)
 c_damp_roll = 0
 
 #Import drag coefficients from RASAero II
-aerodynamic_coefficients = trajectory.aero.RASAeroData("data/Martlet4RasAeroII.CSV", ref_area, c_damp_pitch, c_damp_roll)
+aerodynamic_coefficients = trajectory.RASAeroData("data/Martlet4RasAeroII.CSV", ref_area, c_damp_pitch, c_damp_roll)
 
 '''Set up the mass model'''
 liquid_fuel = trajectory.LiquidFuel(lden_data, lmass_data, rocket_radius, pos_tank_bottom, motor_time_data)
@@ -70,13 +70,24 @@ pulsar = trajectory.Motor(motor_time_data,
                           exit_pres_data, 
                           area_ratio_data)
 
-launch_site = trajectory.LaunchSite(rail_length=10, 
+"""launch_site = trajectory.LaunchSite(rail_length=10, 
                                     rail_yaw=0, 
                                     rail_pitch=0, 
-                                    alt=0, 
+                                    alt=1, 
+                                    longi=0.1160127, 
+                                    lat=52.2079404, 
+                                    variable_wind=True,
+                                    forcast_plus_time="016",
+                                    run_date="20201216",
+                                    fast_wind=True)"""
+launch_site = trajectory.LaunchSite(rail_length=5, 
+                                    rail_yaw=0, 
+                                    rail_pitch=0, 
+                                    alt=1, 
                                     longi=0, 
                                     lat=0, 
-                                    wind=[5,0,0])
+                                    variable_wind=False,
+                                    default_wind=np.array([5,0,0]))#Use this version if you don't want to use the real wind (e.g. to test something else)
 
 parachute = trajectory.Parachute(main_s = 13.9,
                                  main_c_d = 0.78,
@@ -89,7 +100,7 @@ parachute = trajectory.Parachute(main_s = 13.9,
 martlet4 = trajectory.Rocket(mass_model, pulsar, aerodynamic_coefficients, launch_site, h=0.05, variable=True, alt_poll_interval=1, parachute=parachute)
 
 '''Run the simulation'''
-#simulation_output = martlet4.run(max_time = 400, debug=True, to_json="output.json")
+simulation_output = martlet4.run(debug=True,to_json="output.json")
 
 '''Example of how you can import data from a .csv file'''
 imported_data = trajectory.from_json("output.json")
@@ -98,10 +109,9 @@ imported_data = trajectory.from_json("output.json")
 
 trajectory.plot_launch_trajectory_3d(imported_data, martlet4, show_orientation=False) #Could have also used simulation_output instead of imported_data
 trajectory.plot_altitude_time(imported_data, martlet4)
-#trajectory.plot_ypr(imported_data, martlet4)
+trajectory.plot_ypr(imported_data, martlet4)
 #trajectory.animate_orientation(imported_data)
 
 '''Extra plots you could make'''
 #trajectory.plot_mass(imported_data, martlet4)
-#trajectory.plot_aero(imported_data, martlet4)
-
+trajectory.plot_aero(imported_data, martlet4)

@@ -31,7 +31,7 @@ class RASAeroData:
         Normal coefficient of drag, when called interpolates to desired time /
     
     """ 
-    def __init__(self, file_location_string, ref_area, pitch_damping_coefficient = 0, roll_damping_coefficient = 0): 
+    def __init__(self, file_location_string, ref_area, pitch_damping_coefficient = 0, roll_damping_coefficient = 0, error={"CA":1.0,"CN":1.0,"COP":1.0}): 
         self.ref_area = ref_area
         self.pitch_damping_coefficient = pitch_damping_coefficient
         self.roll_damping_coefficient = roll_damping_coefficient
@@ -90,9 +90,9 @@ class RASAeroData:
         Mach = Mach[:2498]
            
         #Generate grids of the data
-        CA = np.array([CA_0, CA_2, CA_4])
-        CN = np.array([CN_0, CN_2, CN_4])
-        COP = 0.0254*np.array([COP_0, COP_2, COP_4])    #Convert inches to m
+        CA = error["CA"]*np.array([CA_0, CA_2, CA_4])
+        CN = error["CN"]*np.array([CN_0, CN_2, CN_4])
+        COP = error["COP"]*0.0254*np.array([COP_0, COP_2, COP_4])    #Convert inches to m
         alpha = [0,2,4]
                     
         #Generate functions (note these are funcitons, not variables) which return a coefficient given (Mach, alpha)
