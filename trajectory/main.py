@@ -31,7 +31,7 @@ ang_vel_earth : float
     The angular velocity of the Earth
 """
 
-import csv, warnings, os, sys, json, iris, requests, metpy.calc, os.path
+import csv, warnings, os, sys, json, iris, requests, metpy.calc, os.path, time
 from metpy.units import units
 import numpy as np
 import pandas as pd
@@ -180,6 +180,7 @@ class Wind:
         return scipy.interpolate.interp1d(np.linspace(0,45000,1000),mean,fill_value='extrapolate')
 
     def load_data(self,lats,longs):
+        tl=time.time()
         """Loads wind data for particualr lat long to the objects df. 
 
         Notes
@@ -264,12 +265,12 @@ class Wind:
                             row={"lat":lat,"long":np.mod(long,360),"alt":alt,"w_x":w_x,"w_y":w_y}
                             df=df.append(row,ignore_index=True)
                     except KeyError:
-                        warnings.warn("Wind datapoint lat=%s, long=%s, pres=%s was missed because of an unknown Iris error, this is non fatal as it will be interpolated from other values"%(lat,longi,pres))
+                        warnings.warn("Wind datapoint lat=%s, long=%s, pres=%s was missed because of an unknown Iris error, this is non fatal as it will be interpolated from other values"%(lat,long,pres))
                     except:
-                        warnings.warn("Wind datapoint lat=%s, long=%s, pres=%s was missed because of an unknown Iris error, this may be a fatal result if there are many instances in one dataset"%(lat,longi,pres))
-                if len(df)!=0:
-                    points.append([lat,long])
-        
+                        warnings.warn("Wind datapoint lat=%s, long=%s, pres=%s was missed because of an unknown Iris error, this may be a fatal result if there are many instances in one dataset"%(lat,long,pres))
+                #Add a lookup check here (i.e. query for lat long and check not none)
+                points.append([lat,long])
+        print("load time %s"%(time.time()-tl))
         return df,points
 
     def get_wind(self,lat,long,alt):
@@ -289,21 +290,24 @@ class Wind:
             Wind speed vector [x,y,z]/m/s
         """ 
         lat,long=validate_lat_long(lat,long)
-        if self.variable == True and self.fast==False:
+        if self.variable == True and self.fast==False and 0<alt<80000:
             lats=closest(lat,.25)
             longs=closest(long,.25)
-            availables=[[52.0,0.0],[52.25,0.25],[52.0,0.25],[52.25,0]]
-            if not all(point in availables for point in points(lats,longs)):
-                self.load_data(lats,longs)
+            if not all(point in self.points for point in points(lats,longs)):
+                new_df,new_points=self.load_data(lats,longs)
+                self.df+=new_df
+                self.points+=new_points
+                #would self.df,self.points+=self.load_data(lats,longs) be valid?
+
+            a=scipy.interpolate.interp1d(self.df.query("lat==%s"%lats[0]).query("long==%s"%longs[0])["alt"],np.array([-self.df.query("lat==%s"%lats[0]).query("long==%s"%longs[0])["w_y"],self.df.query("lat==%s"%lats[0]).query("long==%s"%longs[0])["w_x"],np.zeros(len(self.df.query("lat==%s"%lats[0]).query("long==%s"%longs[0])["w_y"]))]), fill_value='extrapolate')(alt)
+            b=scipy.interpolate.interp1d(self.df.query("lat==%s"%lats[0]).query("long==%s"%longs[1])["alt"],np.array([-self.df.query("lat==%s"%lats[0]).query("long==%s"%longs[1])["w_y"],self.df.query("lat==%s"%lats[0]).query("long==%s"%longs[1])["w_x"],np.zeros(len(self.df.query("lat==%s"%lats[0]).query("long==%s"%longs[1])["w_y"]))]), fill_value='extrapolate')(alt)
+            y_0=a+(long-longs[0])*(b-a)/(longs[1]-longs[0])
+
+            a=scipy.interpolate.interp1d(self.df.query("lat==%s"%lats[1]).query("long==%s"%longs[0])["alt"],np.array([-self.df.query("lat==%s"%lats[1]).query("long==%s"%longs[0])["w_y"],self.df.query("lat==%s"%lats[1]).query("long==%s"%longs[0])["w_x"],np.zeros(len(self.df.query("lat==%s"%lats[1]).query("long==%s"%longs[0])["w_y"]))]), fill_value='extrapolate')(alt)
+            b=scipy.interpolate.interp1d(self.df.query("lat==%s"%lats[1]).query("long==%s"%longs[1])["alt"],np.array([-self.df.query("lat==%s"%lats[1]).query("long==%s"%longs[1])["w_y"],self.df.query("lat==%s"%lats[1]).query("long==%s"%longs[1])["w_x"],np.zeros(len(self.df.query("lat==%s"%lats[1]).query("long==%s"%longs[1])["w_y"]))]), fill_value='extrapolate')(alt)
+            y_1=a+(long-longs[0])*(b-a)/(longs[1]-longs[0])
             
-            w=[[None,None],[None,None]]
-            y=[None,None]
-            for n in [0,1]:
-                for m in [0,1]:
-                    w[n][m]=scipy.interpolate.interp1d(self.df.query("lat==%s"%lats[n]).query("long==%s"%longs[m])["alt"],np.array([-self.df.query("lat==%s"%lats[n]).query("long==%s"%longs[m])["w_y"],self.df.query("lat==%s"%lats[n]).query("long==%s"%longs[m])["w_x"],np.zeros(len(self.df.query("lat==%s"%lats[n]).query("long==%s"%longs[m])["w_y"]))]), fill_value='extrapolate')(alt)
-                y[n]=w[n][0]+(long-longs[0])*(w[n][1]-w[n][0])/(longs[1]-longs[0])
-                
-            return y[0]+(lat-lats[0])*(y[1]-y[0])/(lats[1]-lats[0])
+            return y_0+(lat-lats[0])*(y_1-y_0)/(lats[1]-lats[0])
         elif self.variable == True and self.fast==True:
             return self.winds(alt)
         else:
