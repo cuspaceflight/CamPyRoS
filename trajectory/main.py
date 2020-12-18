@@ -629,7 +629,7 @@ class Rocket:
         #print(self.launch_site.wind.get_wind(lat,long,alt))
         v_rel_wind = b2i.inv().apply(direction_l2i((i2airspeed(pos_i, vel_i, self.launch_site, time) - self.launch_site.wind.get_wind(lat,long,alt)), self.launch_site, time) )
         air_speed = np.linalg.norm(v_rel_wind)
-        mach = air_speed*(Atmosphere(alt).speed_of_sound[0]*self.env_vars["speed_of_sound"])
+        mach = air_speed/(Atmosphere(alt).speed_of_sound[0]*self.env_vars["speed_of_sound"])
 
         #Angles of attack, as defined in Paper A: NASA Basic Considerations for Rocket Trajectory Simulation
         #np.angle(1j*a + b) is equivelant to np.arctan2(a/b) 
