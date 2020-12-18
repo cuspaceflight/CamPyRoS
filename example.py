@@ -70,7 +70,7 @@ pulsar = trajectory.Motor(motor_time_data,
                           exit_pres_data, 
                           area_ratio_data)
 
-"""launch_site = trajectory.LaunchSite(rail_length=10, 
+launch_site = trajectory.LaunchSite(rail_length=10, 
                                     rail_yaw=0, 
                                     rail_pitch=0, 
                                     alt=1, 
@@ -79,15 +79,15 @@ pulsar = trajectory.Motor(motor_time_data,
                                     variable_wind=True,
                                     forcast_plus_time="016",
                                     run_date="20201216",
-                                    fast_wind=True)"""
-launch_site = trajectory.LaunchSite(rail_length=5, 
+                                    fast_wind=True)
+"""launch_site = trajectory.LaunchSite(rail_length=5, 
                                     rail_yaw=0, 
                                     rail_pitch=0, 
                                     alt=1, 
                                     longi=0, 
                                     lat=0, 
                                     variable_wind=False,
-                                    default_wind=np.array([5,0,0]))#Use this version if you don't want to use the real wind (e.g. to test something else)
+                                    default_wind=np.array([5,0,0]))"""#Use this version if you don't want to use the real wind (e.g. to test something else)
 
 parachute = trajectory.Parachute(main_s = 13.9,
                                  main_c_d = 0.78,
@@ -115,4 +115,3 @@ trajectory.plot_ypr(imported_data, martlet4)
 '''Extra plots you could make'''
 #trajectory.plot_mass(imported_data, martlet4)
 trajectory.plot_aero(imported_data, martlet4)
-
