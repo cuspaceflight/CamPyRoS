@@ -141,12 +141,11 @@ class Wind:
         self.points=[]
         self.fast=fast
 
-        if lat<2:
-            warnings.warn("Wind data robustness has not yet been tested for the equator")
-        if abs(lat)>87:
-            warnings.warn("Wind data robustness has not yet been tested near the poles")
-
         if variable == True:
+            if lat<2:
+                warnings.warn("Wind data robustness has not yet been tested for the equator")
+            if abs(lat)>87:
+                warnings.warn("Wind data robustness has not yet been tested near the poles")
             if forcast_time not in ["00","06","12","18"]:
                 warnings.warn("The forcast run selected is not valid, must be '00', '06', '12' or '18'. This will be fatal on file load")
             valid_times=["00%s"%n for n in range(0,10)]+["0%s"%n for n in range(10,100)]+["%s"%n for n in range(100,385)]
