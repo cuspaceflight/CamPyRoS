@@ -170,8 +170,12 @@ class Wind:
                 x.append(scipy.interpolate.interp1d(self.df.query("lat==%s"%lats[n]).query("long==%s"%longs[m])["alt"],self.df.query("lat==%s"%lats[n]).query("long==%s"%longs[m])["w_x"], fill_value='extrapolate'))
                 y.append(scipy.interpolate.interp1d(self.df.query("lat==%s"%lats[n]).query("long==%s"%longs[m])["alt"],self.df.query("lat==%s"%lats[n]).query("long==%s"%longs[m])["w_y"], fill_value='extrapolate'))
         
+        mean_x=[]
+        mean_y=[]
         for alt in np.linspace(0,45000,1000):
-            mean.append(np.array([np.mean([x[0](alt),x[1](alt),x[2](alt),x[3](alt)]),np.mean([x[0](alt),x[1](alt),x[2](alt),x[3](alt)]),0]))
+            mean_x.append(np.mean([x[0](alt),x[1](alt),x[2](alt),x[3](alt)]))
+            mean_y.append(np.mean([x[0](alt),x[1](alt),x[2](alt),x[3](alt)]))
+        mean=np.array([mean_x,mean_y,np.zeros(len(mean_x))])
     
         return scipy.interpolate.interp1d(np.linspace(0,45000,1000),mean,fill_value='extrapolate')
 
