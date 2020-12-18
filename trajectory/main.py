@@ -1,12 +1,9 @@
 """6DOF Trajectory Simulator
-
 Contains the classes and functions for the core trajectory simulation
-
 Example
 -------
 A small, single stage rocket can be found in examples, to run
         $ python example/example.py
-
 Notes
 -----
     SI units unless stated otherwise
@@ -14,21 +11,16 @@ Notes
     x_b,y_b,z_b = Body coordinate system (origin on rocket, rotates with the rocket)
     x_i,y_i,z_i = Inertial coordinate system (does not rotate, origin at centre of the Earth)
     x_l, y_l, z_l = Launch site coordinate system (origin has the launch site's longitude and latitude, but is at altitude = 0). Rotates with the Earth.
-
     Directions are defined below.
-
     - Body:
         y points east and z north at take off (before rail alignment is accounted for) x up.
         x is along the "long" axis of the rocket.
-
     - Launch site:
         z points perpendicular to the earth, y in the east direction and x tangential to the earth pointing south
         
     - Inertial:
         Origin at centre of the Earth
         z points to north from centre of earth, x aligned with launchsite at start and y orthogonal
-
-
 Attributes
 ----------
 r_earth : float
@@ -37,37 +29,294 @@ e_earth : float
     Eccentricity of the Earth, currently set to zero to simplify calculations (i.e. spherical Earth model is being used)
 ang_vel_earth : float
     The angular velocity of the Earth
-
 """
 
-import csv, warnings, os, sys, json
+import csv, warnings, os, sys, json, iris, requests, metpy.calc, os.path
+from metpy.units import units
 import numpy as np
 import pandas as pd
 
 import scipy.interpolate
 from scipy.spatial.transform import Rotation
 import scipy.integrate as integrate
-from datetime import datetime
+from datetime import date
 
-from .constants import r_earth, ang_vel_earth
-from .transforms import pos_l2i, pos_i2l, vel_l2i, vel_i2l, direction_l2i, direction_i2l, i2airspeed, pos_i2alt
+from .constants import r_earth, ang_vel_earth, f
+from .transforms import pos_l2i, pos_i2l, vel_l2i, vel_i2l, direction_l2i, direction_i2l, i2airspeed, i2lla, pos_i2alt
 from ambiance import Atmosphere
 
 def warning_on_one_line(message, category, filename, lineno, file=None, line=None):
-    return ' %s:%s: %s:%s\n' % (filename, lineno, category.__name__, message)
+    """A one line warning format"""
+    return '%s:%s: %s:%s\n' % (filename, lineno, category.__name__, message)
 
 warnings.formatwarning = warning_on_one_line
 
+def validate_lat_long(lat,long):
+    """Makes latitude and longitude valid for wind"""
+    if abs(lat)>90:
+        lat=np.sign(lat)*(180-abs(lat))
+        long+=180
+    if long==-0.0:
+        long=-0.0
+    if long<0:
+        long+=360
+    long=np.mod(long,360)
+    if lat==-0.0:
+        lat=0.0
+    return round(lat,4),round(long,4)
+
+def closest(num,incriment):
+    a=round(num/incriment)*incriment
+    if a>num:
+        b=a-.25
+    else:
+        b=a+.25
+    return [a,b]
+
+def points(lats,longs):
+    points=[]
+    for n in [0,1]:
+        for m in [0,1]:
+            points.append([lats[n],longs[m]])
+    return points
+
+class Wind:
+    #Data will be strored in data_loc in the format lat_long_date_run_period.grb2 where lat and long are the bottom left values
+    #Run has to be 00, 06, 12 or 18
+    """Wind object
+
+    Note
+    ----
+    Can give the wind vector for any lat long alt in the launch frame.
+    Data collected from the NOAA's 0.25 degree 1 hour GFS forcast (https://nomads.ncep.noaa.gov/)
+
+    Parameters
+    ----------
+    initial_lat : float
+        Initial latitude /degrees
+    initial_long : float
+        Initial longitude /degrees
+    data_loc : string, optional
+        Route to folder where the data will be stored, defaults to data/wind/gfs
+    variable : bool, optional
+        Vary the wind or just use defaut for whole flight, defaults to True
+    default : numpy array, optional
+        Default wind vector [wind_x,wind_y,wind_z]/m/s, defauts to [0,0,0]
+    run_date : string, optional
+        Date for forcast data in format YYYYMMDD, defaults to current date
+    forcast_time : string, optional
+        Forcast run time, must be 00,06,12 or 18, defaults to 00
+    forcast_plus_time : string, optional
+        Hours forcast forward from forcast time, must be three digits between 000 and 123 (?), defaults to 000
+    Attributes
+    ----------
+    centre_lat : float
+        Initial latitude /degrees
+    centre_long : float
+        Initial longitude /degrees
+    data_loc : string
+        Route to folder where the data will be stored
+    variable : bool
+        Vary the wind or just use defaut for whole flight
+    default : numpy array
+        Default wind vector [wind_x,wind_y,wind_z]/m/s
+    points : list
+        List of available [latitude,longitude] points available
+    date : string
+        Date for forcast data in format YYYYMMDD
+    forcast_time : string
+        Forcast run time, must be 00,06,12 or 18
+    run_time : string
+        Hours forcast forward from forcast time, must be three digits between 000 and 123 (?)
+    df : pandas DataFrame
+        Dataframe holding wind data with columns lat, long, alt, wind x, wind y
+    """
+    def __init__(self,initial_long,initial_lat,variable=True,default=np.array([0,0,0]),data_loc="data/wind/gfs",run_date=date.today().strftime("%Y%m%d"),forcast_time="00",forcast_plus_time="000",fast=False):
+        lat,long=validate_lat_long(initial_lat,initial_long)
+        self.centre_lat=lat
+        self.centre_long=long
+        self.data_loc=data_loc#must be in last week for now
+        self.variable = variable
+        self.default=default
+        self.points=[]
+        self.fast=fast
+
+        if lat<2:
+            warnings.warn("Wind data robustness has not yet been tested for the equator")
+        if abs(lat)>87:
+            warnings.warn("Wind data robustness has not yet been tested near the poles")
+
+        if variable == True:
+            if forcast_time not in ["00","06","12","18"]:
+                warnings.warn("The forcast run selected is not valid, must be '00', '06', '12' or '18'. This will be fatal on file load")
+            valid_times=["00%s"%n for n in range(0,10)]+["0%s"%n for n in range(10,100)]+["%s"%n for n in range(100,385)]
+            if forcast_plus_time not in valid_times:
+                warnings.warn("The forcast time selected is not valid, must be three digit string time between 000 and 384. Thi siwll be fatal on file load")
+            self.date=run_date
+            self.forcast_time=forcast_time
+            self.run_time=forcast_plus_time
+            self.df,self.points=self.load_data(closest(self.centre_lat,.25),closest(self.centre_long,.25))
+            
+            if self.fast == True:
+                self.winds=self.load_fast(lat,long)
+    
+    def load_fast(self,lat,long):
+        mean=[]
+        lats=closest(lat,.25)
+        longs=closest(long,.25)
+        x=[]
+        y=[]
+        for n in [0,1]:
+            for m in [0,1]:
+                x.append(scipy.interpolate.interp1d(self.df.query("lat==%s"%lats[n]).query("long==%s"%longs[m])["alt"],self.df.query("lat==%s"%lats[n]).query("long==%s"%longs[m])["w_x"], fill_value='extrapolate'))
+                y.append(scipy.interpolate.interp1d(self.df.query("lat==%s"%lats[n]).query("long==%s"%longs[m])["alt"],self.df.query("lat==%s"%lats[n]).query("long==%s"%longs[m])["w_y"], fill_value='extrapolate'))
+        
+        mean_x=[]
+        mean_y=[]
+        for alt in np.linspace(0,45000,1000):
+            mean_x.append(np.mean([x[0](alt),x[1](alt),x[2](alt),x[3](alt)]))
+            mean_y.append(np.mean([y[0](alt),y[1](alt),y[2](alt),y[3](alt)]))
+        mean=np.array([-np.array(mean_y),np.array(mean_x),np.zeros(len(mean_x))])
+    
+        return scipy.interpolate.interp1d(np.linspace(0,45000,1000),mean,fill_value='extrapolate')
+
+    def load_data(self,lats,longs):
+        """Loads wind data for particualr lat long to the objects df. 
+
+        Notes
+        -----
+        Checks if the file corespondin to the requested lat long at the time and date of the object is available.
+        If not downloads. Then reads into the dataframe.
+        The file has cubes for geopotential height, wind x and wind y by pressure at a square grid of lat longs.
+        The wind x and y are itterated throgh the pressures for each lat long and the altitude found for each point
+        by finding the geopotential height at the particular pressure which can be converted to altitude.
+        Each point is then stored in the df separatly for ease of searching (because the library Iris is complelty inept for this).
+
+        Parameters
+        ----------
+        lat : float:
+            Requested latitude /degrees
+        longi : float:
+            Requested longitude /degrees
+        Returns
+        -------
+        pandas DataFrame
+            The new wind points
+        points
+            list of [lat,long] not available
+        """ 
+        lat_top=max(lats)
+        lat_bottom=min(lats)
+        long_left=min(longs)
+        long_right=max(longs)
+
+        lat_top,long_left=validate_lat_long(lat_top,long_left)
+        lat_bottom,long_right=validate_lat_long(lat_bottom,long_right)
+
+        if not os.path.isfile("%s/%s_%s_%s_%s_%s.grb2"%(self.data_loc,lat_bottom,long_left,self.date,self.forcast_time,self.run_time)):
+            #This does download 3 rows that aren't needed but I can't work out how to yeet them
+            print("Downloading files")
+            if long_left>long_right:
+                long_left_request=long_left-360
+            else:
+                long_left_request=long_left
+            
+            url="https://nomads.ncep.noaa.gov/cgi-bin/filter_gfs_0p25_1hr.pl?file=gfs.t{run}z.pgrb2.0p25.f{hour}&lev_0.4_mb=on&lev_1000_mb=on&lev_100_mb=on&lev_10_mb=on&lev_150_mb=on&lev_15_mb=on&lev_180-0_mb_above_ground=on&lev_1_mb=on&lev_200_mb=on&lev_20_mb=on&lev_250_mb=on&lev_255-0_mb_above_ground=on&lev_2_mb=on&lev_300_mb=on&lev_30-0_mb_above_ground=on&lev_30_mb=on&lev_350_mb=on&lev_3_mb=on&lev_400_mb=on&lev_40_mb=on&lev_450_mb=on&lev_500_mb=on&lev_50_mb=on&lev_550_mb=on&lev_5_mb=on&lev_600_mb=on&lev_650_mb=on&lev_700_mb=on&lev_70_mb=on&lev_750_mb=on&lev_7_mb=on&lev_800_mb=on&lev_850_mb=on&lev_900_mb=on&lev_925_mb=on&lev_950_mb=on&lev_975_mb=on&var_HGT=on&var_UGRD=on&var_VGRD=on&subregion=&leftlon={leftlon}&rightlon={rightlon}&toplat={toplat}&bottomlat={bottomlat}&dir=%2Fgfs.{date}%2F{run}".format(leftlon=long_left_request,rightlon=long_right,toplat=lat_top,bottomlat=lat_bottom,date=self.date,run=self.forcast_time,hour=self.run_time)
+            
+            r = requests.get(url, stream=True)
+
+            with open("%s/%s_%s_%s_%s_%s.grb2"%(self.data_loc,lat_bottom,long_left,self.date,self.forcast_time,self.run_time),'wb') as f:
+                for chunk in r.iter_content(chunk_size=1024):
+                    if chunk: 
+                        f.write(chunk)
+        if os.path.getsize("%s/%s_%s_%s_%s_%s.grb2"%(self.data_loc,lat_bottom,long_left,self.date,self.forcast_time,self.run_time))<1000:
+            raise RuntimeError("The weather data you requested was not found, this is usually because it was for an invalid date/time. lat=%s,long=%s was requested"%(lat,longi))
+        data=iris.load("%s/%s_%s_%s_%s_%s.grb2"%(self.data_loc,lat_bottom,long_left,self.date,self.forcast_time,self.run_time))
+        for index,row in enumerate(data):
+            try:
+                row.coord("pressure")
+                if row.standard_name=="x_wind":
+                    row_x_wind=index
+                elif row.standard_name=="y_wind":
+                    row_y_wind=index
+                elif row.standard_name=="geopotential_height":
+                    row_geo=index
+            except:
+                pass
+        lats=list(data[row_geo].coord("latitude").points)
+        longs=list(data[row_geo].coord("longitude").points)
+        df=pd.DataFrame(columns=["lat","long","alt","w_x","w_y"])
+        points=[]
+        for long in longs:
+            for lat in lats:
+                press_1=data[row_x_wind].extract(iris.Constraint(latitude=lat,longitude=long)).coord("pressure").points
+                press_2=data[row_y_wind].extract(iris.Constraint(latitude=lat,longitude=long)).coord("pressure").points
+                press_3=data[row_geo].extract(iris.Constraint(latitude=lat,longitude=long)).coord("pressure").points
+                press=[]
+                for pres in press_1:
+                    if (pres in press_2 and pres in press_3):
+                        press.append(pres)
+                for pres in press:
+                    try:
+                        if ([lat,long] not in self.points or [lat,long] not in points):
+                            w_x=data[row_x_wind].extract(iris.Constraint(latitude=lat,longitude=long,pressure=pres)).data
+                            w_y=data[row_y_wind].extract(iris.Constraint(latitude=lat,longitude=long,pressure=pres)).data
+                            alt=10*metpy.calc.geopotential_to_height(data[row_geo].extract(iris.Constraint(latitude=lat,longitude=long,pressure=pres)).data*units.m**2/units.s**2).magnitude
+                            row={"lat":lat,"long":np.mod(long,360),"alt":alt,"w_x":w_x,"w_y":w_y}
+                            df=df.append(row,ignore_index=True)
+                    except KeyError:
+                        warnings.warn("Wind datapoint lat=%s, long=%s, pres=%s was missed because of an unknown Iris error, this is non fatal as it will be interpolated from other values"%(lat,longi,pres))
+                    except:
+                        warnings.warn("Wind datapoint lat=%s, long=%s, pres=%s was missed because of an unknown Iris error, this may be a fatal result if there are many instances in one dataset"%(lat,longi,pres))
+                if len(df)!=0:
+                    points.append([lat,long])
+        
+        return df,points
+
+    def get_wind(self,lat,long,alt):
+        """Returns wind for a specific lat,long,alt 
+        
+        Parameters
+        ----------
+        lat : float:
+            Requested latitude /degrees
+        longi : float:
+            Requested longitude /degrees
+        alt : float:
+            Requested altitude /m
+        Returns
+        -------
+        numpy array
+            Wind speed vector [x,y,z]/m/s
+        """ 
+        lat,long=validate_lat_long(lat,long)
+        if self.variable == True and self.fast==False:
+            lats=closest(lat,.25)
+            longs=closest(long,.25)
+            availables=[[52.0,0.0],[52.25,0.25],[52.0,0.25],[52.25,0]]
+            if not all(point in availables for point in points(lats,longs)):
+                self.load_data(lats,longs)
+            
+            w=[[None,None],[None,None]]
+            y=[None,None]
+            for n in [0,1]:
+                for m in [0,1]:
+                    w[n][m]=scipy.interpolate.interp1d(self.df.query("lat==%s"%lats[n]).query("long==%s"%longs[m])["alt"],np.array([-self.df.query("lat==%s"%lats[n]).query("long==%s"%longs[m])["w_y"],self.df.query("lat==%s"%lats[n]).query("long==%s"%longs[m])["w_x"],np.zeros(len(self.df.query("lat==%s"%lats[n]).query("long==%s"%longs[m])["w_y"]))]), fill_value='extrapolate')(alt)
+                y[n]=w[n][0]+(long-longs[0])*(w[n][1]-w[n][0])/(longs[1]-longs[0])
+                
+            return y[0]+(lat-lats[0])*(y[1]-y[0])/(lats[1]-lats[0])
+        elif self.variable == True and self.fast==True:
+            return self.winds(alt)
+        else:
+            return self.default
 class Parachute:
     """Object holding the parachute information
-
     Note
     ----
     The parachute model does not currently simulate the true orientation of the rocket instead it orientates
     it such that it faces back first into the wind (as intuition would suggest).
     This is due to problems trying to impliment the chute exerting torque on the body, possibly because it has to flip 
     the rocket over at apogee
-
     Parameters
     ----------
     main_s : float
@@ -82,7 +331,6 @@ class Parachute:
         Altitude at which main deploys
     attatch_distance : float
         Distance from the nose of the rocket that the parachute is attatched /m
-
     Attributes
     ----------
     main_s : float
@@ -97,7 +345,6 @@ class Parachute:
         Altitude at which main deploys
     attatch_distance : float
         Distance from the nose of the rocket that the parachute is attatched /m
-
     """
     def __init__(self,main_s,main_c_d,drogue_s,drogue_c_d,main_alt,attatch_distance):
         self.main_s=main_s
@@ -110,18 +357,15 @@ class Parachute:
 
     def get(self,alt):
         """Returns the current parachute area and drag coefficient (checks if main is deployed)
-
         Parameters
         ----------
         alt : float
             Rocket altitude /m
-
         Returns
         -------
         float
             Drag coefficient /
             Area /m^2
-
         """ 
         if alt<self.main_alt:
             c_d=self.main_c_d
@@ -133,7 +377,6 @@ class Parachute:
 
 class Motor:
     """Object holding the performance data for the engine
-
     Parameters
     ----------
     motor_time_data : list
@@ -152,7 +395,6 @@ class Motor:
         Exit pressure /Pa
     area_ratio_data : list 
         Area ratio
-
     Attributes
     ----------
     motor_time_data : list
@@ -188,7 +430,6 @@ class Motor:
 
 class LaunchSite:
     """Object holding the launch site information
-
     Parameters
     ----------
     rail_length : float
@@ -203,9 +444,16 @@ class LaunchSite:
         Londditude /degrees
     lat : float
         Latitude /degrees
-    wind : list, optional
-        Wind vector at launch site. Defaults to [0,0,0]. Will increase completness/complexity at some point to include at least altitude variation.
-
+    variable : bool, optional
+        Vary the wind or just use defaut for whole flight, defaults to True
+    default : numpy array, optional
+        Default wind vector [wind_x,wind_y,wind_z]/m/s, defauts to [0,0,0]
+    run_date : string, optional
+        Date for forcast data in format YYYYMMDD, defaults to current date
+    forcast_time : string, optional
+        Forcast run time, must be 00,06,12 or 18, defaults to 00
+    forcast_plus_time : string, optional
+        Hours forcast forward from forcast time, must be three digits between 000 and 123 (?), defaults to 000
     Attributes
     ----------
     rail_length : float
@@ -220,22 +468,20 @@ class LaunchSite:
         Londditude /degrees
     lat : float
         Latitude /degrees
-    wind : list, optional
-        Wind vector at launch site. Defaults to [0,0,0]. Will increase completness/complexity at some point to include at least altitude variation.
-
+    wind : wind object
+        Wind object for launch site
     """
-    def __init__(self, rail_length, rail_yaw, rail_pitch, alt, longi, lat, wind=[0,0,0]):
+    def __init__(self, rail_length, rail_yaw, rail_pitch, alt, longi, lat, variable_wind=True,default_wind=np.array([0,0,0]),wind_data_loc="data/wind/gfs",run_date=date.today().strftime("%Y%m%d"),forcast_time="00",forcast_plus_time="000",fast_wind=False):
         self.rail_length = rail_length
         self.rail_yaw = rail_yaw
         self.rail_pitch = rail_pitch
-        self.alt = alt
+        self.alt = alt+1e-5
         self.longi = longi
         self.lat = lat
-        self.wind = np.array(wind)
+        self.wind = Wind(longi,lat,variable=variable_wind,default=default_wind,data_loc=wind_data_loc,run_date=run_date,forcast_time=forcast_time,forcast_plus_time=forcast_plus_time,fast=fast_wind)
  
 class Rocket:
     """The rocket and key simulation components
-
     Parameters
     ----------
     mass_model : Mass Model Object
@@ -254,7 +500,9 @@ class Rocket:
         Relative error tollerance for integration /
     atol : float
         Absolute error tollerance for integration /
-
+    errors : dictionary, optional
+        Multiplied factor for the gravity, pressure, density and speed of sound used in the model,
+        defaults to {"gravity":1.0,"pressure":1.0,"density":1.0,"speed_of_sound":1.0}
     Attributes
     ----------
     mass_model : Mass Model Object
@@ -289,9 +537,11 @@ class Rocket:
         Rocket still on rail? Initialises to True
     burn_out : bool
         Engine burned out? Initialises to False
+    env_vars : dictionary
+        Stores the coefficiants for the enviromental variables (see above)
     
     """   
-    def __init__(self, mass_model, motor, aero, launch_site, h=0.01, variable=False, rtol=1e-7, atol=1e-14, parachute=Parachute(0,0,0,0,0,0), alt_poll_interval=1):   
+    def __init__(self, mass_model, motor, aero, launch_site, h=0.01, variable=True, rtol=1e-7, atol=1e-14, parachute=Parachute(0,0,0,0,0,0),alt_poll_interval=1,thrust_vector=np.array([1,0,0]),errors={"gravity":1.0,"pressure":1.0,"density":1.0,"speed_of_sound":1.0}):
         self.launch_site = launch_site
         self.motor = motor
         self.aero = aero
@@ -337,9 +587,12 @@ class Rocket:
         self.parachute_deployed=False
         self.parachute=parachute
 
-        self.alt_record=pos_i2alt(self.pos_i)
+        self.alt_record=pos_i2alt(self.pos_i,self.time)
         self.alt_poll_watch_interval=alt_poll_interval
         self.alt_poll_watch=self.alt_poll_watch_interval
+
+        self.thrust_vector=thrust_vector
+        self.env_vars = errors
 
     def aero_forces(self, pos_i, vel_i, b2i, w_b, time):  
         """Returns aerodynamic forces (in the body reference frame and the distance of the centre of pressure (COP) from the front of the vehicle).
@@ -360,27 +613,24 @@ class Rocket:
             Angular velocity of the body in the body frame [x,y,z] /rad/s
         time : float
             Time since ignition /s
-
         Returns
         -------
         numpy array
             Aerodynamic forces on the rocket in the body frame [x,y,z] /N
         float
             Distance from the front of the rocket that the forces act through /m
-
-        """        
-        #Use np.angle(ja + b) to replace np.arctan(a/b)
-        alt = pos_i2alt(pos_i)
+        """                
+        #Get velocity relative to the wind (i.e. the airspeed vector), in body coordinates
+        lat,long,alt=i2lla(pos_i,time)
         if alt<-5000:
             #I keep getting some weird error where if there is any wind the timesteps go to ~11s long near the ground and then it goes really far under ground, presumably in less than one whole timestep so the simulation can't break
             alt=-5000
         elif alt>81020:
             alt=81020
-        
-        #Get velocity relative to the wind (i.e. the airspeed vector), in body coordinates
-        v_rel_wind = b2i.inv().apply( direction_l2i((i2airspeed(pos_i, vel_i, self.launch_site, time) - self.launch_site.wind), self.launch_site, time) )
-        airspeed = np.linalg.norm(v_rel_wind)
-        mach = airspeed/Atmosphere(alt).speed_of_sound[0]
+        #print(self.launch_site.wind.get_wind(lat,long,alt))
+        v_rel_wind = b2i.inv().apply(direction_l2i((i2airspeed(pos_i, vel_i, self.launch_site, time) - self.launch_site.wind.get_wind(lat,long,alt)), self.launch_site, time) )
+        air_speed = np.linalg.norm(v_rel_wind)
+        mach = air_speed/(Atmosphere(alt).speed_of_sound[0]*self.env_vars["speed_of_sound"])
 
         #Angles of attack, as defined in Paper A: NASA Basic Considerations for Rocket Trajectory Simulation
         #np.angle(1j*a + b) is equivelant to np.arctan2(a/b) 
@@ -391,10 +641,10 @@ class Rocket:
         #beta_star = np.angle(1j*v_rel_wind[1] + v_rel_wind[0])
 
         #Angle of attack as defined in https://ascelibrary.org/doi/pdf/10.1061/%28ASCE%29AS.1943-5525.0000051
-        alpha = np.arccos(np.dot(v_rel_wind/airspeed, [1,0,0]))
+        alpha = np.arccos(np.dot(v_rel_wind/air_speed, [1,0,0]))
         
-        #Dynamic pressure at the current altitude and velocity
-        q = 0.5*Atmosphere(alt).density[0]*(airspeed**2)
+        #Dynamic pressure at the current altitude and velocity - WARNING: Am I using the right density?
+        q = 0.5*Atmosphere(alt).density[0]*self.env_vars["density"]*(air_speed**2)
         
         #Reference area for coefficients
         S = self.aero.ref_area
@@ -405,12 +655,13 @@ class Rocket:
         
         #Forces
         FA = CA*q*S * np.array([-np.sign(v_rel_wind[0]), 0, 0])                         
-        FN = CN*q*S * np.cross([1,0,0], np.cross([1,0,0], v_rel_wind/airspeed) )                       
+        FN = CN*q*S * np.cross([1,0,0], np.cross([1,0,0], v_rel_wind/air_speed) )                       
 
         #Distance between rocket's nose tip and the COP:
         pos_cop = self.aero.COP(mach, abs(alpha))[0]
         
-        #Return the forces (note that they're given using the body coordinate system, [x_b, y_b, z_b]) and the COP position
+        #Return the forces (note that they're given using the body coordinate system, [x_b, y_b, z_b]).
+        #Also return the distance that the COP is from the front of the rocket.
         return FA+FN, pos_cop, q
         
     def aero_damping_moment(self, pos_i, vel_i, b2i, w_b, time):  
@@ -439,14 +690,13 @@ class Rocket:
             Aerodynamic damping moments on the rocket in the body frame [x,y,z] /N
 
         """        
-        alt = pos_i2alt(pos_i)
+        lat,long,alt=i2lla(pos_i,time)
         return np.array([-np.sign(w_b[0])*Atmosphere(alt).density[0] * w_b[0]**2 * self.aero.roll_damping_coefficient, 
                          -np.sign(w_b[1])*Atmosphere(alt).density[0] * w_b[1]**2 * self.aero.pitch_damping_coefficient,
                          -np.sign(w_b[2])*Atmosphere(alt).density[0] * w_b[2]**2 * self.aero.pitch_damping_coefficient])                  
 
     def thrust(self, pos_i, vel_i, b2i, w_b, time, vector = [1,0,0]): 
         """Returns thrust and moments generated by the motor, in body frame.
-
         Note
         ----
         - Mainly derived from Joe Hunt's NOVUS Simulation
@@ -466,15 +716,13 @@ class Rocket:
             Time since ignition /s
         vector : numpy array, optional
             Thrust direction in the body coordinate system - models misalignment or thrust vector control. Defaults to [1,0,0]
-
         Returns
         -------
         numpy array
             Thrust forces on the rocket in the body frame [x,y,z] /N
-
         """        
         vector = np.array(vector)
-        alt = pos_i2alt(pos_i)
+        alt = pos_i2alt(pos_i,time)
 
         if time < max(self.motor.motor_time_data):
             #Get the motor parameters at the current moment in time
@@ -487,7 +735,7 @@ class Rocket:
             mdot = np.interp(time, self.motor.motor_time_data, self.motor.mdot_data)
 
             #Get atmospheric pressure (to calculate pressure thrust)
-            pres_static = Atmosphere(alt).pressure[0]
+            pres_static = Atmosphere(alt).pressure[0]*self.env_vars["pressure"]
             
             #Calculate the thrust
             area_throat = ((dia_throat/2)**2)*np.pi
@@ -514,11 +762,9 @@ class Rocket:
         
     def gravity(self, pos_i, time): 
         """Returns the gravity force, as a vector in inertial coordinates.
-
         Note
         ----
         -Uses a spherical Earth gravity model
-
         Parameters
         ----------
         pos_i : numpy array
@@ -531,16 +777,14 @@ class Rocket:
             Angular velocity of the body in the body frame [x,y,z] /rad/s
         time : float
             Time since ignition /s
-
         Returns
         -------
         numpy array
             Gravitational force on rocket in inertial frame [x,y,z] /N
-
         """   
         
         # F = -GMm/r^2 = μm/r^2 where μ = 3.986004418e14 for Earth
-        return -3.986004418e14 * self.mass_model.mass(time) * pos_i / np.linalg.norm(pos_i)**3
+        return -self.env_vars["gravity"]*3.986004418e14 * self.mass_model.mass(time) * pos_i / np.linalg.norm(pos_i)**3
 
     def parachute_force(self, q, velocity, alt):
         c_d,s=self.parachute.get(alt)
@@ -548,7 +792,6 @@ class Rocket:
     
     def accelerations(self, pos_i, vel_i, b2i, w_b, time):
         """Gathers the foces on the rocket and returns translational and rotational accelerations on the rocket
-
         Parameters
         ----------
         pos_i : numpy array
@@ -561,22 +804,23 @@ class Rocket:
             Angular velocity of the body in the body frame [x,y,z] /rad/s
         time : float
             Time since ignition /s
-
         Returns
         -------
         numpy array
             Translational accleration in inertial frame, and rotational acceleration using the body coordinate system
-
         """   
-        if self.parachute_deployed==True:
-            aero_force_b, cop, q = self.aero_forces(pos_i, vel_i, b2i, w_b, time)
+        if self.parachute_deployed==True and self.parachute.main_c_d!=0:
+            lat,long,alt=i2lla(pos_i,time)
+            if alt<-5000:
+                #I keep getting some weird error where if there is any wind the timesteps go to ~11s long near the ground and then it goes really far under ground, presumably in less than one whole timestep so the simulation can't break
+                alt=-5000
+            elif alt>81020:
+                alt=81020
+            v_rel_wind = b2i.inv().apply(direction_l2i((i2airspeed(pos_i, vel_i, self.launch_site, time) - self.launch_site.wind.get_wind(lat,long,alt)), self.launch_site, time))
+            air_speed = np.linalg.norm(v_rel_wind)
+            q = 0.5*Atmosphere(alt).density[0]*self.env_vars["density"]*(air_speed**2)
             cog = self.mass_model.cog(time)
-
-            wind_inertial =  vel_l2i(self.launch_site.wind, self.launch_site, time)
-            v_rel_wind = self.vel_i-wind_inertial
-            #v_rel_wind = b2i.inv().apply( direction_l2i((i2airspeed(pos_i, vel_i, self.launch_site, time) - self.launch_site.wind), self.launch_site, time) )
-            
-            parachute_force_i=self.parachute_force(q,v_rel_wind,pos_i2alt(pos_i))+self.gravity(pos_i,time)
+            parachute_force_i=self.parachute_force(q,b2i.apply(v_rel_wind),pos_i2alt(pos_i,time))+self.gravity(pos_i,time)
 
             F=parachute_force_i
             Q_b=np.array([0,0,0])
@@ -632,11 +876,9 @@ class Rocket:
 
     def fdot(self, time, fn):
         """Returns the rate of change of the Rocket's state array, f
-
         Notes
         -----
         -'fdot' here is the same as 'ydot' in the 2P1 (2nd Year) Engineering Lagrangian dynamics notes RK4 section
-
         Parameters
         ----------
         time : float
@@ -648,7 +890,6 @@ class Rocket:
              xb[0], xb[1], xb[2], 
              yb[0], yb[1], yb[2], 
              zb[0],zb[1],zb[2]]
-
         Returns
         -------
         numpy array
@@ -686,11 +927,9 @@ class Rocket:
 
     def run(self, max_time=1000, debug=False, to_json = False):
         """Runs the rocket simulation
-
         Notes
         -----
         -Uses the scipy DOP853 O(h^8) integrator
-
         Parameters
         ----------
         max_time : int, optional
@@ -701,13 +940,11 @@ class Rocket:
             Export a .JSON file containing the data to the directory given, "False" means nothing will be exported.
         json_orient : string
             See pandas.DataFrame.to_json documentation - allowed values are: {‘split’, ‘records’, ‘index’, ‘columns’, ‘values’, ‘table’}. Defaults to 'split'.
-
         Returns
         -------
         pandas array
             Record of simulation, contains interial position and velocity, angular velocity in body coordinates, orientation and events (e.g. parachute).
             Most information can be derived from this in post processing.
-
             "time" : array
                 List of times that all the data corresponds to /s
             "pos_i" : array
@@ -720,7 +957,6 @@ class Rocket:
                 List of angular velocity vectors, in body coordinates [x, y, z] /rad/s
             "events" : array:
                 List of useful events        
-
         """
         if debug == True:
             print("Running simulation")
@@ -734,7 +970,7 @@ class Rocket:
 
         record=pd.DataFrame({})
         c=0
-        while (pos_i2alt(self.pos_i)>=0 and self.time<max_time):
+        while (pos_i2alt(self.pos_i,self.time)>=0 and self.time<max_time):
             if self.variable_time==False:
                 integrator.h_abs=self.h
             events=self.check_phase(debug=debug)
@@ -748,7 +984,8 @@ class Rocket:
                 b2imat[:,1] = np.array([integrator.y[12],integrator.y[13],integrator.y[14]])      #body y-direction
                 b2imat[:,2] = np.array([integrator.y[15],integrator.y[16],integrator.y[17]])      #body z-direction
             else:
-                wind_inertial =  vel_l2i(self.launch_site.wind, self.launch_site, self.time)
+                lat,long,alt=i2lla(self.pos_i,self.time)
+                wind_inertial =  vel_l2i(self.launch_site.wind.get_wind(lat,long,alt), self.launch_site, self.time)
                 v_rel_wind = self.vel_i-wind_inertial
                 b2imat[:,0] = -v_rel_wind/np.linalg.norm(v_rel_wind)   #body x-direction
                 z=self.b2i.as_matrix()[:,2]
@@ -774,7 +1011,7 @@ class Rocket:
 
             record=record.append(new_row, ignore_index=True)
             if (c%100==0 and debug==True):
-                print("t={:.2f} s alt={:.2f} km (h={} s). Step number {}".format(self.time, pos_i2alt(self.pos_i)/1000, integrator.h_abs, c))
+                print("t={:.2f} s alt={:.2f} km (h={} s). Step number {}".format(self.time, pos_i2alt(self.pos_i,self.time)/1000, integrator.h_abs, c))
             c+=1
 
         #Export a JSON if required
@@ -783,7 +1020,7 @@ class Rocket:
             dict = record.to_dict(orient="list")
 
             #Now use the inbuilt json module to export it
-            with open(to_json, "w") as write_file:
+            with open(to_json, "w+") as write_file:
                 json.dump(dict, write_file)
             
             #How you could do this without the json module - but the JSON is stored in a less intuitive format:
@@ -796,22 +1033,18 @@ class Rocket:
 
     def check_phase(self, debug=False):
         """Checks phase of flight between steps
-
         Notes
         -----
         -Since this only checks between steps there may be a very short period where the rocket is still orientated as if its still on the rail when it is not
         -May look like the rocket leaves the rail at an altitude greater than the rail length for this reason
-
         Parameters
         ----------
         verbose : bool, optional
             Outputs progress messages if True
-
         Returns
         -------
         list
             List of events that happened in this step for log
-
         """
         events=[]
         if self.on_rail==True:
@@ -819,7 +1052,7 @@ class Rocket:
             if flight_distance>=self.launch_site.rail_length:
                 if debug == True:
                     print("Cleared rail at t={:.2f} s with alt={:.2f} m and TtW={:.2f}".format(self.time,
-                pos_i2alt(self.pos_i),
+                pos_i2alt(self.pos_i,self.time),
                 np.linalg.norm(self.accelerations(self.pos_i, self.vel_i, self.b2i, self.w_b, self.time)[0])/9.81)
                 )
                 self.on_rail=False
@@ -827,23 +1060,13 @@ class Rocket:
 
         if self.parachute_deployed==False:
             if (self.alt_poll_watch<self.time-self.alt_poll_watch_interval):
-                current_alt=pos_i2alt(self.pos_i)
+                current_alt=pos_i2alt(self.pos_i,self.time)
                 if self.alt_record>current_alt:
                     if debug==True:
-                        print("Parachute deployed at %sm at %ss"%(pos_i2alt(self.pos_i),self.time))
+                        print("Parachute deployed at %sm at %ss"%(pos_i2alt(self.pos_i,self.time),self.time))
                     events.append("Parachute deployed")
                     self.parachute_deployed=True
                     self.w_b=np.array([0,0,0])
-                    """wind_inertial =  vel_l2i(self.launch_site.wind, self.launch_site, self.time)
-                    v_rel_wind = self.b2i.inv().apply(self.vel_i-wind_inertial)
-                    xb_i = direction_l2i([0,0,1], self.launch_site, self.time)
-                    yb_i = direction_l2i([0,1,0], self.launch_site, self.time)
-                    zb_i = direction_l2i([-1,0,0], self.launch_site, self.time)
-                    mat_b2i = np.zeros([3,3])
-                    mat_b2i[:,0] = xb_i
-                    mat_b2i[:,1] = yb_i
-                    mat_b2i[:,2] = zb_i
-                    self.b2i = Rotation.from_matrix(mat_b2i)  """ 
                 else:
                     self.alt_poll_watch=self.time
                     self.alt_record=current_alt
@@ -851,18 +1074,15 @@ class Rocket:
 
 def from_json(directory):
     """Imports simulation data from a JSON file
-
     Parameters
     ----------
     directory : string
         The directory of the simulation data .JSON file
-
     Returns
     -------
     pandas array
         Record of simulation, contains interial position and velocity, angular velocity in body coordinates, orientation and events (e.g. parachute).
         Most information can be derived from this in post processing.
-
         "time" : array
             List of times that all the data corresponds to /s
         "pos_i" : array
@@ -875,7 +1095,6 @@ def from_json(directory):
             List of angular velocity vectors, in body coordinates [x, y, z] /rad/s
         "events" : array:
             List of useful events        
-
     """
     #How you could try to do this without the json module:
     #return pd.read_json(directory, orient="split")
@@ -886,6 +1105,3 @@ def from_json(directory):
     
     #Now convert the dict to a pandas DataFrame
     return pd.DataFrame.from_dict(dict, orient="columns")
-
-    
-

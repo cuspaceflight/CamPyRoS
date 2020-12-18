@@ -1,5 +1,5 @@
-Trajectory Package
-==================
+trajectory
+==========
 
 .. toctree::
    :maxdepth: 4
