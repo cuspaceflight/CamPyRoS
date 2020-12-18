@@ -742,3 +742,17 @@ def stats_trajectories(x,y,z):
     ax.legend()
 
     plt.show()
+
+def inertial_position(simulation_output):
+    fig = plt.figure()
+    ax = plt.axes(projection="3d")
+    x=[]
+    y=[]
+    z=[]
+    for row in simulation_output["pos_i"]:
+        x.append(row[0])
+        y.append(row[1])
+        z.append(row[2])
+    ax.plot(x,y,z)
+    set_axes_equal(ax)
+    plt.show()
