@@ -299,12 +299,29 @@ class Wind:
                 self.points+=new_points
                 #would self.df,self.points+=self.load_data(lats,longs) be valid?
 
-            a=scipy.interpolate.interp1d(self.df.query("lat==%s"%lats[0]).query("long==%s"%longs[0])["alt"],np.array([-self.df.query("lat==%s"%lats[0]).query("long==%s"%longs[0])["w_y"],self.df.query("lat==%s"%lats[0]).query("long==%s"%longs[0])["w_x"],np.zeros(len(self.df.query("lat==%s"%lats[0]).query("long==%s"%longs[0])["w_y"]))]), fill_value='extrapolate')(alt)
-            b=scipy.interpolate.interp1d(self.df.query("lat==%s"%lats[0]).query("long==%s"%longs[1])["alt"],np.array([-self.df.query("lat==%s"%lats[0]).query("long==%s"%longs[1])["w_y"],self.df.query("lat==%s"%lats[0]).query("long==%s"%longs[1])["w_x"],np.zeros(len(self.df.query("lat==%s"%lats[0]).query("long==%s"%longs[1])["w_y"]))]), fill_value='extrapolate')(alt)
+            search_lats=self.df.lat.values
+            #This search method was approx an order of magnitude faster in my testing
+
+            m=self.df[ne.evaluate("search_lats==%s"%lats[0])]
+            search_longs=m.long.values
+            row=m[ne.evaluate("search_longs==%s"%longs[0])]
+            a=scipy.interpolate.interp1d(row["alt"],np.array([-row["w_y"],row["w_x"],np.zeros(len(row["w_y"]))]), fill_value='extrapolate')(alt)
+
+            m=self.df[ne.evaluate("search_lats==%s"%lats[0])]
+            search_longs=m.long.values
+            row=m[ne.evaluate("search_longs==%s"%longs[1])]
+            b=scipy.interpolate.interp1d(row["alt"],np.array([-row["w_y"],row["w_x"],np.zeros(len(row["w_y"]))]), fill_value='extrapolate')(alt)
             y_0=a+(long-longs[0])*(b-a)/(longs[1]-longs[0])
 
-            a=scipy.interpolate.interp1d(self.df.query("lat==%s"%lats[1]).query("long==%s"%longs[0])["alt"],np.array([-self.df.query("lat==%s"%lats[1]).query("long==%s"%longs[0])["w_y"],self.df.query("lat==%s"%lats[1]).query("long==%s"%longs[0])["w_x"],np.zeros(len(self.df.query("lat==%s"%lats[1]).query("long==%s"%longs[0])["w_y"]))]), fill_value='extrapolate')(alt)
-            b=scipy.interpolate.interp1d(self.df.query("lat==%s"%lats[1]).query("long==%s"%longs[1])["alt"],np.array([-self.df.query("lat==%s"%lats[1]).query("long==%s"%longs[1])["w_y"],self.df.query("lat==%s"%lats[1]).query("long==%s"%longs[1])["w_x"],np.zeros(len(self.df.query("lat==%s"%lats[1]).query("long==%s"%longs[1])["w_y"]))]), fill_value='extrapolate')(alt)
+            m=self.df[ne.evaluate("search_lats==%s"%lats[1])]
+            search_longs=m.long.values
+            row=m[ne.evaluate("search_longs==%s"%longs[0])]
+            a=scipy.interpolate.interp1d(row["alt"],np.array([-row["w_y"],row["w_x"],np.zeros(len(row["w_y"]))]), fill_value='extrapolate')(alt)
+
+            m=self.df[ne.evaluate("search_lats==%s"%lats[1])]
+            search_longs=m.long.values
+            row=m[ne.evaluate("search_longs==%s"%longs[1])]
+            b=scipy.interpolate.interp1d(row["alt"],np.array([-row["w_y"],row["w_x"],np.zeros(len(row["w_y"]))]), fill_value='extrapolate')(alt)
             y_1=a+(long-longs[0])*(b-a)/(longs[1]-longs[0])
             
             return y_0+(lat-lats[0])*(y_1-y_0)/(lats[1]-lats[0])
