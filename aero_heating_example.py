@@ -1,8 +1,6 @@
 import trajectory, trajectory.post, trajectory.aero, csv
 import numpy as np
 
-#Need to set up the rocket again:
-
 '''Import motor data - copied from Joe Hunt's simulation'''
 with open('novus_sim_6.1/motor_out.csv') as csvfile:
     motor_out = csv.reader(csvfile)
@@ -85,11 +83,12 @@ parachute = trajectory.Parachute(main_s = 13.9,
 """Create the Rocket object"""
 martlet4 = trajectory.Rocket(mass_model, pulsar, aerodynamic_coefficients, launch_site, h=0.05, variable=True, alt_poll_interval=1, parachute=parachute)
 
-
-#Now we can do the aerodynamic heating analysis
+'''Import the trajectory data'''
 imported_data = trajectory.from_json("output.json")
 
-tangent_ogive = trajectory.post.TangentOgive(73.7e-2, (19.7e-2)/2)
+'''Specify the nosecone'''
+tangent_ogive = trajectory.post.TangentOgive(xprime = 73.7e-2, yprime = (19.7e-2)/2)
 
+'''Run the aerodynamic heating analysis'''
 analysis = trajectory.post.HeatTransfer(tangent_ogive, imported_data, martlet4)
 analysis.step()
