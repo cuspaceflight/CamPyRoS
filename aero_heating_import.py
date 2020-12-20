@@ -89,6 +89,7 @@ imported_data = trajectory.from_json("output.json")
 '''Specify the nosecone'''
 tangent_ogive = trajectory.post.TangentOgive(xprime = 73.7e-2, yprime = (19.7e-2)/2)
 
-'''Run the aerodynamic heating analysis'''
+'''Import the aerodynamic heating data and plot it'''
 analysis = trajectory.post.HeatTransfer(tangent_ogive, imported_data, martlet4)
-analysis.step()
+analysis.from_json("aero_heating_output.json")
+analysis.plot_heat_transfer_rates(imax=300)

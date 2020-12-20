@@ -1,6 +1,6 @@
 import numpy as np
-import thermo.mixture
-import scipy.integrate, scipy.optimize
+import matplotlib.pyplot as plt
+import thermo.mixture, json, scipy.integrate, scipy.optimize
 
 from ambiance import Atmosphere
 from trajectory.transforms import pos_l2i, pos_i2l, vel_l2i, vel_i2l, direction_l2i, direction_i2l, i2airspeed, pos_i2alt
@@ -344,12 +344,12 @@ class TangentOgive:
 
     def phi(self, i):
         #i = 1 to 15
-        assert i>=1 and i<=15, "i refers to stations 1-15, it canno the less than 1 or more than 15"
+        assert i>=1 and i<=15, "i refers to stations 1-15, it cannot the less than 1 or more than 15"
         return self.theta - (i-1)*self.dtheta/2
     
     def r(self, i):
         #i = 1 to 15
-        assert i>=1 and i<=15, "i refers to stations 1-15, it canno the less than 1 or more than 15"
+        assert i>=1 and i<=15, "i refers to stations 1-15, it cannot the less than 1 or more than 15"
         if i<=11:
             return 2 * self.R * np.sin((i-1)*self.dtheta/2) * np.sin(self.phi(i))
         else:
@@ -357,8 +357,8 @@ class TangentOgive:
 
     def S(self, i):
         #i = 1 to 15
-        assert i>=1 and i<=15, "i refers to stations 1-15, it canno the less than 1 or more than 15"
-        return self.R * (i-1) * self.dtheta
+        assert i>=1 and i<=15, "i refers to stations 1-15, it cannot the less than 1 or more than 15"
+        return self.R * (i) * self.dtheta
 
 class HeatTransfer:
     '''
@@ -367,29 +367,35 @@ class HeatTransfer:
     - Assumes that the angle of attack is always zero
 
     '''
-    def __init__(self, tangent_ogive, simulation_output, rocket):
+    def __init__(self, tangent_ogive, trajectory_data, rocket):
         self.tangent_ogive = tangent_ogive
-        self.simulation_output = simulation_output.to_dict(orient="list")
+        self.trajectory_data = trajectory_data
+        self.trajectory_dict = self.trajectory_data.to_dict(orient="list")
         self.rocket = rocket
 
         #Timestep index
         self.i = 0
         
-        #Arrays to store the local Mach, pressure and temperatures at each discretised point on the nose cone (15 points), and at each timestep
-        self.M = np.zeros([15, len(self.simulation_output["time"])])
-        self.P = np.zeros([15, len(self.simulation_output["time"])])
-        starting_temperature = Atmosphere(pos_i2alt(self.simulation_output["pos_i"][0])).temperature[0]
-        self.Tw = np.full([15, len(self.simulation_output["time"])], starting_temperature)                  #Assume the nose cone starts with ambient temperature
-        self.Te = np.zeros([15, len(self.simulation_output["time"])])
-        self.Tstar = np.zeros([15, len(self.simulation_output["time"])])
-        self.Hstar_function = np.zeros([15, len(self.simulation_output["time"])])                           #To minimise number of calculations for the integration needed in H*(x)
+        #Arrays to store the data at each discretised point on the nose cone (1 to 15), and at each timestep
+        self.M = np.zeros([15, len(self.trajectory_dict["time"])])        #Local Mach number
+        self.P = np.zeros([15, len(self.trajectory_dict["time"])])        #Local pressure
+        starting_temperature = Atmosphere(pos_i2alt(self.trajectory_dict["pos_i"][0])).temperature[0] #Assume the nose cone starts with ambient temperature
+        self.Tw = np.full([15, len(self.trajectory_dict["time"])], starting_temperature)              #Wall temperature - for now assume that wall temperature is constant
+        self.Te = np.zeros([15, len(self.trajectory_dict["time"])])                                   #Temperature at the edge of the boundary layer
+        self.Tstar = np.zeros([15, len(self.trajectory_dict["time"])])                                #T* as defined in the paper
+        self.Hstar_function = np.zeros([15, len(self.trajectory_dict["time"])])                       #This array is used to minimise number of calculations for the integration needed in H*(x)
+
+        #Arrays to store the useful data at the end
+        self.q_lam = np.zeros([15, len(self.trajectory_dict["time"])])                #Laminar boundary layer
+        self.q_turb = np.zeros([15, len(self.trajectory_dict["time"])])               #Turbunulent boundary layer
+        self.q0_hemispherical_nose = np.zeros([15, len(self.trajectory_dict["time"])])#At the stagnation point for a rocket with a hemispherical nose cone - used as a reference point
 
     def step(self):
         '''I THINK THE (0) VALUES IN THE PAPER ARE FOR A POST NORMAL-SHOCK FLOW, NOT OBLIQUE-SHOCK'''
         '''I THINK THIS IS BECAUSE IT'S REFERING TO A SPHERICAL NOSE CONE AS A REFERENCE, WHICH WOULD HAVE A NORMAL SHOCK I THINK'''
 
         #Get altitude:
-        alt = pos_i2alt(self.simulation_output["pos_i"][self.i])
+        alt = pos_i2alt(self.trajectory_dict["pos_i"][self.i])
 
         #Get ambient conditions:
         Pinf = Atmosphere(alt).pressure[0]
@@ -397,7 +403,7 @@ class HeatTransfer:
         rhoinf = Atmosphere(alt).density[0]
 
         #Get the freestream velocity and Mach number
-        Vinf = np.linalg.norm(i2airspeed(self.simulation_output["pos_i"][self.i], self.simulation_output["vel_i"][self.i], self.rocket.launch_site, self.simulation_output["time"][self.i]))
+        Vinf = np.linalg.norm(i2airspeed(self.trajectory_dict["pos_i"][self.i], self.trajectory_dict["vel_i"][self.i], self.rocket.launch_site, self.trajectory_dict["time"][self.i]))
         Minf = Vinf/Atmosphere(alt).speed_of_sound[0]
 
         #Check if we're supersonic - if so we'll have a shock wave
@@ -476,7 +482,7 @@ class HeatTransfer:
                     hrec_lam_boundary = he*(1-Prstar**(1/2)) + h0*(Prstar**(1/2))
                     hrec_turb_boundary = he*(1-Prstar**(1/3)) + h0*(Prstar**(1/3))
 
-                    #Get H*(x)
+                    #Get H*(x) - WARNING: I'm a bit unsure about this section, in particular I'm not sure about the integral bit
                     rhostar0 = normal_P0S / (R_air() * self.Tstar[j, self.i])
                     mustar0 = mu_air(T=self.Tstar[j, self.i], P = normal_P0S)
 
@@ -495,7 +501,7 @@ class HeatTransfer:
                     Hstar = (rhostar * V * r)/(rhostar0 * Vinf) + integral**0.5
 
                     #Get H*(0)
-                    RN = 0.3048      #Let RN = 1 ft = 0.3048m, as it recommends using that as a reference value (although apparently it shouldn't matter)
+                    RN = 0.3048      #Let RN = 1 ft = 0.3048m, as it recommends using that as a reference value (although apparently it shouldn't matter?)
                     dVdx0 = (2**0.5)/RN * ((normal_P0S - Pinf)/normal_rho0S)**0.5
                     Hstar0 = ( ((2*rhostar/rhostar0)*dVdx0 )/(Vinf * mustar/mustar0) )**0.5 * (2)**0.5
 
@@ -505,7 +511,7 @@ class HeatTransfer:
                     Cpw = cp_air()
                     Cpw0 = cp_air()
 
-                    #Equation (13) from https://arc.aiaa.org/doi/pdf/10.2514/3.62081 - wasn't sure which 'hrec' to use here
+                    #Equation (13) from https://arc.aiaa.org/doi/pdf/10.2514/3.62081 - wasn't sure which 'hrec' to use here but I think it's the laminar one
                     qxq0_lam = (kstar * Hstar * (hrec_lam_boundary - hw) * Cpw0)/(kstar0 * Hstar0 * (h0 - hw) * Cpw)
 
                     #Stagnation point heat transfer rate for a hemispherical nosecone
@@ -516,16 +522,18 @@ class HeatTransfer:
                     mu = mu_air(self.Te[j, self.i], self.P[j, self.i])
 
                     #Equation (29) from https://arc.aiaa.org/doi/pdf/10.2514/3.62081
-                    q_stag_point = 0.76*9.81*Pr0**(-0.6) * (rhow*muw)**0.1 * (rho*mu)**0.4 * (h0 - hw) * dVdx0**0.5
+                    self.q0_hemispherical_nose[j, self.i] = 0.76*9.81*Pr0**(-0.6) * (rhow*muw)**0.1 * (rho*mu)**0.4 * (h0 - hw) * dVdx0**0.5
 
                     #Now we can find the absolute laminar heat transfer rates, in W/m^2
-                    q_lam = qxq0_lam * q_stag_point
+                    self.q_lam[j, self.i] = qxq0_lam * self.q0_hemispherical_nose[j, self.i]
 
                     #Turbulent heat transfer rate - using Equation (20) from https://arc.aiaa.org/doi/pdf/10.2514/3.62081
                     Cpstar0 = cp_air()
-                    q_turb = ( 0.03*9.81**(1/3) * (2**0.2) * kstar**(2/3) * (rhostar*V)**0.8 * (1 - Prstar**(1/3) * he + Prstar**(1/3) * h0 - hw) )/(mustar**(7/15) * Cpstar0**(2/3) * self.tangent_ogive.S(j+1)**0.2)               
-
-                    print("i={} station={} q_lam = {} W/m^2 alt = {} m".format(self.i, j+1, q_lam, alt))
+                    self.q_turb[j, self.i] = ( 0.03*9.81**(1/3) * (2**0.2) * kstar**(2/3) * (rhostar*V)**0.8 * (1 - Prstar**(1/3)*he + Prstar**(1/3)*h0 - hw) )/(mustar**(7/15) * Cpstar0**(2/3) * self.tangent_ogive.S(j+1)**0.2)               
+                    
+                    #print("i={} station={} he = {:.2f} kJ/kg/K hw = {:.2f} kJ/kg/K h0 = {:.2f} kJ/kg/K hinf = {} alt = {:.2f} m".format(self.i, j+1, he/1000, hw/1000, h0/1000, Tinf*cp_air()/1000, alt))
+                    #print("i={} station={} Te={:.2f} Tw={:.2f} T0={:.2f} Tinf={} q_turb={} alt={:.2f} m".format(self.i, j+1, self.Te[j, self.i], self.Tw[j, self.i], normal_T0S, Tinf, self.q_turb[j, self.i], alt))
+                    print("i={} station={} q_lam={:.2f} W/m^2 q_turb={:.2f} W/m^2 alt={:.2f} m t={:.2f} s".format(self.i, j+1, self.q_lam[j, self.i], self.q_turb[j, self.i], alt, self.trajectory_dict["time"][self.i]))
 
 
             else:
@@ -540,3 +548,67 @@ class HeatTransfer:
     def run(self, iterations = 300):
         for i in range(iterations):
             self.step()
+
+    def to_json(self, directory="aero_heating_output.json"):
+        dict = {"q_lam" : self.q_lam.tolist(), 
+                "q_turb" : self.q_turb.tolist(), 
+                "q0_hemispherical_nose" : self.q0_hemispherical_nose.tolist(), 
+                "M" : self.M.tolist(), 
+                "P" : self.P.tolist(),
+                "Tw" : self.Tw.tolist(),
+                "Te" : self.Te.tolist(),
+                "Tstar" : self.Tstar.tolist(),
+                "Hstar_function" : self.Hstar_function.tolist()}
+
+        with open(directory, "w") as write_file:
+            json.dump(dict, write_file)
+
+    def from_json(self, directory):
+        with open(directory, "r") as read_file:
+            dict = json.load(read_file)
+        
+        self.q_lam = np.array(dict["q_lam"])
+        self.q_turb = np.array(dict["q_turb"])
+        self.q0_hemispherical_nose = np.array(dict["q0_hemispherical_nose"])
+        self.M = np.array(dict["M"])
+        self.P = np.array(dict["P"])
+        self.Tw = np.array(dict["Tw"])
+        self.Te = np.array(dict["Te"])
+        self.Tstar = np.array(dict["Tstar"])
+        self.Hstar_function = np.array(dict["Hstar_function"])
+
+    def plot_heat_transfer_rates(self, station_number=10, imax=None):
+        assert station_number <= 15 and station_number >= 1, "Station number must be between 1 and 15 (inclusive)"
+        q_lam = self.q_lam[station_number - 1, :]
+        q_turb = self.q_turb[station_number - 1, :]
+        
+        trajectory_dict = self.trajectory_data.to_dict(orient="list")
+
+        time = self.trajectory_dict["time"]
+        alt = np.zeros(len(time))
+        for i in range(len(time)):
+            alt[i] = pos_i2alt(self.trajectory_dict["pos_i"][i])
+
+        fig, axs = plt.subplots(2, 1)
+
+        if imax == None:
+            imax = len(time)
+
+        axs[0].set_title("Heat transfer rates at station {}".format(int(station_number)))
+        axs[0].set_xlabel("Time (s)")
+        axs[0].set_ylabel("Heat transfer rate (W/m^2)")
+        axs[0].plot(time[:imax], q_lam[:imax], label="Laminar heat transfer rate")
+        #axs[0].plot(time, q_turb, label="Turbulent heat transfer rate")
+        axs[0].legend()
+        axs[0].grid()
+
+        axs[1].set_title("Altitude")
+        axs[1].set_xlabel("Time (s)")
+        axs[1].set_ylabel("Altitude (m)")
+        axs[1].plot(time[:imax], alt[:imax], color='orange')
+        axs[1].grid()
+
+        fig.tight_layout()
+        plt.show()
+
+        
