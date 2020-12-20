@@ -46,6 +46,9 @@ https://core.ac.uk/download/pdf/82326535.pdf - This paper says that liquids don'
 https://ntrs.nasa.gov/citations/19670006555 - Chapter 6
 
 #### Aerodynamics
+https://arc.aiaa.org/doi/pdf/10.2514/3.62081 - Aerodynamic heating
+
+https://ntrs.nasa.gov/citations/19730063810 - Implementation of aerodynamic heating in FORTRAN
 
 https://pdfs.semanticscholar.org/ace3/5a61803390b0e0b70f6ca34492ad20a03e03.pdf - Coupling a 6DOF simulation with CFD
 
@@ -60,8 +63,6 @@ https://ascelibrary.org/doi/pdf/10.1061/%28ASCE%29AS.1943-5525.0000051 - Basical
 - we should add random altitude parachute failures
 - can we add the ability to cant the fins and simulate roll stabalisation
 - Atmo needs to be way more complicated
-
-https://arc.aiaa.org/doi/pdf/10.2514/3.62081 - Aerodynamic heating
 
 ## Program Workflow
 ![Rough flowchart](img/flowchart1.jpeg)
