@@ -1,3 +1,15 @@
+'''
+Suspected problems:
+My post-shock flow temperatures seem very small
+NASA FORTRAN code shows stuff on the order of 470K at station 1, down to around 256K at station 15.
+
+I did some testing, and I think this might just be because the NASA rocket data is runing at extremely high Mach numbers (e.g. the first peak is at Mach 4)
+The Martlet4 trajectory we have only hits like Mach 1 to 2, which might be too low for any significant aerodynamic heating.
+
+
+'''
+
+
 import numpy as np
 import matplotlib.pyplot as plt
 import thermo.mixture, json, scipy.integrate, scipy.optimize
@@ -358,7 +370,7 @@ class TangentOgive:
     def S(self, i):
         #i = 1 to 15
         assert i>=1 and i<=15, "i refers to stations 1-15, it cannot the less than 1 or more than 15"
-        return self.R * (i) * self.dtheta
+        return self.R * (i-1) * self.dtheta
 
 class HeatTransfer:
     '''
@@ -498,7 +510,7 @@ class HeatTransfer:
                     integral = np.trapz(self.Hstar_function[0:j+1, self.i], self.tangent_ogive.S_array[0:j+1])
 
                     #Equation (17) from https://arc.aiaa.org/doi/pdf/10.2514/3.62081
-                    Hstar = (rhostar * V * r)/(rhostar0 * Vinf) + integral**0.5
+                    Hstar = (rhostar * V * r)/(rhostar0 * Vinf) / (integral**0.5)
 
                     #Get H*(0)
                     RN = 0.3048      #Let RN = 1 ft = 0.3048m, as it recommends using that as a reference value (although apparently it shouldn't matter?)
@@ -533,7 +545,7 @@ class HeatTransfer:
                     
                     #print("i={} station={} he = {:.2f} kJ/kg/K hw = {:.2f} kJ/kg/K h0 = {:.2f} kJ/kg/K hinf = {} alt = {:.2f} m".format(self.i, j+1, he/1000, hw/1000, h0/1000, Tinf*cp_air()/1000, alt))
                     #print("i={} station={} Te={:.2f} Tw={:.2f} T0={:.2f} Tinf={} q_turb={} alt={:.2f} m".format(self.i, j+1, self.Te[j, self.i], self.Tw[j, self.i], normal_T0S, Tinf, self.q_turb[j, self.i], alt))
-                    print("i={} station={} q_lam={:.2f} W/m^2 q_turb={:.2f} W/m^2 alt={:.2f} m t={:.2f} s".format(self.i, j+1, self.q_lam[j, self.i], self.q_turb[j, self.i], alt, self.trajectory_dict["time"][self.i]))
+                    print("i={} station={} q_lam={:.2f} kW/m^2 q_turb={:.2f} kW/m^2 alt={:.2f} m t={:.2f} s".format(self.i, j+1, self.q_lam[j, self.i]/1000, self.q_turb[j, self.i]/1000, alt, self.trajectory_dict["time"][self.i]))
 
 
             else:
@@ -598,7 +610,7 @@ class HeatTransfer:
         axs[0].set_xlabel("Time (s)")
         axs[0].set_ylabel("Heat transfer rate (W/m^2)")
         axs[0].plot(time[:imax], q_lam[:imax], label="Laminar heat transfer rate")
-        #axs[0].plot(time, q_turb, label="Turbulent heat transfer rate")
+        axs[0].plot(time[:imax], q_turb[:imax], label="Turbulent heat transfer rate")
         axs[0].legend()
         axs[0].grid()
 

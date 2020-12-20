@@ -1,4 +1,6 @@
-import trajectory, trajectory.post, trajectory.aero, csv
+#To check data against page 70 of the NASA "TANGENT OGIVE NOSE AERODYNAMIC HEATING PROGRAM - NQLDW019 (NASA)" documentation
+import trajectory, trajectory.aero, csv
+import trajectory.post as post
 import numpy as np
 
 '''Import motor data - copied from Joe Hunt's simulation'''
@@ -86,15 +88,34 @@ martlet4 = trajectory.Rocket(mass_model, pulsar, aerodynamic_coefficients, launc
 '''Import the trajectory data'''
 imported_data = trajectory.from_json("output.json")
 
-'''Specify the nosecone and create the HeatTransfer analysis object'''
-tangent_ogive = trajectory.post.TangentOgive(xprime = 73.7e-2, yprime = (19.7e-2)/2)
-tangent_ogive = trajectory.post.TangentOgive(xprime = 0.7632192, yprime = 0.0762)
+'''Specify the nosecone'''
+#xprime = 2.741 ft = 0.8354568 m
+#yprime = 0.5 ft = 0.1524 m 
+#tangent_ogive = trajectory.post.TangentOgive(xprime = 0.8354568, yprime = 0.1524)
+tangent_ogive = post.TangentOgive(xprime = 2.741, yprime = 0.5)
 
-analysis = trajectory.post.HeatTransfer(tangent_ogive, imported_data, martlet4)
+for i in range(15):
+    print("R({}) = {} S({}) = {}".format(i+1, tangent_ogive.r(i+1), i+1, tangent_ogive.S(i+1)))
 
-'''Run the simulation if you want'''
-analysis.run(iterations = 300)
+#Freestream conditions:
+ALT = 15240         #50000 ft
+VINF = 1219.2       #4000 ft/s
+ALPHA = 10 * np.pi/180
 
-'''Import the aerodynamic heating data and plot it'''
-analysis.from_json("aero_heating_output.json")
-analysis.plot_heat_transfer_rates(imax=300)
+#Properties using standard atmosphere
+TINF = 216.650              #K
+PINF = 11597.3              #Pa
+RHOINF = 0.186481           #kg/m3
+speed_of_sound = 295.070    #m/s
+MINF = VINF/speed_of_sound
+
+#Shockwave at point 1
+THETA1 = 30.675 *np.pi/180  #rad, obtained from the FORTAN output
+oblique_shock_data = post.oblique_shock(THETA1, MINF, TINF, PINF, RHOINF)
+cone_shock_data = post.oblique_shock(tangent_ogive.theta + ALPHA, MINF, TINF, PINF, RHOINF)
+
+print("MINF = {} THETA1 = {} rad tangent_ogive.theta + ALPHA = {} rad".format(MINF, THETA1, tangent_ogive.theta + ALPHA))
+print("From NASA report: TS(1) = 470.289 K")
+print("From Python oblique_shock(): TS = {} K".format(oblique_shock_data[3]))
+print("From Python cone_shock(): TS = {} K".format(cone_shock_data[3]))
+
