@@ -28,7 +28,8 @@
         "drogue_s":[1.13,0.05],
         "drogue_c_d":[0.78,0.05],
         "main_alt":[1000,0.05],
-        "attatch_distance":[0,0]
+        "attatch_distance":[0,0],
+        "failure_rate":0.01
     },
     "enviromental":{
         "gravity":0.01,

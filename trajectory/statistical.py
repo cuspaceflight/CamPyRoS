@@ -225,12 +225,15 @@ class StatisticalModel:
                                 forcast_time=self.launch_site_vars["run_time"],
                                 fast_wind=bool(self.launch_site_vars["fast_wind"]))
 
-        parachute = Parachute(main_s=self.parachute_vars["main_s"][0]*np.random.normal(1,self.parachute_vars["main_s"][1]),
-                            main_c_d=self.parachute_vars["main_c_d"][0]*np.random.normal(1,self.parachute_vars["main_c_d"][1]),
-                            drogue_s=self.parachute_vars["drogue_s"][0]*np.random.normal(1,self.parachute_vars["drogue_s"][1]),
-                            drogue_c_d=self.parachute_vars["drogue_c_d"][0]*np.random.normal(1,self.parachute_vars["drogue_c_d"][1]),
-                            main_alt=self.parachute_vars["main_alt"][0]*np.random.normal(1,self.parachute_vars["main_alt"][1]),
-                            attatch_distance=self.parachute_vars["attatch_distance"][0]*np.random.normal(1,self.parachute_vars["attatch_distance"][1]))
+        if np.random.binomial(1,self.parachute_vars["failure_rate"])==0:
+            parachute = Parachute(main_s=self.parachute_vars["main_s"][0]*np.random.normal(1,self.parachute_vars["main_s"][1]),
+                                main_c_d=self.parachute_vars["main_c_d"][0]*np.random.normal(1,self.parachute_vars["main_c_d"][1]),
+                                drogue_s=self.parachute_vars["drogue_s"][0]*np.random.normal(1,self.parachute_vars["drogue_s"][1]),
+                                drogue_c_d=self.parachute_vars["drogue_c_d"][0]*np.random.normal(1,self.parachute_vars["drogue_c_d"][1]),
+                                main_alt=self.parachute_vars["main_alt"][0]*np.random.normal(1,self.parachute_vars["main_alt"][1]),
+                                attatch_distance=self.parachute_vars["attatch_distance"][0]*np.random.normal(1,self.parachute_vars["attatch_distance"][1]))
+        else:
+            parachute=Parachute(0.0,0.0,0.0,0.0,0.0,0.0)
 
         env_errors= {k: np.random.normal(1,v) for k,v in self.enviromental.items()}
 
