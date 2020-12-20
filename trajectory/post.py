@@ -14,7 +14,7 @@ def prandtl_meyer(M, gamma=1.4):
     M : float
         Mach number
     gamma : float, optional
-        Ratio of specific heats (cp / cv)
+        Ratio of specific heats (cp / cv). Defaults to 1.4.
 
     Returns
     -------
@@ -38,7 +38,7 @@ def nu2mach(nu, gamma=1.4):
     nu : float
         Value of the Prandtl-Meyer function
     gamma : float, optional
-        Ratio of specific heats (cp / cv)
+        Ratio of specific heats (cp / cv). Defaults to 1.4.
 
     Returns
     -------
@@ -70,7 +70,7 @@ def p2p0(P, M, gamma=1.4):
     M : float
         Mach number
     gamma : float, optional
-        Ratio of specific heats (cp / cv)
+        Ratio of specific heats (cp / cv). Defaults to 1.4.
 
     Returns
     -------
@@ -90,7 +90,7 @@ def p02p(P0, M, gamma=1.4):
     M : float
         Mach number
     gamma : float, optional
-        Ratio of specific heats (cp / cv)
+        Ratio of specific heats (cp / cv). Defaults to 1.4.
 
     Returns
     -------
@@ -110,7 +110,7 @@ def T2T0(T, M, gamma=1.4):
     M : float
         Mach number
     gamma : float, optional
-        Ratio of specific heats (cp / cv)
+        Ratio of specific heats (cp / cv). Defaults to 1.4.
 
     Returns
     -------
@@ -130,7 +130,7 @@ def T02T(T0, M, gamma=1.4):
     M : float
         Mach number
     gamma : float, optional
-        Ratio of specific heats (cp / cv)
+        Ratio of specific heats (cp / cv). Defaults to 1.4.
 
     Returns
     -------
@@ -150,7 +150,7 @@ def rho2rho0(rho, M, gamma=1.4):
     M : float
         Mach number
     gamma : float, optional
-        Ratio of specific heats (cp / cv)
+        Ratio of specific heats (cp / cv). Defaults to 1.4.
 
     Returns
     -------
@@ -170,7 +170,7 @@ def rho02rho(rho0, M, gamma=1.4):
     M : float
         Mach number
     gamma : float, optional
-        Ratio of specific heats (cp / cv)
+        Ratio of specific heats (cp / cv). Defaults to 1.4.
 
     Returns
     -------
@@ -179,6 +179,48 @@ def rho02rho(rho0, M, gamma=1.4):
 
     """
     return rho0 * (1 + (gamma - 1)/2 * M**2)**(-1/(gamma-1))
+
+def pressure_ratio_to_mach(p_over_p0, gamma=1.4):
+    """Get Mach number from the static to stagnation pressure ratio 
+
+    Parameters
+    ----------
+    p_over_p0 : float
+        Static pressure divided by stagnation pressure
+    gamma : float, optional
+        Ratio of specific heats (cp / cv). Defaults to 1.4.
+
+    Returns
+    -------
+    float
+        Mach number
+
+    """
+    return ( (2/(gamma-1)) * (p_over_p0**( (gamma-1)/-gamma) - 1) )**0.5
+
+def normal_shock(M, gamma=1.4):
+    """Normal shock wave calculator
+
+    Parameters
+    ----------
+    M : float
+        Mach number
+    gamma : float, optional
+        Ratio of specific heats (cp / cv). Defaults to 1.4.
+
+    Returns
+    -------
+    numpy ndarray
+        Returns array of floats in the following order: [MS, PS/P, TS/T, rhoS/rho]
+
+    """
+    MS = ((1 + 0.5*(gamma-1)*M**2 ) / (gamma*M**2 - 0.5*(gamma-1)))**0.5 
+    PSoverP = 1 + 2*gamma/(gamma+1)*(M**2 - 1)
+    TSoverT = (gamma-1)/(gamma+1)**2 * 2/M**2 * (1 + 0.5*(gamma-1)*M**2)*(2*gamma/(gamma-1) * M**2 - 1)
+    rhoSoverrho = (gamma+1)*M**2 / (2*(1 + 0.5*(gamma-1)*M**2))
+
+    return np.array([MS, PSoverP, TSoverT, rhoSoverrho])
+
 
 #Properties of air
 def cp_air(T=298, P=1e5):
@@ -204,7 +246,7 @@ def mu_air(T, P):
     air = thermo.mixture.Mixture('air', T=T, P=P)  
     return air.mu
 
-#Shockwave functions, modified from: https://gist.github.com/gusgordon/3fa0a80e767a34ffb8b112c8630c5484
+#Olibque shockwave functions, modified from: https://gist.github.com/gusgordon/3fa0a80e767a34ffb8b112c8630c5484
 def taylor_maccoll(y, theta, gamma=1.4):
     # Taylor-Maccoll function
     # Source: https://www.grc.nasa.gov/www/k-12/airplane/coneflow.html
@@ -284,7 +326,6 @@ def cone_shock(cone_angle, Ma, T, p, rho):
         if sol[-1, 1] < 0:
             return B, a, Ma2, T2, p2, rho2, v_x, v_y
 
-
 #Heat Transfer Analysis
 class TangentOgive:
     def __init__(self, xprime, yprime):
@@ -296,14 +337,28 @@ class TangentOgive:
         self.theta = np.arctan2(xprime, self.R - yprime)
         self.dtheta = 0.1*self.theta
 
+        #Each point (1 to 15) and its distance along the nose cone surface from the nose tip
+        self.S_array = np.zeros(15)
+        for i in range(len(self.S_array)):
+            self.S_array[i] = self.S(i+1)
+
     def phi(self, i):
-        return self.theta - (i+1)*self.dtheta/2
+        #i = 1 to 15
+        assert i>=1 and i<=15, "i refers to stations 1-15, it canno the less than 1 or more than 15"
+        return self.theta - (i-1)*self.dtheta/2
     
     def r(self, i):
-        return 2 * self.R * np.sin((i+1)*self.dtheta/2) * np.sin(self.phi(i))
+        #i = 1 to 15
+        assert i>=1 and i<=15, "i refers to stations 1-15, it canno the less than 1 or more than 15"
+        if i<=11:
+            return 2 * self.R * np.sin((i-1)*self.dtheta/2) * np.sin(self.phi(i))
+        else:
+            return 2 * self.R * np.sin((10)*self.dtheta/2) * np.sin(self.phi(11))
 
     def S(self, i):
-        return self.R * i * self.dtheta
+        #i = 1 to 15
+        assert i>=1 and i<=15, "i refers to stations 1-15, it canno the less than 1 or more than 15"
+        return self.R * (i-1) * self.dtheta
 
 class HeatTransfer:
     '''
@@ -327,10 +382,11 @@ class HeatTransfer:
         self.Tw = np.full([15, len(self.simulation_output["time"])], starting_temperature)                  #Assume the nose cone starts with ambient temperature
         self.Te = np.zeros([15, len(self.simulation_output["time"])])
         self.Tstar = np.zeros([15, len(self.simulation_output["time"])])
+        self.Hstar_function = np.zeros([15, len(self.simulation_output["time"])])                           #To minimise number of calculations for the integration needed in H*(x)
 
     def step(self):
-        '''WARNING: I THINK THE (0) VALUES IN THE PAPER ARE FOR A POST-NORMAL SHOCK FLOW, NOT AN OBLIQUE SHOCK ONE'''
-        '''I THINK THIS IT REFERS TO A SPHERICAL NOSE CONE AS A REFERENCE, WHICH WOULD HAVE A NORMAL SHOCK I THINK'''
+        '''I THINK THE (0) VALUES IN THE PAPER ARE FOR A POST NORMAL-SHOCK FLOW, NOT OBLIQUE-SHOCK'''
+        '''I THINK THIS IS BECAUSE IT'S REFERING TO A SPHERICAL NOSE CONE AS A REFERENCE, WHICH WOULD HAVE A NORMAL SHOCK I THINK'''
 
         #Get altitude:
         alt = pos_i2alt(self.simulation_output["pos_i"][self.i])
@@ -340,35 +396,46 @@ class HeatTransfer:
         Tinf = Atmosphere(alt).temperature[0]
         rhoinf = Atmosphere(alt).density[0]
 
-        #Get the freestream Mach number
+        #Get the freestream velocity and Mach number
         Vinf = np.linalg.norm(i2airspeed(self.simulation_output["pos_i"][self.i], self.simulation_output["vel_i"][self.i], self.rocket.launch_site, self.simulation_output["time"][self.i]))
         Minf = Vinf/Atmosphere(alt).speed_of_sound[0]
 
         #Check if we're supersonic - if so we'll have a shock wave
         if Minf > 1:
-            #Find post-shock values
-            shock_data = cone_shock(self.tangent_ogive.theta, Minf, Tinf, Pinf, rhoinf) 
-            PS = shock_data[4]
-            TS = shock_data[3]
-            MS = shock_data[2]
-            rhoS = shock_data[5]
+            #For an oblique shock (tangent ogive nose cone)
+            oblique_shock_data = cone_shock(self.tangent_ogive.theta, Minf, Tinf, Pinf, rhoinf) 
+            oblique_PS = oblique_shock_data[4]
+            oblique_TS = oblique_shock_data[3]
+            oblique_MS = oblique_shock_data[2]
+            oblique_rhoS = oblique_shock_data[5]
 
-            P0S = p2p0(PS, MS)
-            T0S = T2T0(TS, MS)
-            rho0S = rho2rho0(rhoS, MS)
+            oblique_P0S = p2p0(oblique_PS, oblique_MS)
+            oblique_T0S = T2T0(oblique_TS, oblique_MS)
+            oblique_rho0S = rho2rho0(oblique_rhoS, oblique_MS)
+
+            #For a normal shock (hemispherical nosecone)
+            normal_shock_data = normal_shock(Minf)
+            normal_MS = normal_shock_data[0]
+            normal_PS = normal_shock_data[1]*Pinf
+            normal_TS = normal_shock_data[2]*Tinf
+            normal_rhoS = normal_shock_data[3]*rhoinf
+
+            normal_P0S = p2p0(normal_PS, normal_MS)
+            normal_T0S = T2T0(normal_TS, normal_MS)
+            normal_rho0S = rho2rho0(normal_rhoS, normal_MS)
 
             #Prandtl-Meyer expansion (only possible for supersonic flow):
-            if MS > 1:
+            if oblique_MS > 1:
                 #Get values at the nose cone tip:
-                nu1 = prandtl_meyer(MS)
+                nu1 = prandtl_meyer(oblique_MS)
                 theta1 = self.tangent_ogive.theta
 
                 #Prandtl-Meyer expansion from post-shockwave to each discretised point
-                for j in range(11):
+                for j in range(10):
                     #Angle between the flow and the horizontal:
                     theta = self.tangent_ogive.theta - self.tangent_ogive.dtheta*j
 
-                    #+mu characteristic: nu1 + theta1 = nu2 + theta2
+                    #Across a +mu characteristic: nu1 + theta1 = nu2 + theta2
                     nu = nu1 + theta1 - theta
 
                     #Check if we've exceeded nu_max, in which case we can't turn the flow any further
@@ -377,68 +444,92 @@ class HeatTransfer:
                     
                     #Record the local Mach number and pressure
                     self.M[j, self.i] = nu2mach(nu)
-                    self.P[j, self.i] = p02p(P0S, self.M[j, self.i])
+                    self.P[j, self.i] = p02p(oblique_P0S, self.M[j, self.i])
+                
+                #Expand for the last few points using Equations (1) - (6) from https://arc.aiaa.org/doi/pdf/10.2514/3.62081
+                for j in [10, 11, 12, 13, 14]:
+                    if j>=10 and j<=13:
+                        self.P[j, self.i] = (Pinf + self.P[j - 1, self.i])/2
+                    elif j==14:
+                        self.P[j, self.i] = Pinf
+                    self.M[j, self.i] = pressure_ratio_to_mach(self.P[j, self.i]/oblique_P0S)
 
-                #Now deal with the temperatures
-                for j in range(11):
-                    #Edge of boundary layer temperature
-                    Te = Atmosphere(alt).temperature[0]   
+                #Now deal with the heat transfer itself
+                for j in range(15):
+                    #Edge of boundary layer temperature - i.e. flow temperature post-shock and after Prandtl-Meyer expansion
+                    self.Te[j, self.i] = T02T(oblique_T0S, self.M[j, self.i]) 
 
                     #Enthalpies
-                    he = cp_air() * Te
+                    he = cp_air() * self.Te[j, self.i]
                     hw = cp_air() * self.Tw[j, self.i]
-                    h0 = cp_air() * T0S
+                    h0 = cp_air() * normal_T0S
 
                     #Prandtl numbers and specific heat capacities
-                    Pre = Pr_air(Te, self.P[j, self.i])         
+                    Pre = Pr_air(self.Te[j, self.i], self.P[j, self.i])         
 
                     #'Reference' values, as defined in https://arc.aiaa.org/doi/pdf/10.2514/3.62081 page 3
                     hstar = (he + hw)/2 + 0.22*(Pre**0.5)*(h0 - hw)
-                    Tstar = hstar/cp_air()
-                    Prstar = Pr_air(Tstar, self.P[j, self.i])
+                    self.Tstar[j, self.i] = hstar/cp_air()
+                    Prstar = Pr_air(self.Tstar[j, self.i], self.P[j, self.i])
 
-                    #'Recovery' values,as defined in https://arc.aiaa.org/doi/pdf/10.2514/3.62081 page 3
+                    #'Recovery' values, as defined in https://arc.aiaa.org/doi/pdf/10.2514/3.62081 page 3 - I think these are the wall enthalpies for zero heat transfer
                     hrec_lam_boundary = he*(1-Prstar**(1/2)) + h0*(Prstar**(1/2))
                     hrec_turb_boundary = he*(1-Prstar**(1/3)) + h0*(Prstar**(1/3))
 
                     #Get H*(x)
-                    integral = 0
-                    rhostar0 = P0S / (R_air() * Tstar)                  #Ideal gas law (rho0* = P0 / RT*)
-                    mustar0 = mu_air(T=Tstar, P = P0S)
+                    rhostar0 = normal_P0S / (R_air() * self.Tstar[j, self.i])
+                    mustar0 = mu_air(T=self.Tstar[j, self.i], P = normal_P0S)
 
-                    #Get the integral bit using left Riemman sum
-                    for k in range(j):
-                        rhostar = self.P[k, self.i] / (R_air() * Tstar)     #Ideal gas law
-                        mustar = mu_air(T=Tstar, P = self.P[k, self.i])
-                        r = self.tangent_ogive.r(k+1)
-                        V = (gamma_air() * R_air() * T02T(T0S, self.M[k, self.i]))**0.5 * self.M[k, self.i]        #V = speed of sound * M
-
-                        integral = integral + rhostar*mustar*V* r**2
-
-                    rhostar = self.P[j, self.i] / (R_air() * Tstar)    
-                    mustar = mu_air(T=Tstar, P = self.P[j, self.i])
+                    rhostar = self.P[j, self.i] / (R_air() * self.Tstar[j, self.i])    
+                    mustar = mu_air(T=self.Tstar[j, self.i], P = self.P[j, self.i])
+                    
                     r = self.tangent_ogive.r(j+1)
-                    V = (gamma_air() * R_air() * T02T(T0S, self.M[j, self.i]))**0.5 * self.M[j, self.i]        
+                    V = (gamma_air() * R_air() * T02T(oblique_T0S, self.M[j, self.i]))**0.5 * self.M[j, self.i]  
 
-                    Hstar = (rhostar * V * r)/(rhostar0 * Vinf) * (integral/(rhostar0 * mustar0 * Vinf))**0.5
+                    self.Hstar_function[j, self.i] = (rhostar*mustar*V* r**2) / (rhostar0 * mustar0 * Vinf)      
+
+                    #Get the integral bit of H*(x) using trapezium rule
+                    integral = np.trapz(self.Hstar_function[0:j+1, self.i], self.tangent_ogive.S_array[0:j+1])
+
+                    #Equation (17) from https://arc.aiaa.org/doi/pdf/10.2514/3.62081
+                    Hstar = (rhostar * V * r)/(rhostar0 * Vinf) + integral**0.5
 
                     #Get H*(0)
-                    RN = 1      #Let RN=1 meter, although it should not matter apparently
-                    dVdx0 = (2**0.5)/RN * ((P0S - Pinf)/rho0S)**0.5
+                    RN = 0.3048      #Let RN = 1 ft = 0.3048m, as it recommends using that as a reference value (although apparently it shouldn't matter)
+                    dVdx0 = (2**0.5)/RN * ((normal_P0S - Pinf)/normal_rho0S)**0.5
                     Hstar0 = ( ((2*rhostar/rhostar0)*dVdx0 )/(Vinf * mustar/mustar0) )**0.5 * (2)**0.5
 
-                    #Laminar heat transfer rate, normalised by that for a hemispherical nosecone - wasn't sure which 'hrec' to use here
-                    kstar = k_air(T = Tstar, P = self.P[j, self.i])
-                    kstar0 = k_air(T = Tstar, P = P0S)                  
+                    #Laminar heat transfer rate, normalised by that for a hemispherical nosecone
+                    kstar = k_air(T = self.Tstar[j, self.i], P = self.P[j, self.i])
+                    kstar0 = k_air(T = self.Tstar[j, self.i], P = normal_P0S)                  
                     Cpw = cp_air()
                     Cpw0 = cp_air()
-                    qxq0 = (kstar * Hstar * (hrec_lam_boundary - hw) * Cpw0)/(kstar0 * Hstar0 * (h0 - hw) * Cpw)
 
-                    print("i={} qxq0 = {} alt = {}".format(self.i, qxq0, alt))
-                    #Haven't yet implemented the heating of the nosecone and how Tw changes - will probably use a lumped mass model for the nosecone
+                    #Equation (13) from https://arc.aiaa.org/doi/pdf/10.2514/3.62081 - wasn't sure which 'hrec' to use here
+                    qxq0_lam = (kstar * Hstar * (hrec_lam_boundary - hw) * Cpw0)/(kstar0 * Hstar0 * (h0 - hw) * Cpw)
+
+                    #Stagnation point heat transfer rate for a hemispherical nosecone
+                    Pr0 = Pr_air(normal_T0S, normal_P0S)  
+                    rhow = rho02rho(oblique_rho0S, self.M[j, self.i]) 
+                    muw = mu_air(self.Tw[j, self.i], self.P[j, self.i])
+                    rho = rho02rho(oblique_rho0S, self.M[j, self.i])
+                    mu = mu_air(self.Te[j, self.i], self.P[j, self.i])
+
+                    #Equation (29) from https://arc.aiaa.org/doi/pdf/10.2514/3.62081
+                    q_stag_point = 0.76*9.81*Pr0**(-0.6) * (rhow*muw)**0.1 * (rho*mu)**0.4 * (h0 - hw) * dVdx0**0.5
+
+                    #Now we can find the absolute laminar heat transfer rates, in W/m^2
+                    q_lam = qxq0_lam * q_stag_point
+
+                    #Turbulent heat transfer rate - using Equation (20) from https://arc.aiaa.org/doi/pdf/10.2514/3.62081
+                    Cpstar0 = cp_air()
+                    q_turb = ( 0.03*9.81**(1/3) * (2**0.2) * kstar**(2/3) * (rhostar*V)**0.8 * (1 - Prstar**(1/3) * he + Prstar**(1/3) * h0 - hw) )/(mustar**(7/15) * Cpstar0**(2/3) * self.tangent_ogive.S(j+1)**0.2)               
+
+                    print("i={} station={} q_lam = {} W/m^2 alt = {} m".format(self.i, j+1, q_lam, alt))
+
 
             else:
-                print("Subsonic flow post-shock (Minf = {:.2f}, MS = {:.2f}), skipping step number {}".format(Minf, MS, self.i))
+                print("Subsonic flow post-shock (Minf = {:.2f}, MS = {:.2f}), skipping step number {}".format(Minf, oblique_MS, self.i))
 
         else:
             print("Subsonic flow, skipping step number {}".format(self.i))
@@ -449,36 +540,3 @@ class HeatTransfer:
     def run(self, iterations = 300):
         for i in range(iterations):
             self.step()
-
-
-
-#Legacy
-'''
-        #Set up the initial conditions
-        self.i = 0
-        self.alt = pos_i2alt(self.simulation_output["pos_i"][self.i])   #Altitude
-
-        self.P = Atmosphere(self.alt).pressure[0]       #Freestream pressure
-        self.P0 = self.P                                #Stagnation pressure
-
-        self.Te = Atmosphere(self.alt).temperature[0]   #Edge of boundary layer temperature
-        self.Tw = self.Te                               #Wall temperature
-        self.T0 = self.Te                               #Stagnation temperature
-
-        self.he = cp_air()*self.Te                      #Edge of boundary layer enthalpy J/kg/K
-        self.hw = cp_air()*self.Tw                      #Wall enthalpy J/kg/K
-        self.h0 = self.he                               #Stagnation enthalpy
-
-        self.Pre = Pr_air(self.Te, self.P)              #Edge of boundary layer Prandtl number
-
-        #"Reference boundary layer values"
-        self.hstar = (self.he + self.hw)/2 + 0.22*(self.Pre**0.5)*(self.h0 - self.hw)
-        self.Tstar = self.hstar/cp_air()
-        self.Prstar = Pr_air(self.Tstar, self.P)
-
-        self.hrec_lam = self.he*(1-self.Prstar**(1/2)) + self.h0*(self.Prstar**(1/2))
-        self.hrec_turb = self.he*(1-self.Prstar**(1/3)) + self.h0*(self.Prstar**(1/3))
-
-        #Heat transfer rates
-        qdot0 = k_air(self.Tstar, self.P)
-'''
