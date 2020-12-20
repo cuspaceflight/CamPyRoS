@@ -1,10 +1,11 @@
-import ray,random,os,copy
+import ray,random,os,copy,json
 import numpy as np
 import pandas as pd
 from .main import *
 from .mass import CylindricalMassModel
 from .transforms import pos_i2l, vel_i2l
 from .aero import *
+from .mass import *
 
 from .plot import *
 from datetime import datetime
@@ -97,25 +98,44 @@ class StatisticalModel:
     wind_base : wind object
         Unpeterbed wind model
     """  
-    def __init__(self, launch_site_vars, mass_model_vars, aero_file, aero_error, motor, thrust_error, thrust_alignment_error, parachute_vars, env_vars, h=0.05, variable=True,alt_poll_interval=1,run_date=date.today().strftime("%Y%m%d"),forcast_time="00",forcast_plus_time="000"):
-        """Each variable set should be a list of [value,error]
-        launch_site=[rail_length, rail_yaw, rail_pitch, alt, longi, lat, wind=[0,0,0]]
-        """     
-        self.launch_site_vars=launch_site_vars
-        self.mass_model_vars=mass_model_vars
-        self.aero_file=aero_file
-        self.aero_vars=aero_error
-        self.motor_base=motor
-        self.h=h
-        self.variable_time=variable
-        self.thrust_error=thrust_error
-        self.thrust_alignment_error=thrust_alignment_error
-        self.parachute_vars=parachute_vars
-        self.env_vars=env_vars
-        self.type_names=["launch_site","mass_model","parachute","enviroment"]
+    def __init__(self, run_file):
+        with open(run_file,"r") as f:
+            data=json.load(f)
 
-        self.wind_base=model_wind=Wind(self.launch_site_vars["longi"][0],self.launch_site_vars["lat"][0],variable=True,run_date=run_date,forcast_time=forcast_time,forcast_plus_time=forcast_plus_time)
+        if data["name"]=="":
+            self.name="stat_model_%s"%datetime.now().strftime("%Y%m%d")
+        else:
+            self.name=data["name"]
 
+        self.itterations=data["itterations"]
+
+        self.launch_site_vars=data["launch_site"]
+        self.aero_file=data["aero_file"]
+        self.aero_vars=data["aero"]
+        self.parachute_vars=data["parachute"]
+        self.enviromental=data["enviromental"]
+        self.thrust_error=data["thrust_error"]
+        self.mass_vars=data["mass"]
+
+
+        self.wind_base=Wind(self.launch_site_vars["long"][0],
+                            self.launch_site_vars["lat"][0],
+                            variable=self.launch_site_vars,
+                            run_date=self.launch_site_vars["run_date"],
+                            forcast_time=self.launch_site_vars["run_time"],
+                            forcast_plus_time=self.launch_site_vars["run_plus_time"],
+                            fast=self.launch_site_vars["fast_wind"])
+
+        self.motor_data=load_motor(data["motor_file"])
+
+        self.motor_base=Motor(self.motor_data["motor_time"], 
+                            self.motor_data["prop_mass"], 
+                            self.motor_data["cham_pres"], 
+                            self.motor_data["throat"], 
+                            self.motor_data["gamma"], 
+                            self.motor_data["nozzle_efficiency"], 
+                            self.motor_data["exit_pres"], 
+                            self.motor_data["area_ratio"])
     @ray.remote
     def run_itteration(self, id, save_loc):
         """Runs an instance of the rocket with random errors
@@ -130,35 +150,104 @@ class StatisticalModel:
             Run number, used to name runs output
         save_loc : string
             Folder to store results
-        """    
-        run_vars={"launch_site":{k: np.random.normal(v[0],v[1]) for k, v in self.launch_site_vars.items()},#absolute errors given
-                "mass_model":{k: np.array(v[0])*np.random.normal(1,v[1]) for k, v in self.mass_model_vars.items()},
-                "parachute":{k: np.random.normal(v[0],abs_stdev(v[0],v[1])) for k, v in self.parachute_vars.items()},
-                "aero":{k: np.array(v[0])*np.random.normal(1,v[1]) for k, v in self.aero_vars.items()},
-                "env":{k: np.random.normal(1,v) for k,v in self.env_vars.items()}}
-        run_vars["launch_site"]["alt"]=abs(run_vars["launch_site"]["alt"])#This doesn't work when mean alt is non zero but less than a few stdevs
-        launch_site=LaunchSite(run_vars["launch_site"]["rail_length"],run_vars["launch_site"]["rail_yaw"],run_vars["launch_site"]["rail_pitch"],run_vars["launch_site"]["alt"],run_vars["launch_site"]["longi"],run_vars["launch_site"]["lat"],variable_wind=False)
-        launch_site.wind=copy.copy(self.wind_base)
-        #wind can now be modified for stats thing
-        mass_model=CylindricalMassModel(run_vars["mass_model"]["dry_mass"] + run_vars["mass_model"]["prop_mass"],run_vars["mass_model"]["time_data"],run_vars["mass_model"]["length"],run_vars["mass_model"]["radius"])
-        #mass_model=CylindricalMassModel(self.mass_model_vars["dry_mass"][0] + np.array(self.mass_model_vars["prop_mass"][0]),self.mass_model_vars["time_data"][0],self.mass_model_vars["length"][0],self.mass_model_vars["radius"][0])#CylindricalMassModel(run_vars["mass_model"]["dry_mass"] + run_vars["mass_model"]["prop_mass"],run_vars["mass_model"]["time_data"],run_vars["mass_model"]["length"],run_vars["mass_model"]["radius"])
+        """
         motor=copy.copy(self.motor_base)
-        motor.nozzle_efficiency_data=np.array(motor.nozzle_efficiency_data)*np.random.normal(1,self.thrust_error)
+        motor.nozzle_efficiency_data=np.array(motor.nozzle_efficiency_data)*np.random.normal(1,self.thrust_error["magnitude"])
 
-        c_damp_pitch = pitch_damping_coefficient(run_vars["mass_model"]["length"], run_vars["mass_model"]["radius"], fin_number = run_vars["aero"]["fins"], area_per_fin = run_vars["aero"]["area_per_fin"])
+        wind=copy.copy(self.wind_base)
+
+        dry_mass = self.mass_vars["dry_mass"][0]*np.random.normal(1,self.mass_vars["dry_mass"][1])
+        rocket_length = self.mass_vars["rocket_length"][0]*np.random.normal(1,self.mass_vars["rocket_length"][1])
+        rocket_radius = self.mass_vars["rocket_radius"][0]*np.random.normal(1,self.mass_vars["rocket_radius"][1])
+        rocket_wall_thickness = self.mass_vars["rocket_wall_thickness"][0]*np.random.normal(1,self.mass_vars["rocket_wall_thickness"][1])
+        pos_tank_bottom = self.mass_vars["pos_tank_bottom"][0]*np.random.normal(1,self.mass_vars["pos_tank_bottom"][1])
+        length_port=self.motor_data["length_port"]*np.random.normal(1,self.mass_vars["length_port"])
+        pos_solidfuel_bottom = self.mass_vars["pos_solidfuel_bottom_base"][0]*np.random.normal(1,self.mass_vars["pos_solidfuel_bottom_base"][1])+length_port    # m - Distance between the nose tip and bottom of the solid fuel grain 
+        ref_area = self.aero_vars["ref_area"][0]*np.random.normal(1,self.aero_vars["ref_area"][1])
+
+        c_damp_pitch = pitch_damping_coefficient(rocket_length,
+                                                rocket_radius, 
+                                                fin_number = self.aero_vars["fins"], 
+                                                area_per_fin = self.aero_vars["area_per_fin"][0]*np.random.normal(1,self.aero_vars["area_per_fin"][1]))
         c_damp_roll = 0
 
-        aero=RASAeroData(self.aero_file, run_vars["aero"]["ref_area"], c_damp_pitch, c_damp_roll, error={"COP":run_vars["aero"]["COP"],"CN":run_vars["aero"]["CN"],"CA":run_vars["aero"]["CA"]}) #I'm not convinces this is sufficient, should each datapoint not have its own random or is it okay to apply one error to the whole set?
-        
-        parachute=Parachute(run_vars["parachute"]["main_s"],run_vars["parachute"]["main_c_d"],run_vars["parachute"]["drogue_s"],run_vars["parachute"]["drogue_c_d"],run_vars["parachute"]["main_alt"],run_vars["parachute"]["attatch_distance"])
-        
-        #parachute=Parachute(self.parachute_vars["main_s"][0],self.parachute_vars["main_c_d"][0],self.parachute_vars["drogue_s"][0],self.parachute_vars["drogue_c_d"][0],self.parachute_vars["main_alt"][0],self.parachute_vars["attatch_distance"][0])
-        
-        thrust_alignment = np.array([np.random.normal(1,self.thrust_alignment_error),np.random.normal(0,self.thrust_alignment_error),np.random.normal(0,self.thrust_alignment_error)])
+        aerodynamic_coefficients = RASAeroData(self.aero_file, 
+                                                ref_area, 
+                                                c_damp_pitch, 
+                                                c_damp_roll, 
+                                                error={
+                                                    "CN":np.random.normal(1,self.aero_vars["CN"]),
+                                                    "CA":np.random.normal(1,self.aero_vars["CA"]),
+                                                    "COP":np.random.normal(1,self.aero_vars["COP"])
+                                                })
+        liquid_fuel = LiquidFuel(np.array(self.motor_data["lden"])*np.random.normal(1,self.mass_vars["lden"]), 
+                                np.array(self.motor_data["lmass"])*np.random.normal(1,self.mass_vars["lmass"]), 
+                                rocket_radius, 
+                                pos_tank_bottom, 
+                                self.motor_data["motor_time"])
+        solid_fuel = SolidFuel(np.array(self.motor_data["fuel_mass"])*np.random.normal(1,self.mass_vars["fuel_mass"]), 
+                                self.motor_data["density_fuel"]*np.random.normal(1,self.mass_vars["fuel_density"]), 
+                                self.motor_data["dia_fuel"]*np.random.normal(1,self.mass_vars["fuel_diameter"])/2, 
+                                length_port, 
+                                pos_solidfuel_bottom, 
+                                self.motor_data["motor_time"])
+        dry_mass_model = HollowCylinder(rocket_radius, 
+                                        rocket_radius - rocket_wall_thickness, 
+                                        rocket_length, 
+                                        dry_mass)
+
+        mass_model = HybridMassModel(rocket_length,
+                                    solid_fuel,
+                                    liquid_fuel,
+                                    np.array(self.motor_data["vmass"])*np.random.normal(1,self.mass_vars["vmass"]), 
+                                    dry_mass_model.mass,
+                                    dry_mass_model.ixx(),
+                                    dry_mass_model.iyy(),
+                                    dry_mass_model.izz(), 
+                                    dry_cog = rocket_length/2)
+
+
+        if (self.launch_site_vars["rail_yaw"][0]==0 and self.launch_site_vars["rail_pitch"][0]==0):
+            rail_yaw=2*np.pi*np.random.rand()
+            rail_pitch=np.random.normal(1,self.launch_site_vars["rail_pitch"][1])
+        else:
+            rail_yaw=self.launch_site_vars["rail_yaw"][0]*np.random.normal(1,self.launch_site_vars["rail_yaw"][1])
+            rail_pitch=self.launch_site_vars["rail_pitch"][0]*np.random.normal(1,self.launch_site_vars["rail_pitch"][1])
+        launch_site = LaunchSite(rail_length=self.launch_site_vars["rail_length"][0]*np.random.normal(1,self.launch_site_vars["rail_length"][1]), 
+                                rail_yaw=rail_yaw,
+                                rail_pitch=rail_pitch, 
+                                alt=abs(self.launch_site_vars["alt"][0]*np.random.normal(1,self.launch_site_vars["alt"][1])),#Not sure this is the correct way to make it >0 and still normally distrobuted, probably clusters just above 0
+                                longi=self.launch_site_vars["long"][0]*np.random.normal(1,self.launch_site_vars["long"][1]), 
+                                lat=self.launch_site_vars["lat"][0]*np.random.normal(1,self.launch_site_vars["lat"][1]), 
+                                variable_wind=True,
+                                run_date=self.launch_site_vars["run_date"],
+                                forcast_plus_time=self.launch_site_vars["run_plus_time"],
+                                forcast_time=self.launch_site_vars["run_time"],
+                                fast_wind=bool(self.launch_site_vars["fast_wind"]))
+
+        parachute = Parachute(main_s=self.parachute_vars["main_s"][0]*np.random.normal(1,self.parachute_vars["main_s"][1]),
+                            main_c_d=self.parachute_vars["main_c_d"][0]*np.random.normal(1,self.parachute_vars["main_c_d"][1]),
+                            drogue_s=self.parachute_vars["drogue_s"][0]*np.random.normal(1,self.parachute_vars["drogue_s"][1]),
+                            drogue_c_d=self.parachute_vars["drogue_c_d"][0]*np.random.normal(1,self.parachute_vars["drogue_c_d"][1]),
+                            main_alt=self.parachute_vars["main_alt"][0]*np.random.normal(1,self.parachute_vars["main_alt"][1]),
+                            attatch_distance=self.parachute_vars["attatch_distance"][0]*np.random.normal(1,self.parachute_vars["attatch_distance"][1]))
+
+        env_errors= {k: np.random.normal(1,v) for k,v in self.enviromental.items()}
+
+        thrust_alignment = np.array([np.random.normal(1,self.thrust_error["alignment"]),np.random.normal(0,self.thrust_error["magnitude"]),np.random.normal(0,self.thrust_error["magnitude"])])
         thrust_alignment = thrust_alignment/np.linalg.norm(thrust_alignment)
 
+        rocket = Rocket(mass_model, 
+                        motor, 
+                        aerodynamic_coefficients, 
+                        launch_site, 
+                        h=0.05, 
+                        variable=True, 
+                        alt_poll_interval=1, 
+                        parachute=parachute,
+                        errors=env_errors,
+                        thrust_vector=thrust_alignment)
         
-        rocket=Rocket(mass_model, motor, aero, launch_site, h=self.h, variable=self.variable_time,parachute=parachute,thrust_vector=thrust_alignment,errors=run_vars["env"])#,errors=run_vars["enviroment"])
         run_output = rocket.run(debug=True)
         run_save = pd.DataFrame()
         run_save["time"]=run_output["time"]
@@ -191,7 +280,7 @@ class StatisticalModel:
 
         
 
-    def run_model(self,itters,save_loc=None):
+    def run_model(self):
         """Runs the stochastic model
 
         Parameters
@@ -205,13 +294,12 @@ class StatisticalModel:
         string
             save location, if not specified is generated so needs to be returned to be known
         """    
-        if save_loc==None:
-            save_loc=os.path.join(os.getcwd(),"results/stat_model_%s"%datetime.now().strftime("%Y%m%d"))
+        save_loc="results/%s"%self.name
         if not os.path.exists(save_loc):
             os.makedirs(save_loc)
 
         ray.init()
-        for run in range(1,itters+1):
+        for run in range(1,self.itterations+1):
             self.run_itteration.remote(self,run,save_loc)
         input("Press enter when complete otherwise it pretends to have finished")
         return save_loc

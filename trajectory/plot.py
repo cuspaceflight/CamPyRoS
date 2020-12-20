@@ -658,8 +658,8 @@ def stats_apogee(apogee_mu,apogee_cov,apogee=pd.DataFrame(),sigma=3,landing_mu=n
 
     for v in np.linspace(0,np.pi,100):
         for u in np.linspace(0,2*np.pi,200):
-            d=elipse(u,v,ap_eig[0][2]**.5,ap_eig[0][1]**.5,ap_eig[0][0]**.5)
-            d=np.matmul(ap_eig_mat,d)
+            d=elipse(u,v,ap_eig[0][0]**.5,ap_eig[0][1]**.5,ap_eig[0][2]**.5)
+            d=np.matmul(ap_eig_mat.transpose(),d)
             x.append(d[0])
             y.append(d[1])
             z.append(d[2])
@@ -682,7 +682,7 @@ def stats_apogee(apogee_mu,apogee_cov,apogee=pd.DataFrame(),sigma=3,landing_mu=n
 
         l_eig=np.linalg.eig(landing_cov)
         l_eig_mat=np.array([[l_eig[1][0][0],l_eig[1][1][0]],[l_eig[1][0][1],l_eig[1][1][1]]])
-        landing_cov_elipse = np.matmul(l_eig_mat,np.array([l_eig[0][0]**0.5*np.cos(t),l_eig[0][1]**0.5*np.sin(t)]))
+        landing_cov_elipse = np.matmul(l_eig_mat.transpose(),np.array([l_eig[0][0]**0.5*np.cos(t),l_eig[0][1]**0.5*np.sin(t)]))
         
         for sig in range(1,sigma+1):
             ax.plot(sig*landing_cov_elipse[0]+landing_mu[0],sig*landing_cov_elipse[1]+landing_mu[1],0,label="%s $\sigma$"%sig,linewidth=1)
@@ -727,7 +727,7 @@ def stats_alt(z,t,show_means=False,sigma=3):
     plt.legend()
     plt.ylim(0,None)
     plt.show()
-def stats_trajectories(x,y,z):
+def stats_trajectories(x,y,z,apogee_mu=np.array([]),apogee_cov=np.array([]),sigma=3,landing_mu=np.array([]),landing_cov=np.array([])):
     fig = plt.figure()
     ax = plt.axes(projection="3d")
     
@@ -735,6 +735,44 @@ def stats_trajectories(x,y,z):
         ax.plot3D(x[itt],y[itt],data,color="blue",alpha=0.3)
     
     ax.scatter(0,0,0,c='red', label="Launch site")
+
+    if apogee_mu.shape!=(0,) and apogee_cov.shape!=(0,) and landing_mu.shape!=(0,) and landing_cov.shape!=(0,): 
+        ap_eig=np.linalg.eig(apogee_cov)
+        ap_eig_mat=np.array([[ap_eig[1][0][0],ap_eig[1][1][0],ap_eig[1][2][0]],[ap_eig[1][0][1],ap_eig[1][1][1],ap_eig[1][2][1]],[ap_eig[1][0][2],ap_eig[1][1][2],ap_eig[1][2][2]]])
+
+
+        x,y,z=[],[],[]
+
+        for v in np.linspace(0,np.pi,100):
+            for u in np.linspace(0,2*np.pi,200):
+                d=elipse(u,v,ap_eig[0][0]**.5,ap_eig[0][1]**.5,ap_eig[0][2]**.5)
+                d=np.matmul(ap_eig_mat.transpose(),d)
+                x.append(d[0])
+                y.append(d[1])
+                z.append(d[2])
+
+        for sig in range(1,sigma+1):
+            ax.plot(apogee_mu[0]+sig*np.array(x),apogee_mu[1]+sig*np.array(y),apogee_mu[2]+sig*np.array(z),alpha=.2)
+
+        ax.plot(apogee_mu[0],apogee_mu[1],apogee_mu[2],label="Mean apogee point")
+
+        ax.scatter(0,0,0,marker="x",color="red",label="Launch site")
+        ax.set_xlabel("South/m")
+        ax.set_ylabel("East/m")
+        ax.set_zlabel("Altitude/m")
+
+        if landing_mu.shape!=(0,) and landing_cov.shape!=(0,):
+            t=np.linspace(0,2*np.pi,314)
+
+            l_eig=np.linalg.eig(landing_cov)
+            l_eig_mat=np.array([[l_eig[1][0][0],l_eig[1][1][0]],[l_eig[1][0][1],l_eig[1][1][1]]])
+            landing_cov_elipse = np.matmul(l_eig_mat.transpose(),np.array([l_eig[0][0]**0.5*np.cos(t),l_eig[0][1]**0.5*np.sin(t)]))
+            
+            for sig in range(1,sigma+1):
+                ax.plot(sig*landing_cov_elipse[0]+landing_mu[0],sig*landing_cov_elipse[1]+landing_mu[1],0,label="%s $\sigma$"%sig,linewidth=1)
+
+            ax.scatter(landing_mu[0],landing_mu[1],0,marker="o",s=20,color="black",label="Mean landing point")
+            
     ax.set_xlabel('South/m')
     ax.set_ylabel('East/m')
     ax.set_zlabel('Altitude/m') 
