@@ -1,8 +1,11 @@
-numpy==1.18.5
-ray==1.0.1
-scipy==1.5.2
-pandas==0.25.3
 matplotlib==3.3.0
-streamlit==0.71.0
 ambiance==1.1.0
+ray==1.0.1
+scitools_iris==2.4.0
+requests==2.24.0
+scipy==1.5.2
 sphinx_rtd_theme==0.5.0
+numpy==1.18.5
+pandas==0.25.3
+MetPy==0.12.2
+iris==1.0.7

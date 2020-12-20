@@ -80,6 +80,50 @@ def points(lats,longs):
             points.append([lats[n],longs[m]])
     return points
 
+def load_motor(file):
+    with open('novus_sim_6.1/motor_out.csv') as csvfile:
+        motor_out = csv.reader(csvfile)
+
+        (motor_time_data, prop_mass_data, cham_pres_data,
+        throat_data, gamma_data, nozzle_efficiency_data,
+        exit_pres_data, area_ratio_data, vmass_data, lden_data, lmass_data, fuel_mass_data) = [], [], [], [], [], [], [], [], [], [], [], []
+
+        next(motor_out)
+        for row in motor_out:
+            motor_time_data.append(float(row[0]))
+            prop_mass_data.append(float(row[1]))
+            cham_pres_data.append(float(row[2]))
+            throat_data.append(float(row[3]))
+            gamma_data.append(float(row[4]))
+            nozzle_efficiency_data.append(float(row[5]))
+            exit_pres_data.append(float(row[6]))
+            area_ratio_data.append(float(row[7]))
+            vmass_data.append(float(row[8]))
+            lden_data.append(float(row[9]))
+            lmass_data.append(float(row[10]))
+            fuel_mass_data.append(float(row[11]))
+            
+            #This is a bit inefficient given that these are constants, (we only need to record them once):
+            DENSITY_FUEL = float(row[12])
+            DIA_FUEL = float(row[13])
+            LENGTH_PORT = float(row[14])
+        
+    return {"motor_time":motor_time_data,
+            "prop_mass":prop_mass_data,
+            "cham_pres":cham_pres_data,
+            "throat":throat_data,
+            "gamma":gamma_data,
+            "nozzle_efficiency":nozzle_efficiency_data,
+            "exit_pres":exit_pres_data,
+            "area_ratio":area_ratio_data,
+            "vmass":vmass_data,
+            "lden":lden_data,
+            "lmass":lmass_data,
+            "fuel_mass":fuel_mass_data,
+            "density_fuel":DENSITY_FUEL,
+            "dia_fuel":DIA_FUEL,
+            "length_port":LENGTH_PORT}
+
 class Wind:
     #Data will be strored in data_loc in the format lat_long_date_run_period.grb2 where lat and long are the bottom left values
     #Run has to be 00, 06, 12 or 18
