@@ -87,9 +87,8 @@ martlet4 = trajectory.Rocket(mass_model, pulsar, aerodynamic_coefficients, launc
 imported_data = trajectory.from_json("output.json")
 
 '''Specify the nosecone and create the HeatTransfer analysis object'''
-tangent_ogive = trajectory.post.TangentOgive(xprime = 73.7e-2, yprime = (19.7e-2)/2)
+#The nosecone is the same as that used in Reference 8 (pg A-3) - xprime = 2.504 ft, yprime = 0.25 ft
 tangent_ogive = trajectory.post.TangentOgive(xprime = 0.7632192, yprime = 0.0762)
-
 analysis = trajectory.post.HeatTransfer(tangent_ogive, imported_data, martlet4)
 
 '''Run the simulation if you want'''
@@ -98,3 +97,31 @@ analysis.run(iterations = 300)
 '''Import the aerodynamic heating data and plot it'''
 analysis.from_json("aero_heating_output.json")
 analysis.plot_heat_transfer_rates(imax=300)
+
+'''
+At the peak heat transfer rate, reading off the NASA graph we have approximately:
+
+alt = 6096 m
+Vinf = 1280.16 m/s - this gives a Mach number of about 4.05 I think
+q_turb = 44 Btu/ft^2/s = 499.69 kW/m^2
+q_lam = 4 Btu/ft^2/s = 45.43 kW/m^2
+
+All of these values are at a point between station 9 and 10
+
+My code outputs:
+i=0 station=1 q_lam=nan kW/m^2 q_turb=inf kW/m^2 alt=6096.00 m t=0.00 s
+i=0 station=2 q_lam=2171.25 kW/m^2 q_turb=1579.68 kW/m^2 alt=6096.00 m t=0.00 s
+i=0 station=3 q_lam=1630.29 kW/m^2 q_turb=1301.69 kW/m^2 alt=6096.00 m t=0.00 s
+i=0 station=4 q_lam=1263.88 kW/m^2 q_turb=1133.50 kW/m^2 alt=6096.00 m t=0.00 s
+i=0 station=5 q_lam=1016.33 kW/m^2 q_turb=1008.18 kW/m^2 alt=6096.00 m t=0.00 s
+i=0 station=6 q_lam=835.74 kW/m^2 q_turb=906.18 kW/m^2 alt=6096.00 m t=0.00 s
+i=0 station=7 q_lam=696.25 kW/m^2 q_turb=819.18 kW/m^2 alt=6096.00 m t=0.00 s
+i=0 station=8 q_lam=584.11 kW/m^2 q_turb=742.86 kW/m^2 alt=6096.00 m t=0.00 s
+i=0 station=9 q_lam=491.34 kW/m^2 q_turb=674.72 kW/m^2 alt=6096.00 m t=0.00 s
+i=0 station=10 q_lam=412.97 kW/m^2 q_turb=613.17 kW/m^2 alt=6096.00 m t=0.00 s
+i=0 station=11 q_lam=461.07 kW/m^2 q_turb=674.50 kW/m^2 alt=6096.00 m t=0.00 s
+i=0 station=12 q_lam=460.18 kW/m^2 q_turb=695.43 kW/m^2 alt=6096.00 m t=0.00 s
+i=0 station=13 q_lam=443.57 kW/m^2 q_turb=699.39 kW/m^2 alt=6096.00 m t=0.00 s
+i=0 station=14 q_lam=422.72 kW/m^2 q_turb=696.00 kW/m^2 alt=6096.00 m t=0.00 s
+i=0 station=15 q_lam=405.43 kW/m^2 q_turb=693.29 kW/m^2 alt=6096.00 m t=0.00 s
+'''
