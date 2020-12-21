@@ -1,11 +1,8 @@
 '''
-Suspected problems:
-My post-shock flow temperatures seem very small
-NASA FORTRAN code shows stuff on the order of 470K at station 1, down to around 256K at station 15.
+Implementation of NASA program NQLDW019
 
-I did some testing, and I think this might just be because the NASA rocket data is runing at extremely high Mach numbers (e.g. the first peak is at Mach 4)
-The Martlet4 trajectory we have only hits like Mach 1 to 2, which might be too low for any significant aerodynamic heating.
-
+Reference material:
+TANGENT OGIVE NOSE AERODYNAMIC HEATING PROGRAM - NQLDW019 (NASA) - https://ntrs.nasa.gov/citations/19730063810
 
 '''
 
@@ -377,12 +374,16 @@ class HeatTransfer:
     Notes
     ----------
     - Assumes that the angle of attack is always zero
+    - Assumes that the wall temperature is uniform along the nose cone
 
     '''
-    def __init__(self, tangent_ogive, trajectory_data, rocket):
+    def __init__(self, tangent_ogive, trajectory_data, rocket, starting_temperature = None):
         self.tangent_ogive = tangent_ogive
         self.trajectory_data = trajectory_data
-        self.trajectory_dict = self.trajectory_data.to_dict(orient="list")
+        if type(self.trajectory_data) is dict:
+            self.trajectory_dict = self.trajectory_data
+        else: 
+            self.trajectory_dict = self.trajectory_data.to_dict(orient="list")
         self.rocket = rocket
 
         #Timestep index
@@ -391,8 +392,9 @@ class HeatTransfer:
         #Arrays to store the data at each discretised point on the nose cone (1 to 15), and at each timestep
         self.M = np.zeros([15, len(self.trajectory_dict["time"])])        #Local Mach number
         self.P = np.zeros([15, len(self.trajectory_dict["time"])])        #Local pressure
-        starting_temperature = Atmosphere(pos_i2alt(self.trajectory_dict["pos_i"][0])).temperature[0] #Assume the nose cone starts with ambient temperature
-        self.Tw = np.full([15, len(self.trajectory_dict["time"])], starting_temperature)              #Wall temperature - for now assume that wall temperature is constant
+        if starting_temperature == None:
+            starting_temperature = Atmosphere(pos_i2alt(self.trajectory_dict["pos_i"][0])).temperature[0] #Assume the nose cone starts with ambient temperature
+        self.Tw = np.full(len(self.trajectory_dict["time"]), starting_temperature)              #Wall temperature - for now assume that wall temperature is constant
         self.Te = np.zeros([15, len(self.trajectory_dict["time"])])                                   #Temperature at the edge of the boundary layer
         self.Tstar = np.zeros([15, len(self.trajectory_dict["time"])])                                #T* as defined in the paper
         self.Hstar_function = np.zeros([15, len(self.trajectory_dict["time"])])                       #This array is used to minimise number of calculations for the integration needed in H*(x)
@@ -400,11 +402,14 @@ class HeatTransfer:
         #Arrays to store the useful data at the end
         self.q_lam = np.zeros([15, len(self.trajectory_dict["time"])])                #Laminar boundary layer
         self.q_turb = np.zeros([15, len(self.trajectory_dict["time"])])               #Turbunulent boundary layer
-        self.q0_hemispherical_nose = np.zeros([15, len(self.trajectory_dict["time"])])#At the stagnation point for a rocket with a hemispherical nose cone - used as a reference point
+        self.q0_hemispherical_nose = np.zeros(len(self.trajectory_dict["time"]))#At the stagnation point for a rocket with a hemispherical nose cone - used as a reference point
 
-    def step(self):
-        '''I THINK THE (0) VALUES IN THE PAPER ARE FOR A POST NORMAL-SHOCK FLOW, NOT OBLIQUE-SHOCK'''
-        '''I THINK THIS IS BECAUSE IT'S REFERING TO A SPHERICAL NOSE CONE AS A REFERENCE, WHICH WOULD HAVE A NORMAL SHOCK I THINK'''
+    def step(self, print_style=None):
+        '''
+        Options for print style:
+        None - nothing is printed
+        "FORTRAN" - same output as the examples in https://ntrs.nasa.gov/citations/19730063810, printing in Imperial units
+        '''
 
         #Get altitude:
         alt = pos_i2alt(self.trajectory_dict["pos_i"][self.i])
@@ -417,6 +422,14 @@ class HeatTransfer:
         #Get the freestream velocity and Mach number
         Vinf = np.linalg.norm(i2airspeed(self.trajectory_dict["pos_i"][self.i], self.trajectory_dict["vel_i"][self.i], self.rocket.launch_site, self.trajectory_dict["time"][self.i]))
         Minf = Vinf/Atmosphere(alt).speed_of_sound[0]
+
+        if print_style=="FORTRAN":
+            print("")
+            print("FREE STREAM CONDITIONS")
+            print("XMINF={:<10}     VINFY={:.4e}         GAMINF={:.4e}       RHOINF={:.4e}".format(0, 3.28084*Vinf, gamma_air(), 0.00194032*rhoinf))
+            print("HINFY={:.4e}     PINF ={:.4e} (ATMOS) PINFY ={:.4e} (PSF)".format(0.000429923*cp_air()*Tinf, Pinf/101325, 0.0208854*Pinf))
+            print("TINFY={:.4e}".format(Tinf))
+            print("")
 
         #Check if we're supersonic - if so we'll have a shock wave
         if Minf > 1:
@@ -441,6 +454,43 @@ class HeatTransfer:
             normal_P0S = p2p0(normal_PS, normal_MS)
             normal_T0S = T2T0(normal_TS, normal_MS)
             normal_rho0S = rho2rho0(normal_rhoS, normal_MS)
+
+            #Stagnation point heat transfer rate for a hemispherical nosecone
+            Pr0 = Pr_air(normal_T0S, normal_P0S)  
+            h0 = cp_air() * normal_T0S
+            hw = cp_air() * self.Tw[self.i]
+            mu0 = mu_air(normal_T0S, normal_P0S)
+            rhow0 = normal_P0S/(R_air()*self.Tw[self.i])             #p = rho * R * T (ideal gas)
+            muw0 = mu_air(self.Tw[self.i], normal_P0S)
+
+            RN = 0.3048      #Let RN = 1 ft = 0.3048m, as it recommends using that as a reference value (although apparently it shouldn't matter?)
+            dVdx0 = (2**0.5)/RN * ((normal_P0S - Pinf)/normal_rho0S)**0.5
+
+            #Equation (29) from https://arc.aiaa.org/doi/pdf/10.2514/3.62081
+            #Note that the equation only works in Imperial units, and requires you to specify density in slugs/ft^3, which is NOT lbm/ft^3
+            #Metric density (kg/m^3) --> Imperial density (slugs/ft^3): Multiply by 0.00194032
+            #Metric viscosity  (Pa s) --> Imperial viscosity (lbf sec/ft^2): Divide by 47.880259
+            #Metric enthalpy (J/kg/s) --> Imperial enthalpy (Btu/lbm): Multiply by 0.000429923
+            #Note that 'g', the acceleration of gravity, is equal to 32.1740 ft/s^2
+            self.q0_hemispherical_nose[self.i] = 0.76*32.1740*Pr0**(-0.6) * (0.00194032*rhow0*muw0/47.880259)**0.1 * (0.00194032*normal_rho0S*mu0/47.880259)**0.4 * (0.000429923*h0 - 0.000429923*hw) * dVdx0**0.5
+
+            #Now convert from Imperial heat transfer rate (Btu/ft^2/s) --> Metric heat transfer rate (W/m^2): Divide by 0.000088055
+            self.q0_hemispherical_nose[self.i] = self.q0_hemispherical_nose[self.i]/0.000088055
+
+            if print_style == "FORTRAN":
+                print("")
+                print("STAGNATION POINT DATA FOR SPHERICAL NOSE")
+                print("HREF0 ={:<10}     TREF0 ={:<10}   VISCR0={:<10}   TKREF0={:<10}".format(0, 0, 0, 0))
+                print("ZREF0 ={:<10}     PRREF0={:<10}   CPREF0={:<10}   RHOR0 ={:<10}".format(0, 0, 0, 0))
+                print("CPCVR0={:.4e}     RN    ={:.4e}   T0    ={:.4e}".format(gamma_air(), RN/0.3048, normal_T0S))
+                print("P0    ={:.4e}     RHO0  ={:.4e}   SR0   ={:<10}   TK0   ={:<10}".format(0.0208854*normal_P0S, 0.00194032*normal_rho0S, 0, 0))
+                print("VISC0 ={:.4e}     DVDX0 ={:.4e}   Z0    ={:<10}   CP0   ={:.4e}".format(mu0/47.880259, dVdx0, 0, 0.000429923*cp_air()))
+                print("A0    ={:<10}     TW0   ={:.4e}   VISCW0={:.4e}   HW0   ={:.4e}".format(0, self.Tw[self.i], muw0/47.880259, 0.000429923*hw))
+                print("")
+                print("CPW0  ={:.4e}     PR0   ={:.4e}".format(0.000429923*cp_air(), Pr0))
+                print("QSTPT ={:.4e}     = NOSE STAGNATION POINT HEAT RATE".format(0.000088055*self.q0_hemispherical_nose[self.i]))
+                print("H0    ={:.4e}     HT    ={:<10}   RHOW0={:.4e}".format(0.000429923*h0, 0, 0.00194032*rhow0))
+                print("")
 
             #Prandtl-Meyer expansion (only possible for supersonic flow):
             if oblique_MS > 1:
@@ -473,14 +523,12 @@ class HeatTransfer:
                     self.M[j, self.i] = pressure_ratio_to_mach(self.P[j, self.i]/oblique_P0S)
 
                 #Now deal with the heat transfer itself
-                for j in range(15):
+                for j in [1,2,3,4,5,6,7,8,9,10,11,12,13,14]:
                     #Edge of boundary layer temperature - i.e. flow temperature post-shock and after Prandtl-Meyer expansion
                     self.Te[j, self.i] = T02T(oblique_T0S, self.M[j, self.i]) 
 
                     #Enthalpies
                     he = cp_air() * self.Te[j, self.i]
-                    hw = cp_air() * self.Tw[j, self.i]
-                    h0 = cp_air() * normal_T0S
 
                     #Prandtl numbers and specific heat capacities
                     Pre = Pr_air(self.Te[j, self.i], self.P[j, self.i])         
@@ -494,7 +542,7 @@ class HeatTransfer:
                     hrec_lam_boundary = he*(1-Prstar**(1/2)) + h0*(Prstar**(1/2))
                     hrec_turb_boundary = he*(1-Prstar**(1/3)) + h0*(Prstar**(1/3))
 
-                    #Get H*(x) - WARNING: I'm a bit unsure about this section, in particular I'm not sure about the integral bit
+                    #Get H*(x) - I'm not sure about if I did the integral bit right
                     rhostar0 = normal_P0S / (R_air() * self.Tstar[j, self.i])
                     mustar0 = mu_air(T=self.Tstar[j, self.i], P = normal_P0S)
 
@@ -513,8 +561,6 @@ class HeatTransfer:
                     Hstar = (rhostar * V * r)/(rhostar0 * Vinf) / (integral**0.5)
 
                     #Get H*(0)
-                    RN = 0.3048      #Let RN = 1 ft = 0.3048m, as it recommends using that as a reference value (although apparently it shouldn't matter?)
-                    dVdx0 = (2**0.5)/RN * ((normal_P0S - Pinf)/normal_rho0S)**0.5
                     Hstar0 = ( ((2*rhostar/rhostar0)*dVdx0 )/(Vinf * mustar/mustar0) )**0.5 * (2)**0.5
 
                     #Laminar heat transfer rate, normalised by that for a hemispherical nosecone
@@ -526,28 +572,30 @@ class HeatTransfer:
                     #Equation (13) from https://arc.aiaa.org/doi/pdf/10.2514/3.62081 - wasn't sure which 'hrec' to use here but I think it's the laminar one
                     qxq0_lam = (kstar * Hstar * (hrec_lam_boundary - hw) * Cpw0)/(kstar0 * Hstar0 * (h0 - hw) * Cpw)
 
-                    #Stagnation point heat transfer rate for a hemispherical nosecone
-                    Pr0 = Pr_air(normal_T0S, normal_P0S)  
-                    rhow = rho02rho(oblique_rho0S, self.M[j, self.i]) 
-                    muw = mu_air(self.Tw[j, self.i], self.P[j, self.i])
-                    rho = rho02rho(oblique_rho0S, self.M[j, self.i])
-                    mu = mu_air(self.Te[j, self.i], self.P[j, self.i])
-
-                    #Equation (29) from https://arc.aiaa.org/doi/pdf/10.2514/3.62081
-                    self.q0_hemispherical_nose[j, self.i] = 0.76*9.81*Pr0**(-0.6) * (rhow*muw)**0.1 * (rho*mu)**0.4 * (h0 - hw) * dVdx0**0.5
-
                     #Now we can find the absolute laminar heat transfer rates, in W/m^2
-                    self.q_lam[j, self.i] = qxq0_lam * self.q0_hemispherical_nose[j, self.i]
+                    self.q_lam[j, self.i] = qxq0_lam * self.q0_hemispherical_nose[self.i]
 
                     #Turbulent heat transfer rate - using Equation (20) from https://arc.aiaa.org/doi/pdf/10.2514/3.62081
                     Cpstar0 = cp_air()
                     self.q_turb[j, self.i] = ( 0.03*9.81**(1/3) * (2**0.2) * kstar**(2/3) * (rhostar*V)**0.8 * (1 - Prstar**(1/3)*he + Prstar**(1/3)*h0 - hw) )/(mustar**(7/15) * Cpstar0**(2/3) * self.tangent_ogive.S(j+1)**0.2)               
                     
-                    #print("i={} station={} he = {:.2f} kJ/kg/K hw = {:.2f} kJ/kg/K h0 = {:.2f} kJ/kg/K hinf = {} alt = {:.2f} m".format(self.i, j+1, he/1000, hw/1000, h0/1000, Tinf*cp_air()/1000, alt))
-                    #print("i={} station={} Te={:.2f} Tw={:.2f} T0={:.2f} Tinf={} q_turb={} alt={:.2f} m".format(self.i, j+1, self.Te[j, self.i], self.Tw[j, self.i], normal_T0S, Tinf, self.q_turb[j, self.i], alt))
-                    print("i={} station={} q_lam={:.2f} kW/m^2 q_turb={:.2f} kW/m^2 alt={:.2f} m t={:.2f} s".format(self.i, j+1, self.q_lam[j, self.i]/1000, self.q_turb[j, self.i]/1000, alt, self.trajectory_dict["time"][self.i]))
+                    #print("i={} station={} Pe={:.2f} kPa Te={:.2f} K T* = {:.2f} K q_lam={} W/m^2 q_turb={} W/m^2".format(self.i, j+1, self.P[j, self.i], self.Te[j, self.i], self.Tstar[j, self.i], self.q_lam[j, self.i], self.q_turb[j, self.i]))
+                    #print("i={} station={} Pe={:.2f} lbf/ft^3 Te={:.2f} K T* = {:.2f} K q_lam={:.2f} Btu/ft^2/s q_turb={:.2f} Btu/ft^2/s".format(self.i, j+1, 0.0208854*self.P[j, self.i], self.Te[j, self.i], self.Tstar[j, self.i], 0.000088055*self.q_lam[j, self.i], 0.000088055*self.q_turb[j, self.i]))
 
-
+                    #FORTRAN style output:
+                    if print_style=="FORTRAN":
+                        print("")
+                        print("WALL, REFERENCE AND EXTERNAL-TO-BOUNDARY-LAYER FLOW PROPERTIES AT STATION = {}".format(j+1))
+                        print("HW    ={:.4e}    CPW   ={:.4e}   HREFX={:<10}    PRREFX={:<10}".format(0.000429923*hw, 0.000429923*Cpw, 0, 0))
+                        print("TKREFX={:<10}    VISCRX={:<10}   RHORX={:<10}    TREFX ={:<10}".format(0, 0, 0, 0))
+                        print("ZREFX ={:<10}    CPCVRX={:<10}   PX   ={:.4e}    TX    ={:.4e}".format(0, 0, 0.0208854*self.P[j, self.i], self.Te[j, self.i]))
+                        print("TKX   ={:<10}    VISCX ={:.4e}   PRX  ={:.4e}    ZX    ={:<10}".format(0, mu_air(self.Te[j, self.i], self.P[j, self.i])/47.880259, Pre, 0))
+                        print("SRX   ={:<10}    HX    ={:.4e}   VX   ={:.4e}    CPCVX ={:.4e}".format(0, 0.000429923*he, 3.28084*V, gamma_air()))
+                        print("AAX   ={:<10}    RHOX  ={:.4e}   XM   ={:<10}    CPX   ={:.4e}".format(0, 0.00194032*rho02rho(oblique_rho0S, self.M[j, self.i]), 0, 0.000429923*cp_air()))
+                        print("")
+                        print("X = {:.3f}".format(3.28084*self.tangent_ogive.S_array[j]))
+                        print("QLAM={:.3f}     QTURB={:.3f}     QLAM/QSTAG={:.3f}     QTURB/QSTAG={:.3f}".format(0.000088055*self.q_lam[j, self.i], 0.000088055*self.q_turb[j, self.i], self.q_lam[j, self.i]/self.q0_hemispherical_nose[self.i], self.q_turb[j, self.i]/self.q0_hemispherical_nose[self.i]))
+                        print("")
             else:
                 print("Subsonic flow post-shock (Minf = {:.2f}, MS = {:.2f}), skipping step number {}".format(Minf, oblique_MS, self.i))
 
