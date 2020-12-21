@@ -617,7 +617,7 @@ def animate_orientation(simulation_output, frames=500):
 
     plt.show()
 
-def stats_landing(mu,cov,data=pd.DataFrame(),sigma=3):
+def stats_landing(mu,cov,data=pd.DataFrame(),sigma=3,apogee=pd.DataFrame()):
     t=np.linspace(0,2*np.pi,314)
     fig=plt.figure()
     ax=fig.gca()
@@ -635,7 +635,12 @@ def stats_landing(mu,cov,data=pd.DataFrame(),sigma=3):
     ax.set_ylabel("East/m")
 
     if not data.empty:
-        ax.scatter(data.x,data.y,marker="o",s=10,color="blue",alpha=0.3)
+        if not apogee.empty:
+            c=apogee["alt"]
+        else:
+            c="blue"
+        ax.scatter(data.x,data.y,marker="o",s=10,c=c,alpha=0.5)
+
     ax.legend()
     set_axes_equal(ax,dim=2)
     plt.show()
@@ -772,7 +777,7 @@ def stats_trajectories(x,y,z,apogee_mu=np.array([]),apogee_cov=np.array([]),sigm
                 ax.plot(sig*landing_cov_elipse[0]+landing_mu[0],sig*landing_cov_elipse[1]+landing_mu[1],0,label="%s $\sigma$"%sig,linewidth=1)
 
             ax.scatter(landing_mu[0],landing_mu[1],0,marker="o",s=20,color="black",label="Mean landing point")
-            
+
     ax.set_xlabel('South/m')
     ax.set_ylabel('East/m')
     ax.set_zlabel('Altitude/m') 

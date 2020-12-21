@@ -40,6 +40,7 @@ import scipy.interpolate
 from scipy.spatial.transform import Rotation
 import scipy.integrate as integrate
 from datetime import date
+import numexpr as ne
 
 from .constants import r_earth, ang_vel_earth, f
 from .transforms import pos_l2i, pos_i2l, vel_l2i, vel_i2l, direction_l2i, direction_i2l, i2airspeed, i2lla, pos_i2alt
@@ -77,7 +78,7 @@ def points(lats,longs):
     points=[]
     for n in [0,1]:
         for m in [0,1]:
-            points.append([lats[n],longs[m]])
+            points.append([lats[n],np.mod(longs[m],360)])
     return points
 
 def load_motor(file):
@@ -257,7 +258,7 @@ class Wind:
         lat_top,long_left=validate_lat_long(lat_top,long_left)
         lat_bottom,long_right=validate_lat_long(lat_bottom,long_right)
 
-        if not os.path.isfile("%s/%s_%s_%s_%s_%s.grb2"%(self.data_loc,lat_bottom,long_left,self.date,self.forcast_time,self.run_time)):
+        if not os.path.isfile("%s/%s_%s_%s_%s_%s.grb2"%(self.data_loc,lat_bottom,np.mod(long_left,360),self.date,self.forcast_time,self.run_time)):
             #This does download 3 rows that aren't needed but I can't work out how to yeet them
             print("Downloading files")
             if long_left>long_right:
@@ -269,7 +270,7 @@ class Wind:
             
             r = requests.get(url, stream=True)
 
-            with open("%s/%s_%s_%s_%s_%s.grb2"%(self.data_loc,lat_bottom,long_left,self.date,self.forcast_time,self.run_time),'wb') as f:
+            with open("%s/%s_%s_%s_%s_%s.grb2"%(self.data_loc,lat_bottom,np.mod(long_left,360),self.date,self.forcast_time,self.run_time),'wb') as f:
                 for chunk in r.iter_content(chunk_size=1024):
                     if chunk: 
                         f.write(chunk)
@@ -314,7 +315,6 @@ class Wind:
                         warnings.warn("Wind datapoint lat=%s, long=%s, pres=%s was missed because of an unknown Iris error, this may be a fatal result if there are many instances in one dataset"%(lat,long,pres))
                 #Add a lookup check here (i.e. query for lat long and check not none)
                 points.append([lat,long])
-        print("load time %s"%(time.time()-tl))
         return df,points
 
     def get_wind(self,lat,long,alt):
@@ -335,6 +335,7 @@ class Wind:
         """ 
         lat,long=validate_lat_long(lat,long)
         if self.variable == True and self.fast==False and 0<alt<80000:
+            lat,long=long,lat#These are switched somehow balancing evrerywhere else, should be fixedß
             lats=closest(lat,.25)
             longs=closest(long,.25)
             if not all(point in self.points for point in points(lats,longs)):
@@ -348,23 +349,23 @@ class Wind:
 
             m=self.df[ne.evaluate("search_lats==%s"%lats[0])]
             search_longs=m.long.values
-            row=m[ne.evaluate("search_longs==%s"%longs[0])]
+            row=m[ne.evaluate("search_longs==%s"%np.mod(longs[0],360))]
             a=scipy.interpolate.interp1d(row["alt"],np.array([-row["w_y"],row["w_x"],np.zeros(len(row["w_y"]))]), fill_value='extrapolate')(alt)
 
             m=self.df[ne.evaluate("search_lats==%s"%lats[0])]
             search_longs=m.long.values
-            row=m[ne.evaluate("search_longs==%s"%longs[1])]
+            row=m[ne.evaluate("search_longs==%s"%np.mod(longs[1],360))]
             b=scipy.interpolate.interp1d(row["alt"],np.array([-row["w_y"],row["w_x"],np.zeros(len(row["w_y"]))]), fill_value='extrapolate')(alt)
             y_0=a+(long-longs[0])*(b-a)/(longs[1]-longs[0])
 
             m=self.df[ne.evaluate("search_lats==%s"%lats[1])]
             search_longs=m.long.values
-            row=m[ne.evaluate("search_longs==%s"%longs[0])]
+            row=m[ne.evaluate("search_longs==%s"%np.mod(longs[0],360))]
             a=scipy.interpolate.interp1d(row["alt"],np.array([-row["w_y"],row["w_x"],np.zeros(len(row["w_y"]))]), fill_value='extrapolate')(alt)
 
             m=self.df[ne.evaluate("search_lats==%s"%lats[1])]
             search_longs=m.long.values
-            row=m[ne.evaluate("search_longs==%s"%longs[1])]
+            row=m[ne.evaluate("search_longs==%s"%np.mod(longs[1],360))]
             b=scipy.interpolate.interp1d(row["alt"],np.array([-row["w_y"],row["w_x"],np.zeros(len(row["w_y"]))]), fill_value='extrapolate')(alt)
             y_1=a+(long-longs[0])*(b-a)/(longs[1]-longs[0])
             

@@ -152,23 +152,23 @@ class StatisticalModel:
             Folder to store results
         """
         motor=copy.copy(self.motor_base)
-        motor.nozzle_efficiency_data=np.array(motor.nozzle_efficiency_data)*np.random.normal(1,self.thrust_error["magnitude"])
+        motor.nozzle_efficiency_data=np.array(motor.nozzle_efficiency_data)*np.random.normal(1,self.thrust_error["magnitude"][0])
 
         wind=copy.copy(self.wind_base)
 
-        dry_mass = self.mass_vars["dry_mass"][0]*np.random.normal(1,self.mass_vars["dry_mass"][1])
-        rocket_length = self.mass_vars["rocket_length"][0]*np.random.normal(1,self.mass_vars["rocket_length"][1])
-        rocket_radius = self.mass_vars["rocket_radius"][0]*np.random.normal(1,self.mass_vars["rocket_radius"][1])
-        rocket_wall_thickness = self.mass_vars["rocket_wall_thickness"][0]*np.random.normal(1,self.mass_vars["rocket_wall_thickness"][1])
-        pos_tank_bottom = self.mass_vars["pos_tank_bottom"][0]*np.random.normal(1,self.mass_vars["pos_tank_bottom"][1])
-        length_port=self.motor_data["length_port"]*np.random.normal(1,self.mass_vars["length_port"])
-        pos_solidfuel_bottom = self.mass_vars["pos_solidfuel_bottom_base"][0]*np.random.normal(1,self.mass_vars["pos_solidfuel_bottom_base"][1])+length_port    # m - Distance between the nose tip and bottom of the solid fuel grain 
-        ref_area = self.aero_vars["ref_area"][0]*np.random.normal(1,self.aero_vars["ref_area"][1])
+        dry_mass = self.mass_vars["dry_mass"][0]+np.random.normal(0,self.mass_vars["dry_mass"][1])
+        rocket_length = self.mass_vars["rocket_length"][0]+np.random.normal(0,self.mass_vars["rocket_length"][1])
+        rocket_radius = self.mass_vars["rocket_radius"][0]+np.random.normal(0,self.mass_vars["rocket_radius"][1])
+        rocket_wall_thickness = self.mass_vars["rocket_wall_thickness"][0]+np.random.normal(0,self.mass_vars["rocket_wall_thickness"][1])
+        pos_tank_bottom = self.mass_vars["pos_tank_bottom"][0]+np.random.normal(0,self.mass_vars["pos_tank_bottom"][1])
+        length_port=self.motor_data["length_port"]+np.random.normal(0,self.mass_vars["length_port"][0])
+        pos_solidfuel_bottom = self.mass_vars["pos_solidfuel_bottom_base"][0]+np.random.normal(0,self.mass_vars["pos_solidfuel_bottom_base"][1])+length_port    # m - Distance between the nose tip and bottom of the solid fuel grain 
+        ref_area = self.aero_vars["ref_area"][0]+np.random.normal(0,self.aero_vars["ref_area"][1])
 
         c_damp_pitch = pitch_damping_coefficient(rocket_length,
                                                 rocket_radius, 
                                                 fin_number = self.aero_vars["fins"], 
-                                                area_per_fin = self.aero_vars["area_per_fin"][0]*np.random.normal(1,self.aero_vars["area_per_fin"][1]))
+                                                area_per_fin = self.aero_vars["area_per_fin"][0]+np.random.normal(0,self.aero_vars["area_per_fin"][1]))
         c_damp_roll = 0
 
         aerodynamic_coefficients = RASAeroData(self.aero_file, 
@@ -176,18 +176,18 @@ class StatisticalModel:
                                                 c_damp_pitch, 
                                                 c_damp_roll, 
                                                 error={
-                                                    "CN":np.random.normal(1,self.aero_vars["CN"]),
-                                                    "CA":np.random.normal(1,self.aero_vars["CA"]),
-                                                    "COP":np.random.normal(1,self.aero_vars["COP"])
+                                                    "CN":np.random.normal(1,self.aero_vars["CN"][0]),
+                                                    "CA":np.random.normal(1,self.aero_vars["CA"][0]),
+                                                    "COP":np.random.normal(1,self.aero_vars["COP"][0])
                                                 })
-        liquid_fuel = LiquidFuel(np.array(self.motor_data["lden"])*np.random.normal(1,self.mass_vars["lden"]), 
-                                np.array(self.motor_data["lmass"])*np.random.normal(1,self.mass_vars["lmass"]), 
+        liquid_fuel = LiquidFuel(np.array(self.motor_data["lden"])*np.random.normal(1,self.mass_vars["lden"][0]), 
+                                np.array(self.motor_data["lmass"])*np.random.normal(1,self.mass_vars["lmass"][0]), 
                                 rocket_radius, 
                                 pos_tank_bottom, 
                                 self.motor_data["motor_time"])
-        solid_fuel = SolidFuel(np.array(self.motor_data["fuel_mass"])*np.random.normal(1,self.mass_vars["fuel_mass"]), 
-                                self.motor_data["density_fuel"]*np.random.normal(1,self.mass_vars["fuel_density"]), 
-                                self.motor_data["dia_fuel"]*np.random.normal(1,self.mass_vars["fuel_diameter"])/2, 
+        solid_fuel = SolidFuel(np.array(self.motor_data["fuel_mass"])*np.random.normal(1,self.mass_vars["fuel_mass"][0]), 
+                                self.motor_data["density_fuel"]*np.random.normal(1,self.mass_vars["fuel_density"][0]), 
+                                self.motor_data["dia_fuel"]*np.random.normal(1,self.mass_vars["fuel_diameter"][0])/2, 
                                 length_port, 
                                 pos_solidfuel_bottom, 
                                 self.motor_data["motor_time"])
@@ -199,7 +199,7 @@ class StatisticalModel:
         mass_model = HybridMassModel(rocket_length,
                                     solid_fuel,
                                     liquid_fuel,
-                                    np.array(self.motor_data["vmass"])*np.random.normal(1,self.mass_vars["vmass"]), 
+                                    np.array(self.motor_data["vmass"])*np.random.normal(1,self.mass_vars["vmass"][0]), 
                                     dry_mass_model.mass,
                                     dry_mass_model.ixx(),
                                     dry_mass_model.iyy(),
@@ -207,37 +207,37 @@ class StatisticalModel:
                                     dry_cog = rocket_length/2)
 
 
-        if (self.launch_site_vars["rail_yaw"][0]==0 and self.launch_site_vars["rail_pitch"][0]==0):
-            rail_yaw=2*np.pi*np.random.rand()
-            rail_pitch=np.random.normal(1,self.launch_site_vars["rail_pitch"][1])
+        if (self.launch_site_vars["rail_pitch"][0]=="up"):
+            rail_yaw=np.random.normal(0,self.launch_site_vars["rail_yaw"][1])
+            rail_pitch=2*np.pi*np.random.rand()
         else:
-            rail_yaw=self.launch_site_vars["rail_yaw"][0]*np.random.normal(1,self.launch_site_vars["rail_yaw"][1])
-            rail_pitch=self.launch_site_vars["rail_pitch"][0]*np.random.normal(1,self.launch_site_vars["rail_pitch"][1])
-        launch_site = LaunchSite(rail_length=self.launch_site_vars["rail_length"][0]*np.random.normal(1,self.launch_site_vars["rail_length"][1]), 
+            rail_yaw=self.launch_site_vars["rail_yaw"][0]+np.random.normal(0,self.launch_site_vars["rail_yaw"][1])
+            rail_pitch=self.launch_site_vars["rail_pitch"][0]+np.random.normal(0,self.launch_site_vars["rail_pitch"][1])
+        launch_site = LaunchSite(rail_length=self.launch_site_vars["rail_length"][0]+np.random.normal(0,self.launch_site_vars["rail_length"][1]), 
                                 rail_yaw=rail_yaw,
                                 rail_pitch=rail_pitch, 
-                                alt=abs(self.launch_site_vars["alt"][0]*np.random.normal(1,self.launch_site_vars["alt"][1])),#Not sure this is the correct way to make it >0 and still normally distrobuted, probably clusters just above 0
-                                longi=self.launch_site_vars["long"][0]*np.random.normal(1,self.launch_site_vars["long"][1]), 
-                                lat=self.launch_site_vars["lat"][0]*np.random.normal(1,self.launch_site_vars["lat"][1]), 
+                                alt=self.launch_site_vars["alt"][0]+abs(np.random.normal(0,self.launch_site_vars["alt"][1])),#Not sure this is the correct way to make it >0 and still normally distrobuted, probably clusters just above 0
+                                longi=self.launch_site_vars["long"][0]+np.random.normal(0,self.launch_site_vars["long"][1]), 
+                                lat=self.launch_site_vars["lat"][0]+np.random.normal(0,self.launch_site_vars["lat"][1]), 
                                 variable_wind=True,
                                 run_date=self.launch_site_vars["run_date"],
                                 forcast_plus_time=self.launch_site_vars["run_plus_time"],
                                 forcast_time=self.launch_site_vars["run_time"],
                                 fast_wind=bool(self.launch_site_vars["fast_wind"]))
 
-        if np.random.binomial(1,self.parachute_vars["failure_rate"])==0:
-            parachute = Parachute(main_s=self.parachute_vars["main_s"][0]*np.random.normal(1,self.parachute_vars["main_s"][1]),
-                                main_c_d=self.parachute_vars["main_c_d"][0]*np.random.normal(1,self.parachute_vars["main_c_d"][1]),
-                                drogue_s=self.parachute_vars["drogue_s"][0]*np.random.normal(1,self.parachute_vars["drogue_s"][1]),
-                                drogue_c_d=self.parachute_vars["drogue_c_d"][0]*np.random.normal(1,self.parachute_vars["drogue_c_d"][1]),
-                                main_alt=self.parachute_vars["main_alt"][0]*np.random.normal(1,self.parachute_vars["main_alt"][1]),
-                                attatch_distance=self.parachute_vars["attatch_distance"][0]*np.random.normal(1,self.parachute_vars["attatch_distance"][1]))
+        if np.random.binomial(1,self.parachute_vars["failure_rate"][0])==0:
+            parachute = Parachute(main_s=self.parachute_vars["main_s"][0]+np.random.normal(0,self.parachute_vars["main_s"][0]*self.parachute_vars["main_s"][1]),
+                                main_c_d=self.parachute_vars["main_c_d"][0]+np.random.normal(0,self.parachute_vars["main_c_d"][0]*self.parachute_vars["main_c_d"][1]),
+                                drogue_s=self.parachute_vars["drogue_s"][0]+np.random.normal(0,self.parachute_vars["drogue_s"][0]*self.parachute_vars["drogue_s"][1]),
+                                drogue_c_d=self.parachute_vars["drogue_c_d"][0]+np.random.normal(0,self.parachute_vars["drogue_c_d"][0]*self.parachute_vars["drogue_c_d"][1]),
+                                main_alt=self.parachute_vars["main_alt"][0]+np.random.normal(0,self.parachute_vars["main_alt"][1]),
+                                attatch_distance=self.parachute_vars["attatch_distance"][0]+np.random.normal(0,self.parachute_vars["attatch_distance"][1]))
         else:
             parachute=Parachute(0.0,0.0,0.0,0.0,0.0,0.0)
 
-        env_errors= {k: np.random.normal(1,v) for k,v in self.enviromental.items()}
+        env_errors= {k: np.random.normal(1,v[0]) for k,v in self.enviromental.items()}
 
-        thrust_alignment = np.array([np.random.normal(1,self.thrust_error["alignment"]),np.random.normal(0,self.thrust_error["magnitude"]),np.random.normal(0,self.thrust_error["magnitude"])])
+        thrust_alignment = np.array([np.random.normal(1,self.thrust_error["alignment"][0]),np.random.normal(0,self.thrust_error["magnitude"][0]),np.random.normal(0,self.thrust_error["magnitude"][0])])
         thrust_alignment = thrust_alignment/np.linalg.norm(thrust_alignment)
 
         rocket = Rocket(mass_model, 
@@ -271,7 +271,6 @@ class StatisticalModel:
         run_save["x"]=x
         run_save["y"]=y
         run_save["z"]=z
-        print(z[-1])
         run_save["v_x"]=v_x
         run_save["v_y"]=v_y
         run_save["v_z"]=v_z#These were'nt saving properly as vectors but really should
