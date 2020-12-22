@@ -15,10 +15,13 @@ Assumptions:
 
 import numpy as np
 import matplotlib.pyplot as plt
-import thermo.mixture, json, scipy.integrate, scipy.optimize
+import matplotlib.animation as animation
+import thermo.mixture, matplotlib.widgets, json, scipy.integrate, scipy.optimize
 
 from ambiance import Atmosphere
-from trajectory.transforms import pos_l2i, pos_i2l, vel_l2i, vel_i2l, direction_l2i, direction_i2l, i2airspeed, pos_i2alt
+from .transforms import pos_l2i, pos_i2l, vel_l2i, vel_i2l, direction_l2i, direction_i2l, i2airspeed, pos_i2alt
+
+
 
 #Compressible flow functions
 def prandtl_meyer(M, gamma=1.4):
@@ -688,7 +691,7 @@ class HeatTransfer:
         self.Tstar = np.array(dict["Tstar"])
         self.Hstar_function = np.array(dict["Hstar_function"])
 
-    def plot_station_properties(self, station_number=10, imax=None):
+    def plot_station(self, station_number=10, imax=None):
         assert station_number <= 15 and station_number >= 1, "Station number must be between 1 and 15 (inclusive)"
         q_lam = self.q_lam[station_number - 1, :]
         q_turb = self.q_turb[station_number - 1, :]
@@ -722,39 +725,149 @@ class HeatTransfer:
         fig.tight_layout()
         plt.show()
 
-    def plot_fluid_properties(self, i):
+    def plot_heat_transfer_slider(self, i=0, y_limit_scaling=1.5, automatic_rescaling=False):
+        fig, axs = plt.subplots(2, 2)
+
         alt = pos_i2alt(self.trajectory_dict["pos_i"][i])
+        Vinf = np.linalg.norm(i2airspeed(self.trajectory_dict["pos_i"][i], self.trajectory_dict["vel_i"][i], self.rocket.launch_site, self.trajectory_dict["time"][i]))
+        Minf = Vinf/Atmosphere(alt).speed_of_sound[0]
+        fig.suptitle('i={} time = {:.2f} s alt={:.2f} km Minf={:.2f}'.format(i, self.trajectory_dict["time"][i], alt/1000, Minf))
 
         ogive_x = np.linspace(0, self.tangent_ogive.xprime, 15)
         ogive_y = (self.tangent_ogive.R**2 - (self.tangent_ogive.xprime - ogive_x)**2)**0.5 + self.tangent_ogive.yprime - self.tangent_ogive.R
 
-        fig, axs = plt.subplots(2, 2)
-        fig.suptitle("i={} time = {} s altitude = {} km".format(i, self.trajectory_dict["time"][i], alt/1000))
-
-        axs[0,0].set_title("Pressures")
+        axs[0,0].set_title("Heat transfer rates")
         axs[0,0].set_xlabel("Station")
-        axs[0,0].set_ylabel("Pressure (kPa)")
-        axs[0,0].plot(np.array(range(15))+1, self.P[:, i]/1000, label=r"$(P_e)$")
-        axs[0,0].plot(np.array(range(15))+1, np.full(15, Atmosphere(alt).pressure[0]/1000), label=r"$(P_inf)$")
+        axs[0,0].set_ylabel("Heat transfer rate (kW/m^2)")
+        qlam_plot, = axs[0,0].plot(np.array(range(15))+1, self.q_lam[:, i]/1000, label = r"$Q_{lam}$")
+        qturb_plot, = axs[0,0].plot(np.array(range(15))+1, self.q_turb[:, i]/1000, label = r"$Q_{turb}$")
+        q0_plot, = axs[0,0].plot(np.array(range(15))+1, np.full(15, self.q0_hemispherical_nose[i]/1000), label = r"$Q_{0}$")
+        axs[0,0].legend(bbox_to_anchor=(-0.4, 1))
         axs[0,0].grid()
 
         axs[0,1].set_title("Temperatures")
         axs[0,1].set_xlabel("Station")
         axs[0,1].set_ylabel("Temperature (K)")
-        axs[0,1].plot(np.array(range(15))+1, self.Te[:, i], label=r"$T_e$")
-        axs[0,1].plot(np.array(range(15))+1, self.Tstar[:, i], label=r"$T*$")
-        axs[0,1].plot(np.array(range(15))+1, np.full(15, self.Tw[i]), label=r"$T_w$")
-        axs[0,1].plot(np.array(range(15))+1, np.full(15, Atmosphere(alt).temperature[0]), label=r"$T_inf$")
-        axs[0,1].plot(np.array(range(15))+1, self.Trec_lam[:, self.i], label=r"$T_(rec, lam)$")
-        axs[0,1].plot(np.array(range(15))+1, self.Trec_turb[:, self.i], label=r"$T_(rec, turb)$")
-        axs[0,1].legend()
+        Te_plot, = axs[0,1].plot(np.array(range(15))+1, self.Te[:, i], label=r"$T_e$")
+        Tstar_plot, = axs[0,1].plot(np.array(range(15))+1, self.Tstar[:, i], label=r"$T*$")
+        Tw_plot, = axs[0,1].plot(np.array(range(15))+1, np.full(15, self.Tw[i]), label=r"$T_w$")
+        Tinf_plot, = axs[0,1].plot(np.array(range(15))+1, np.full(15, Atmosphere(alt).temperature[0]), label=r"$T_{inf}$")
+        Trec_lam_plot, = axs[0,1].plot(np.array(range(15))+1, self.Trec_lam[:, i], label=r"$T_{rec, lam}$")
+        Trec_turb_plot, = axs[0,1].plot(np.array(range(15))+1, self.Trec_turb[:, i], label=r"$T_{rec, turb}$")
+        axs[0,1].legend(bbox_to_anchor=(1.05, 1))
+        axs[0,1].grid() 
+
+        axs[1,0].set_title("Pressures")
+        axs[1,0].set_xlabel("Station")
+        axs[1,0].set_ylabel("Pressure (kPa)")
+        pe_plot, = axs[1,0].plot(np.array(range(15))+1, self.P[:, i]/1000, label=r"$(P_e)$")
+        pinf_plot, = axs[1,0].plot(np.array(range(15))+1, np.full(15, Atmosphere(alt).pressure[0]/1000), label=r"$(P_inf)$")
+        axs[1,0].grid()
+
+        #Fixed axes whilst the slider is changed:
+        if automatic_rescaling==False:
+            axs[0,0].set_ylim([np.nanmin(self.q_lam[self.q_lam != 0])/y_limit_scaling/1000, y_limit_scaling*self.q0_hemispherical_nose[self.q0_hemispherical_nose != 0].max()/1000])
+            axs[0,1].set_ylim([self.Te[self.Te>0].min()/y_limit_scaling, y_limit_scaling*self.Tstar.max()])
+            axs[1,0].set_ylim([self.P[self.P>0].min()/y_limit_scaling/1000, y_limit_scaling*self.P.max()/1000])
+        
+        axs[1,1].set_title("Nosecone shape")
+        axs[1,1].set_xlabel("x (m)")
+        axs[1,1].set_ylabel("y (m)")
+        axs[1,1].plot(ogive_x, ogive_y)
+        axs[1,1].grid()
+        axs[1,1].set_aspect('equal')
+        axs[1,1].set_xlim(-0.3*ogive_x[-1], 1.1*ogive_x[-1])
+        axs[1,1].set_ylim(-2*ogive_y[-1], 5*ogive_y[-1])
+
+        #Add a slider - modified from https://stackoverflow.com/questions/46325447/animated-interactive-plot-using-matplotlib
+        slider_axis = plt.axes([0.25, .03, 0.50, 0.02])
+        initial_value = i   #Initial slider value                          
+        #Make a slider that goes from 0 to the maximum index available for our data
+        slider = matplotlib.widgets.Slider(slider_axis, 'Index', 0, len(self.trajectory_dict["time"])-1, valinit=initial_value)
+
+        def update(val):
+            #Get the current value of the slider
+            slider_value = slider.val
+            index = int(slider_value)
+
+            #Get current altitude
+            alt = pos_i2alt(self.trajectory_dict["pos_i"][index])
+
+            #Update curves
+            pe_plot.set_ydata(self.P[:, index]/1000)
+            pinf_plot.set_ydata(np.full(15, Atmosphere(alt).pressure[0]/1000))
+            Te_plot.set_ydata(self.Te[:, index])
+            Tstar_plot.set_ydata(self.Tstar[:, index])
+            Tw_plot.set_ydata(np.full(15, self.Tw[index]))
+            Tinf_plot.set_ydata(np.full(15, Atmosphere(alt).temperature[0]))
+            Trec_lam_plot.set_ydata(self.Trec_lam[:, index])
+            Trec_turb_plot.set_ydata(self.Trec_turb[:, index])
+            qlam_plot.set_ydata(self.q_lam[:, index]/1000)
+            qturb_plot.set_ydata(self.q_turb[:, index]/1000)
+            q0_plot.set_ydata(np.full(15, self.q0_hemispherical_nose[index]/1000))
+            
+            #Rescale the limits if asked to
+            if automatic_rescaling==True:
+                for i in range(len(axs)):
+                    for j in range(len(axs[i])):
+                        axs[i,j].relim()
+                        axs[i,j].autoscale_view()
+
+            #Recreate the title
+            Vinf = np.linalg.norm(i2airspeed(self.trajectory_dict["pos_i"][index], self.trajectory_dict["vel_i"][index], self.rocket.launch_site, self.trajectory_dict["time"][index]))
+            Minf = Vinf/Atmosphere(alt).speed_of_sound[0]
+            fig.suptitle('i={} time = {:.2f} s alt={:.2f} km Minf={:.2f}'.format(index, self.trajectory_dict["time"][index], alt/1000, Minf))
+
+            #Redraw canvas while idle
+            fig.canvas.draw_idle()
+
+
+        #Call update function on slider value change
+        slider.on_changed(update)
+
+        fig.tight_layout()
+        plt.show()
+
+    def plot_fluid_properties_slider(self, i=0, y_limit_scaling=1.5, automatic_rescaling=False):
+        fig, axs = plt.subplots(2, 2)
+
+        alt = pos_i2alt(self.trajectory_dict["pos_i"][i])
+        Vinf = np.linalg.norm(i2airspeed(self.trajectory_dict["pos_i"][i], self.trajectory_dict["vel_i"][i], self.rocket.launch_site, self.trajectory_dict["time"][i]))
+        Minf = Vinf/Atmosphere(alt).speed_of_sound[0]
+        fig.suptitle('i={} time = {:.2f} s alt={:.2f} km Minf={:.2f}'.format(i, self.trajectory_dict["time"][i], alt/1000, Minf))
+
+        ogive_x = np.linspace(0, self.tangent_ogive.xprime, 15)
+        ogive_y = (self.tangent_ogive.R**2 - (self.tangent_ogive.xprime - ogive_x)**2)**0.5 + self.tangent_ogive.yprime - self.tangent_ogive.R
+        
+        axs[0,0].set_title("Pressures")
+        axs[0,0].set_xlabel("Station")
+        axs[0,0].set_ylabel("Pressure (kPa)")
+        pe_plot, = axs[0,0].plot(np.array(range(15))+1, self.P[:, i]/1000, label=r"$(P_e)$")
+        pinf_plot, = axs[0,0].plot(np.array(range(15))+1, np.full(15, Atmosphere(alt).pressure[0]/1000), label=r"$(P_inf)$")
+        axs[0,0].grid()
+
+        axs[0,1].set_title("Temperatures")
+        axs[0,1].set_xlabel("Station")
+        axs[0,1].set_ylabel("Temperature (K)")
+        Te_plot, = axs[0,1].plot(np.array(range(15))+1, self.Te[:, i], label=r"$T_e$")
+        Tstar_plot, = axs[0,1].plot(np.array(range(15))+1, self.Tstar[:, i], label=r"$T*$")
+        Tw_plot, = axs[0,1].plot(np.array(range(15))+1, np.full(15, self.Tw[i]), label=r"$T_w$")
+        Tinf_plot, = axs[0,1].plot(np.array(range(15))+1, np.full(15, Atmosphere(alt).temperature[0]), label=r"$T_{inf}$")
+        Trec_lam_plot, = axs[0,1].plot(np.array(range(15))+1, self.Trec_lam[:, i], label=r"$T_{rec, lam}$")
+        Trec_turb_plot, = axs[0,1].plot(np.array(range(15))+1, self.Trec_turb[:, i], label=r"$T_{rec, turb}$")
+        axs[0,1].legend(bbox_to_anchor=(1.05, 1))
         axs[0,1].grid()
 
         axs[1,0].set_title("Edge of boundary Mach number " + r"$(M_e)$")
         axs[1,0].set_xlabel("Station")
         axs[1,0].set_ylabel("Mach number")
-        axs[1,0].plot(np.array(range(15))+1, self.M[:, i])
+        M_plot, = axs[1,0].plot(np.array(range(15))+1, self.M[:, i])
         axs[1,0].grid()
+
+        if automatic_rescaling==False:
+            axs[1,0].set_ylim([self.M[self.M>0].min()/y_limit_scaling, y_limit_scaling*self.M.max()])
+            axs[0,1].set_ylim([self.Te[self.Te>0].min()/y_limit_scaling, y_limit_scaling*self.Tstar.max()])
+            axs[0,0].set_ylim([self.P[self.P>0].min()/y_limit_scaling/1000, y_limit_scaling*self.P.max()/1000])
 
         axs[1,1].set_title("Nosecone shape")
         axs[1,1].set_xlabel("x (m)")
@@ -764,6 +877,49 @@ class HeatTransfer:
         axs[1,1].set_aspect('equal')
         axs[1,1].set_xlim(-0.3*ogive_x[-1], 1.1*ogive_x[-1])
         axs[1,1].set_ylim(-2*ogive_y[-1], 5*ogive_y[-1])
+
+        #Add a slider - modified from https://stackoverflow.com/questions/46325447/animated-interactive-plot-using-matplotlib
+        slider_axis = plt.axes([0.25, .03, 0.50, 0.02])
+        initial_value = i   #Initial slider value                          
+        #Make a slider that goes from 0 to the maximum index available for our data
+        slider = matplotlib.widgets.Slider(slider_axis, 'Index', 0, len(self.trajectory_dict["time"])-1, valinit=initial_value)
+
+        def update(val):
+            #Get the current value of the slider
+            slider_value = slider.val
+            index = int(slider_value)
+
+            #Get current altitude
+            alt = pos_i2alt(self.trajectory_dict["pos_i"][index])
+
+            #Update curves
+            pe_plot.set_ydata(self.P[:, index]/1000)
+            pinf_plot.set_ydata(np.full(15, Atmosphere(alt).pressure[0]/1000))
+            Te_plot.set_ydata(self.Te[:, index])
+            Tstar_plot.set_ydata(self.Tstar[:, index])
+            Tw_plot.set_ydata(np.full(15, self.Tw[index]))
+            Tinf_plot.set_ydata(np.full(15, Atmosphere(alt).temperature[0]))
+            Trec_lam_plot.set_ydata(self.Trec_lam[:, index])
+            Trec_turb_plot.set_ydata(self.Trec_turb[:, index])
+            M_plot.set_ydata(self.M[:, index])
+
+            #Rescale the limits if asked to
+            if automatic_rescaling==True:
+                for i in range(len(axs)):
+                    for j in range(len(axs[i])):
+                        axs[i,j].relim()
+                        axs[i,j].autoscale_view()
+
+            #Recreate the title
+            Vinf = np.linalg.norm(i2airspeed(self.trajectory_dict["pos_i"][index], self.trajectory_dict["vel_i"][index], self.rocket.launch_site, self.trajectory_dict["time"][index]))
+            Minf = Vinf/Atmosphere(alt).speed_of_sound[0]
+            fig.suptitle('i={} time = {:.2f} s alt={:.2f} km Minf={:.2f}'.format(index, self.trajectory_dict["time"][index], alt/1000, Minf))
+
+            #Redraw canvas while idle
+            fig.canvas.draw_idle()
+
+        #Call update function on slider value change
+        slider.on_changed(update)
 
         fig.tight_layout()
         plt.show()

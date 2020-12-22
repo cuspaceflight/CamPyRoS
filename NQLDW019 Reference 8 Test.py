@@ -34,9 +34,13 @@ trajectory_data = {"time" : [0, 1],
 tangent_ogive = trajectory.post.TangentOgive(xprime = 0.7632192, yprime = 0.0762)
 analysis = trajectory.post.HeatTransfer(tangent_ogive, trajectory_data, martlet4)
 
-'''Run the simulation if you want'''
-analysis.step(print_style="metric")
+'''Run the simulation'''
+#analysis.step(print_style="metric")
+analysis.step()
+analysis.step()
 
-analysis.plot_fluid_properties(i=0)
+analysis.plot_fluid_properties_slider(automatic_rescaling=True)
+analysis.plot_heat_transfer_slider(automatic_rescaling=True)
+
 
 
