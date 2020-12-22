@@ -3,13 +3,22 @@ Implementation of NASA program NQLDW019
 
 Reference material:
 -------------------
-TANGENT OGIVE NOSE AERODYNAMIC HEATING PROGRAM - NQLDW019 (NASA) - https://ntrs.nasa.gov/citations/19730063810
+- HEATING ON SOUNDING ROCKET TANGENT OGIVE NOSES - https://arc.aiaa.org/doi/pdf/10.2514/3.62081
+- TANGENT OGIVE NOSE AERODYNAMIC HEATING PROGRAM - NQLDW019 (NASA) - https://ntrs.nasa.gov/citations/19730063810
 
 Assumptions:
 -------------------
-- Zero angle of attack. (if this is important, it can be implemented relatively simply as explained in https://ntrs.nasa.gov/citations/19730063810)
+- Zero angle of attack. (if this is important, it can be implemented relatively simply and is explained in https://ntrs.nasa.gov/citations/19730063810)
 - Constant Cp and Cv (hence constant gamma)
 
+Things I wasn't sure of:
+-------------------------
+- I'm not sure what's causing the "lib\site-packages\thermo\viscosity.py:826: RuntimeWarning:invalid value encountered in double_scalars" error.
+- Calculating for H*(0) - Equation (18) from https://arc.aiaa.org/doi/pdf/10.2514/3.62081
+    I think that the rho(x) and mu(x) in Equation (18) are just rho(0) and mu(0), since they're evaluated at 'x=0'. This seemed to give the right values.
+- Calculating H*(x) - Equation (17) from https://arc.aiaa.org/doi/pdf/10.2514/3.62081
+    I think I did it right but the integration was a bit confusing
+- Some equations only work in Imperial units. I believe I've taken care of them all, but if problems arise, that might be worth looking into
 '''
 
 
@@ -409,6 +418,7 @@ class HeatTransfer:
         self.Trec_lam = np.zeros([15, len(self.trajectory_dict["time"])])                                   #Temperature corresponding to hrec_lam
         self.Trec_turb = np.zeros([15, len(self.trajectory_dict["time"])])                                  #Temperature corresponding to hrec_turb
         self.Hstar_function = np.zeros([15, len(self.trajectory_dict["time"])])                             #This array is used to minimise number of calculations for the integration needed in H*(x)
+        self.Rex = np.zeros([15, len(self.trajectory_dict["time"])])                                        #Local Reynolds number
 
         #Arrays to store the heat transfer rates
         self.q_lam = np.zeros([15, len(self.trajectory_dict["time"])])                  #Laminar boundary layer
@@ -528,6 +538,7 @@ class HeatTransfer:
                 print("QSTAG={:06.2f} kW/m^2".format(self.q0_hemispherical_nose[self.i]/1000))
                 print("")
 
+
             #Prandtl-Meyer expansion (only possible for supersonic flow):
             if oblique_MS > 1:
                 #Get values at the nose cone tip:
@@ -558,8 +569,14 @@ class HeatTransfer:
                         self.P[j, self.i] = Pinf
                     self.M[j, self.i] = pressure_ratio_to_mach(self.P[j, self.i]/oblique_P0S)
 
+
                 #Now deal with the heat transfer itself
-                for j in range(15):
+                #The heat transfer rates at the nose will be infinity, so just set them now to save time:
+                self.q_lam[0, self.i] = float("NaN")
+                self.q_turb[0, self.i] = float("NaN")
+
+                #Run through all the other points on the nosecone
+                for j in [1,2,3,4,5,6,7,8,9,10,11,12,13,14]:
                     #Edge of boundary layer temperature - i.e. flow temperature post-shock and after Prandtl-Meyer expansion
                     self.Te[j, self.i] = T02T(oblique_T0S, self.M[j, self.i]) 
 
@@ -598,8 +615,10 @@ class HeatTransfer:
                     #Equation (17) from https://arc.aiaa.org/doi/pdf/10.2514/3.62081
                     Hstar = (rhostar * V * r)/(rhostar0 * Vinf) / (integral**0.5)
 
-                    #Get H*(0)
-                    Hstar0 = ( ((2*rhostar/rhostar0)*dVdx0 )/(Vinf * mustar/mustar0) )**0.5 * (2)**0.5
+                    #Get H*(0) - Equation (18) - it seems like the (x) values in Equation (18) are actually (0) values
+                    #It seems weird that they still included them though, since they end up cancelling out
+                    #Hstar0 = ( ((2*rhostar/rhostar0)*dVdx0 )/(Vinf * mustar/mustar0) )**0.5 * (2)**0.5 
+                    Hstar0 = (2*dVdx0/Vinf)**0.5 * (2**0.5)
 
                     #Laminar heat transfer rate, normalised by that for a hemispherical nosecone
                     kstar = k_air(T = self.Tstar[j, self.i], P = self.P[j, self.i])
@@ -626,6 +645,11 @@ class HeatTransfer:
                     
                     #Now convert from Imperial heat transfer rate (Btu/ft^2/s) --> Metric heat transfer rate (W/m^2): Divide by 0.000088055
                     self.q_turb[j, self.i] = self.q_turb[j, self.i]/0.000088055
+
+                    #Local Reynolds number, Re(x), using Equation (25) from https://arc.aiaa.org/doi/pdf/10.2514/3.62081
+                    rho = self.P[j, self.i]/(R_air() * self.Te[j, self.i])  #Ideal gas law: p = rho*R*T, rho = p/(RT)
+                    mu = mu_air(self.Te[j, self.i], self.P[j, self.i])
+                    self.Rex[j, self.i] = rho * V * self.tangent_ogive.S_array[j]/mu
 
                     #FORTRAN style output:
                     if print_style=="FORTRAN":
@@ -671,7 +695,7 @@ class HeatTransfer:
         while self.i-starting_index <= iterations:
             if print_style=="minimal":
                 if (self.i - starting_index) % (int(0.25*iterations)) == 0:
-                    print("{:.1f}% complete, self.i = {}".format(counter/4 * 100, self.i))
+                    print("{:.1f}% complete, i = {}".format(counter/4 * 100, self.i))
                     counter = counter + 1
 
             self.step()
