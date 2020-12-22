@@ -52,16 +52,15 @@ analysis = trajectory.post.HeatTransfer(tangent_ogive, trajectory_data, martlet4
 
 '''Run the simulation'''
 analysis.step()
-#analysis.run()
-#analysis.to_json("Reference 8 Python Generated.json")
-analysis.from_json("Reference 8 Python Generated.json")
+analysis.run()
+analysis.to_json("NQLDW019 Reference 8.json")
+analysis.from_json("NQLDW019 Reference 8.json")
 
 '''Plot graphs'''
 #analysis.plot_fluid_properties(automatic_rescaling=True)
 #analysis.plot_heat_transfer(automatic_rescaling=True)
 #analysis.plot_station(station_number = 9)
 
-'''
 #Plot the heat transfer rates we generated against the data provided by NASA
 fig, axs = plt.subplots()
 fig.suptitle("NASA Flight TND 889")
@@ -69,11 +68,12 @@ axs.plot(time_data, analysis.q_lam[9, :], label="QLAM (Python)", color="blue", l
 axs.plot(qlam_data["x"], qlam_data["y"], label="QLAM (NASA)", color="blue")
 axs.plot(time_data, analysis.q_turb[9, :], label="QTURB (Python)", color="red", linestyle='--')
 axs.plot(qturb_data["x"], qturb_data["y"], label="QTURB (NASA)", color="red")
+#axs.plot(time_data, analysis.q0_hemispherical_nose, label="Q0 (Python)", color="green", linestyle="--")
 axs.set_xlabel("Time (s)")
 axs.set_ylabel("Heat transfer rate (W/m^2)")
 axs.grid()
 axs.legend()
 
 plt.show()
-'''
+
 
