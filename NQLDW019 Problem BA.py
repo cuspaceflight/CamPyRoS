@@ -1,5 +1,5 @@
 '''
-To check data against page 70 of the NASA "TANGENT OGIVE NOSE AERODYNAMIC HEATING PROGRAM - NQLDW019 (NASA)" documentation
+Used to check data against page 70 of the NASA "TANGENT OGIVE NOSE AERODYNAMIC HEATING PROGRAM - NQLDW019 (NASA)" documentation
 
 Note that Problem BA in the NASA document is actually at an angle of attack of 10 degrees - which is ignored in my current Python script
 
@@ -11,9 +11,6 @@ import numpy as np
 from trajectory.transforms import pos_l2i, pos_i2l, vel_l2i, vel_i2l, direction_l2i, direction_i2l, i2airspeed, pos_i2alt
 
 from martlet4 import martlet4
-
-'''Import the trajectory data'''
-imported_data = trajectory.from_json("output.json")
 
 '''
 Specify the nosecone, using:
@@ -39,12 +36,12 @@ MINF = VINF/speed_of_sound
 pos_i = pos_l2i([0, 0, ALT], martlet4.launch_site, 0)
 vel_i = vel_l2i([VINF, 0, 0], martlet4.launch_site, 0)
 
-imported_data = {"time" : [0, 1], 
+trajectory_data = {"time" : [0, 1], 
                  "pos_i" : [pos_i, pos_i], 
                  "vel_i" : [vel_i, vel_i],
                  "b2imat": [None, None],
                  "w_b" : [None, None],
                  "events" : []}
 
-analysis = post.HeatTransfer(tangent_ogive, imported_data, martlet4, starting_temperature = 300)
+analysis = post.HeatTransfer(tangent_ogive, trajectory_data, martlet4, starting_temperature = 300)
 analysis.step(print_style = "FORTRAN")
