@@ -709,7 +709,8 @@ class HeatTransfer:
                 "Tw" : self.Tw.tolist(),
                 "Te" : self.Te.tolist(),
                 "Tstar" : self.Tstar.tolist(),
-                "Hstar_function" : self.Hstar_function.tolist()}
+                "Hstar_function" : self.Hstar_function.tolist(),
+                "Rex" : self.Rex.tolist()}
 
         with open(directory, "w") as write_file:
             json.dump(dict, write_file)
@@ -727,6 +728,7 @@ class HeatTransfer:
         self.Te = np.array(dict["Te"])
         self.Tstar = np.array(dict["Tstar"])
         self.Hstar_function = np.array(dict["Hstar_function"])
+        self.Rex = np.array(dict["Rex"])
 
     def plot_station(self, station_number=10, imax=None):
         assert station_number <= 15 and station_number >= 1, "Station number must be between 1 and 15 (inclusive)"
