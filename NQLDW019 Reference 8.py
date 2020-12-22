@@ -51,9 +51,9 @@ tangent_ogive = trajectory.post.TangentOgive(xprime = 0.7632192, yprime = 0.0762
 analysis = trajectory.post.HeatTransfer(tangent_ogive, trajectory_data, martlet4)
 
 '''Run the simulation'''
-analysis.step()
-analysis.run()
-analysis.to_json("NQLDW019 Reference 8.json")
+#analysis.step()
+#analysis.run()
+#analysis.to_json("NQLDW019 Reference 8.json")
 analysis.from_json("NQLDW019 Reference 8.json")
 
 '''Plot graphs'''
@@ -82,6 +82,7 @@ ax2.set_yscale("log")   #Make the scale logorithmic
 ax2.plot(rex_data["x"], rex_data["y"], label="Re(x) (NASA)", color="green")
 ax2.plot(time_data, analysis.Rex[9, :], label="Re(x) (Python)", color="green", linestyle='--')
 ax1.set_ylabel("Reynolds number")
+ax2.legend()
 
 plt.show()
 
