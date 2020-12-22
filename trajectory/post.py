@@ -590,7 +590,7 @@ class HeatTransfer:
                     r = self.tangent_ogive.r(j+1)
                     V = (gamma_air() * R_air() * T02T(oblique_T0S, self.M[j, self.i]))**0.5 * self.M[j, self.i]  
 
-                    self.Hstar_function[j, self.i] = (rhostar*mustar*V* r**2) / (rhostar0 * mustar0 * Vinf)      
+                    self.Hstar_function[j, self.i] = (rhostar*mustar*V* r**2) / (rhostar0 * mustar0 * Vinf)    
 
                     #Get the integral bit of H*(x) using trapezium rule
                     integral = np.trapz(self.Hstar_function[0:j+1, self.i], self.tangent_ogive.S_array[0:j+1])
@@ -651,16 +651,29 @@ class HeatTransfer:
                         print("QLAM={:.6} kW/m^2     QTURB={:06.2f} kW/m^2   QLAM/QSTAG={:06.2f}       QTURB/QSTAG={:06.2f}".format(self.q_lam[j, self.i]/1000, self.q_turb[j, self.i]/1000, self.q_lam[j, self.i]/self.q0_hemispherical_nose[self.i], self.q_turb[j, self.i]/self.q0_hemispherical_nose[self.i]))
                         print("")
             else:
-                print("Subsonic flow post-shock (Minf = {:.2f}, MS = {:.2f}), skipping step number {}".format(Minf, oblique_MS, self.i))
+                if print_style != None:
+                    print("Subsonic flow post-shock (Minf = {:.2f}, MS = {:.2f}), skipping step number {}".format(Minf, oblique_MS, self.i))
 
         else:
-            print("Subsonic flow, skipping step number {}".format(self.i))
+            if print_style != None:
+                print("Subsonic flow, skipping step number {}".format(self.i))
 
         
         self.i = self.i + 1
 
-    def run(self, iterations = 300):
-        for i in range(iterations):
+    def run(self, iterations = None, starting_index = 0, print_style="minimal"):
+        if iterations == None:
+            iterations = len(self.trajectory_dict["time"]) - 1
+
+        self.i = starting_index
+        counter = 0
+
+        while self.i-starting_index <= iterations:
+            if print_style=="minimal":
+                if (self.i - starting_index) % (int(0.25*iterations)) == 0:
+                    print("{:.1f}% complete, self.i = {}".format(counter/4 * 100, self.i))
+                    counter = counter + 1
+
             self.step()
 
     def to_json(self, directory="aero_heating_output.json"):
@@ -693,8 +706,9 @@ class HeatTransfer:
 
     def plot_station(self, station_number=10, imax=None):
         assert station_number <= 15 and station_number >= 1, "Station number must be between 1 and 15 (inclusive)"
-        q_lam = self.q_lam[station_number - 1, :]
-        q_turb = self.q_turb[station_number - 1, :]
+
+        q_lam = self.q_lam[station_number - 1, :imax]
+        q_turb = self.q_turb[station_number - 1, :imax]
         
         trajectory_dict = self.trajectory_data.to_dict(orient="list")
 
@@ -703,7 +717,7 @@ class HeatTransfer:
         for i in range(len(time)):
             alt[i] = pos_i2alt(self.trajectory_dict["pos_i"][i])
 
-        fig, axs = plt.subplots(2, 1)
+        fig, axs = plt.subplots(3, 1)
 
         if imax == None:
             imax = len(time)
@@ -711,21 +725,31 @@ class HeatTransfer:
         axs[0].set_title("Heat transfer rates at station {}".format(int(station_number)))
         axs[0].set_xlabel("Time (s)")
         axs[0].set_ylabel("Heat transfer rate (W/m^2)")
-        axs[0].plot(time[:imax], q_lam[:imax], label="Laminar heat transfer rate")
-        axs[0].plot(time[:imax], q_turb[:imax], label="Turbulent heat transfer rate")
-        axs[0].legend()
+        axs[0].plot(time[:imax], self.q_lam[station_number - 1, :imax], label="Laminar boundary layer")
+        axs[0].plot(time[:imax], self.q_turb[station_number - 1, :imax], label="Turbulent boundary layer")
+        axs[0].plot(time[:imax], self.q0_hemispherical_nose[:imax], label="Hemispherical nose stagnation point")
+        axs[0].legend(bbox_to_anchor=(1.05, 1))
         axs[0].grid()
 
-        axs[1].set_title("Altitude")
+        axs[1].set_title("Temperatures")
         axs[1].set_xlabel("Time (s)")
-        axs[1].set_ylabel("Altitude (m)")
-        axs[1].plot(time[:imax], alt[:imax], color='orange')
+        axs[1].set_ylabel("Temperature (K)")
+        axs[1].plot(time[:imax], self.Te[station_number - 1, :imax], label=r"$T_{e}$")
+        axs[1].plot(time[:imax], self.Trec_lam[station_number - 1, :imax], label=r"$T_{rec, lam}$")
+        axs[1].plot(time[:imax], self.Trec_turb[station_number - 1, :imax], label=r"$T_{rec, turb}$")
         axs[1].grid()
+        axs[1].legend(bbox_to_anchor=(1.05, 1))
+
+        axs[2].set_title("Altitude")
+        axs[2].set_xlabel("Time (s)")
+        axs[2].set_ylabel("Altitude (m)")
+        axs[2].plot(time[:imax], alt[:imax], color='orange')
+        axs[2].grid()
 
         fig.tight_layout()
         plt.show()
 
-    def plot_heat_transfer_slider(self, i=0, y_limit_scaling=1.5, automatic_rescaling=False):
+    def plot_heat_transfer(self, i=0, y_limit_scaling=1.5, automatic_rescaling=True):
         fig, axs = plt.subplots(2, 2)
 
         alt = pos_i2alt(self.trajectory_dict["pos_i"][i])
@@ -762,6 +786,7 @@ class HeatTransfer:
         axs[1,0].set_ylabel("Pressure (kPa)")
         pe_plot, = axs[1,0].plot(np.array(range(15))+1, self.P[:, i]/1000, label=r"$(P_e)$")
         pinf_plot, = axs[1,0].plot(np.array(range(15))+1, np.full(15, Atmosphere(alt).pressure[0]/1000), label=r"$(P_inf)$")
+        axs[1,0].legend(bbox_to_anchor=(-0.4, 1))
         axs[1,0].grid()
 
         #Fixed axes whilst the slider is changed:
@@ -779,8 +804,10 @@ class HeatTransfer:
         axs[1,1].set_xlim(-0.3*ogive_x[-1], 1.1*ogive_x[-1])
         axs[1,1].set_ylim(-2*ogive_y[-1], 5*ogive_y[-1])
 
+        fig.tight_layout()
+
         #Add a slider - modified from https://stackoverflow.com/questions/46325447/animated-interactive-plot-using-matplotlib
-        slider_axis = plt.axes([0.25, .03, 0.50, 0.02])
+        slider_axis = plt.axes([0.25, 0, 0.50, 0.02])
         initial_value = i   #Initial slider value                          
         #Make a slider that goes from 0 to the maximum index available for our data
         slider = matplotlib.widgets.Slider(slider_axis, 'Index', 0, len(self.trajectory_dict["time"])-1, valinit=initial_value)
@@ -825,10 +852,9 @@ class HeatTransfer:
         #Call update function on slider value change
         slider.on_changed(update)
 
-        fig.tight_layout()
         plt.show()
 
-    def plot_fluid_properties_slider(self, i=0, y_limit_scaling=1.5, automatic_rescaling=False):
+    def plot_fluid_properties(self, i=0, y_limit_scaling=1.5, automatic_rescaling=True):
         fig, axs = plt.subplots(2, 2)
 
         alt = pos_i2alt(self.trajectory_dict["pos_i"][i])
@@ -844,6 +870,7 @@ class HeatTransfer:
         axs[0,0].set_ylabel("Pressure (kPa)")
         pe_plot, = axs[0,0].plot(np.array(range(15))+1, self.P[:, i]/1000, label=r"$(P_e)$")
         pinf_plot, = axs[0,0].plot(np.array(range(15))+1, np.full(15, Atmosphere(alt).pressure[0]/1000), label=r"$(P_inf)$")
+        axs[0,0].legend(bbox_to_anchor=(-0.4, 1))
         axs[0,0].grid()
 
         axs[0,1].set_title("Temperatures")
@@ -858,10 +885,12 @@ class HeatTransfer:
         axs[0,1].legend(bbox_to_anchor=(1.05, 1))
         axs[0,1].grid()
 
-        axs[1,0].set_title("Edge of boundary Mach number " + r"$(M_e)$")
+        axs[1,0].set_title("Mach numbers")
         axs[1,0].set_xlabel("Station")
         axs[1,0].set_ylabel("Mach number")
-        M_plot, = axs[1,0].plot(np.array(range(15))+1, self.M[:, i])
+        M_plot, = axs[1,0].plot(np.array(range(15))+1, self.M[:, i], label=r"$M_e$")
+        Minf_plot, = axs[1,0].plot(np.array(range(15))+1, np.full(15, Minf), label=r"$M_{inf}$")
+        axs[1,0].legend(bbox_to_anchor=(-0.4, 1))
         axs[1,0].grid()
 
         if automatic_rescaling==False:
@@ -878,8 +907,10 @@ class HeatTransfer:
         axs[1,1].set_xlim(-0.3*ogive_x[-1], 1.1*ogive_x[-1])
         axs[1,1].set_ylim(-2*ogive_y[-1], 5*ogive_y[-1])
 
+        fig.tight_layout()
+
         #Add a slider - modified from https://stackoverflow.com/questions/46325447/animated-interactive-plot-using-matplotlib
-        slider_axis = plt.axes([0.25, .03, 0.50, 0.02])
+        slider_axis = plt.axes([0.25, 0, 0.50, 0.02])
         initial_value = i   #Initial slider value                          
         #Make a slider that goes from 0 to the maximum index available for our data
         slider = matplotlib.widgets.Slider(slider_axis, 'Index', 0, len(self.trajectory_dict["time"])-1, valinit=initial_value)
@@ -892,6 +923,11 @@ class HeatTransfer:
             #Get current altitude
             alt = pos_i2alt(self.trajectory_dict["pos_i"][index])
 
+            #Recreate the title
+            Vinf = np.linalg.norm(i2airspeed(self.trajectory_dict["pos_i"][index], self.trajectory_dict["vel_i"][index], self.rocket.launch_site, self.trajectory_dict["time"][index]))
+            Minf = Vinf/Atmosphere(alt).speed_of_sound[0]
+            fig.suptitle('i={} time = {:.2f} s alt={:.2f} km Minf={:.2f}'.format(index, self.trajectory_dict["time"][index], alt/1000, Minf))
+
             #Update curves
             pe_plot.set_ydata(self.P[:, index]/1000)
             pinf_plot.set_ydata(np.full(15, Atmosphere(alt).pressure[0]/1000))
@@ -902,6 +938,7 @@ class HeatTransfer:
             Trec_lam_plot.set_ydata(self.Trec_lam[:, index])
             Trec_turb_plot.set_ydata(self.Trec_turb[:, index])
             M_plot.set_ydata(self.M[:, index])
+            Minf_plot.set_ydata(np.full(15, Minf))
 
             #Rescale the limits if asked to
             if automatic_rescaling==True:
@@ -910,16 +947,10 @@ class HeatTransfer:
                         axs[i,j].relim()
                         axs[i,j].autoscale_view()
 
-            #Recreate the title
-            Vinf = np.linalg.norm(i2airspeed(self.trajectory_dict["pos_i"][index], self.trajectory_dict["vel_i"][index], self.rocket.launch_site, self.trajectory_dict["time"][index]))
-            Minf = Vinf/Atmosphere(alt).speed_of_sound[0]
-            fig.suptitle('i={} time = {:.2f} s alt={:.2f} km Minf={:.2f}'.format(index, self.trajectory_dict["time"][index], alt/1000, Minf))
-
             #Redraw canvas while idle
             fig.canvas.draw_idle()
 
         #Call update function on slider value change
         slider.on_changed(update)
 
-        fig.tight_layout()
         plt.show()
