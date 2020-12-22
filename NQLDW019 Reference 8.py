@@ -97,7 +97,7 @@ ax2 = ax1.twinx()       #Second axes that shares the same x-axis as ax1
 ax2.set_yscale("log")   #Make the scale logorithmic
 ax2.plot(rex_data["x"], rex_data["y"], label="Re(x) (NASA)", color="green")
 ax2.plot(time_data, analysis.Rex[9, :], label="Re(x) (Python)", color="green", linestyle='--')
-ax1.set_ylabel("Reynolds number")
+ax2.set_ylabel("Reynolds number")
 ax2.legend()
 
 plt.show()
