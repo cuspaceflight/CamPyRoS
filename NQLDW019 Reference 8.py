@@ -45,6 +45,22 @@ trajectory_data = {"time" : velocity_data["x"],
                  "w_b" : [None],
                  "events" : [None]}
 
+'''Plot the velocity and altitude data if you want'''
+fig3, ax3 = plt.subplots()
+fig3.suptitle("NASA Flight TND 889")
+ax3.plot(velocity_data["x"], velocity_data["y"], label = "Velocity", color="red")
+ax3.set_ylabel("Velocity (m/s)")
+ax3.set_xlabel("Time (s)")
+ax3.grid()
+ax3.legend(loc = 'upper left')
+
+ax4 = ax3.twinx()
+ax4.plot(altitude_data["x"], altitude_data["y"], label = "Altitude", color="blue")
+ax4.set_ylabel("Altitude (m)")
+ax4.legend(loc = 'upper right')
+
+plt.show()
+
 '''Specify the nosecone and create the HeatTransfer analysis object'''
 #The nosecone is the same as that used in Reference 8 (pg A-3) - xprime = 2.504 ft = 0.7632192 m , yprime = 0.25 ft = 0.0762 m
 tangent_ogive = trajectory.post.TangentOgive(xprime = 0.7632192, yprime = 0.0762)
@@ -85,5 +101,6 @@ ax1.set_ylabel("Reynolds number")
 ax2.legend()
 
 plt.show()
+
 
 
