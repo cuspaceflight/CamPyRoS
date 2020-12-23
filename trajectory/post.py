@@ -3,8 +3,10 @@ Implementation of NASA program NQLDW019
 
 Reference material:
 -------------------
-- HEATING ON SOUNDING ROCKET TANGENT OGIVE NOSES - https://arc.aiaa.org/doi/pdf/10.2514/3.62081
-- TANGENT OGIVE NOSE AERODYNAMIC HEATING PROGRAM - NQLDW019 (NASA) - https://ntrs.nasa.gov/citations/19730063810
+[1] - HEATING ON SOUNDING ROCKET TANGENT OGIVE NOSES - https://arc.aiaa.org/doi/pdf/10.2514/3.62081
+[2] - TANGENT OGIVE NOSE AERODYNAMIC HEATING PROGRAM - NQLDW019 (NASA) - https://ntrs.nasa.gov/citations/19730063810
+
+- There seems to be a typo in Equation (20) in Reference [1] (there's a missing bracket). The correct version seems to be present in Reference [2].
 
 Assumptions:
 -------------------
@@ -14,11 +16,10 @@ Assumptions:
 
 Known issues:
 -------------
-- Divide by zero error when doing heat transfer calculations at Station 1 (the nose tip) - this is expected but I'm not sure if it slows down the program
+- The thermo module seems to have trouble finding the viscosity at some point - I think in post normal-shockwave conditions.
 
 Things I wasn't sure of:
 -------------------------
-- I'm not sure what's causing the "lib\site-packages\thermo\viscosity.py:826: RuntimeWarning:invalid value encountered in double_scalars" error.
 - Calculating for H*(0) - Equation (18) from https://arc.aiaa.org/doi/pdf/10.2514/3.62081
     I think that the rho(x) and mu(x) in Equation (18) are just rho(0) and mu(0), since they're evaluated at 'x=0'. This seemed to give the right values.
 - Calculating H*(x) - Equation (17) from https://arc.aiaa.org/doi/pdf/10.2514/3.62081
@@ -256,8 +257,9 @@ def normal_shock(M, gamma=1.4):
 
 #Properties of air
 def cp_air(T=298, P=1e5):
-    air = thermo.mixture.Mixture('air', T=T, P=P)    
-    return air.Cp
+    #air = thermo.mixture.Mixture('air', T=T, P=P)    
+    #return air.Cp
+    return 1005
 
 def R_air():
     #Gas constant for air
@@ -269,14 +271,18 @@ def gamma_air(T=298, P=1e-5):
 def Pr_air(T, P):
     air = thermo.mixture.Mixture('air', T=T, P=P)    
     return air.Pr
+    #return 0.71
 
 def k_air(T, P):
     air = thermo.mixture.Mixture('air', T=T, P=P)  
     return air.k
+    #return 	26.24e-3
 
 def mu_air(T, P):
-    air = thermo.mixture.Mixture('air', T=T, P=P)  
+    air = thermo.mixture.Mixture('air', T=T, P=P)
     return air.mu
+    #return 1.81e-5
+    
 
 #Olibque shockwave functions, modified from: https://gist.github.com/gusgordon/3fa0a80e767a34ffb8b112c8630c5484
 def taylor_maccoll(y, theta, gamma=1.4):
@@ -607,7 +613,10 @@ class HeatTransfer:
                     integral = np.trapz(self.Hstar_function[0:j+1, self.i], self.tangent_ogive.S_array[0:j+1])
 
                     #Equation (17) from https://arc.aiaa.org/doi/pdf/10.2514/3.62081
-                    Hstar = (rhostar * V * r)/(rhostar0 * Vinf) / (integral**0.5)
+                    if j == 0:
+                        Hstar = np.inf
+                    else:
+                        Hstar = (rhostar * V * r)/(rhostar0 * Vinf) / (integral**0.5)
 
                     #Get H*(0) - Equation (18) - it seems like the (x) values in Equation (18) are actually (0) values
                     #It seems weird that they still included them though, since they end up cancelling out
@@ -627,6 +636,9 @@ class HeatTransfer:
                     self.q_lam[j, self.i] = qxq0_lam * self.q0_hemispherical_nose[self.i]
 
                     #Turbulent heat transfer rate - using Equation (20) from https://arc.aiaa.org/doi/pdf/10.2514/3.62081
+                    #THERE LOOKS LIKE THERE'S A TYPO IN THE EQUATION! It should be {1 - (Pr*)^(1/3)}*he, not 1 - {(Pr*)^(1/3)}*he
+                    #For the correct version see page Eq (20) on page 14 of https://ntrs.nasa.gov/citations/19730063810
+
                     #Note that the equation only works in Imperial units, and requires you to specify density in slugs/ft^3, which is NOT lbm/ft^3
                     #Density (kg/m^3) --> Density (slugs/ft^3): Multiply by 0.00194032
                     #Viscosity  (Pa s) --> Viscosity (lbf sec/ft^2): Divide by 47.880259
@@ -634,8 +646,12 @@ class HeatTransfer:
                     #Thermal conductivity (W/m/K) --> Thermal conductivity (Btu/ft/s/K): Multiply by 0.000288894658
                     #Velocity (m/s) ---> Velocity (ft/s): Multiply by 3.28084
                     #Note that 'g', the acceleration of gravity, is equal to 32.1740 ft/s^2
+
                     Cpstar0 = cp_air()
-                    self.q_turb[j, self.i] = ( 0.03*32.1740**(1/3) * (2**0.2) * (0.000288894658*kstar)**(2/3) * (0.00194032*rhostar*3.28084*V)**0.8 * (1 - Prstar**(1/3)*0.000429923*he + Prstar**(1/3)*0.000429923*h0 - 0.000429923*hw) )/((mustar/47.880259)**(7/15) * (0.000429923*Cpstar0)**(2/3) * (3.28084*self.tangent_ogive.S(j+1))**0.2)               
+                    if j == 0:
+                        self.q_turb[j, self.i] = np.inf
+                    else:
+                        self.q_turb[j, self.i] = ( 0.03*32.1740**(1/3) * (2**0.2) * (0.000288894658*kstar)**(2/3) * (0.00194032*rhostar*3.28084*V)**0.8 * ((1 - Prstar**(1/3))*0.000429923*he + Prstar**(1/3)*0.000429923*h0 - 0.000429923*hw) )/((mustar/47.880259)**(7/15) * (0.000429923*Cpstar0)**(2/3) * (3.28084*self.tangent_ogive.S(j+1))**0.2)               
                     
                     #Now convert from Imperial heat transfer rate (Btu/ft^2/s) --> Metric heat transfer rate (W/m^2): Divide by 0.000088055
                     self.q_turb[j, self.i] = self.q_turb[j, self.i]/0.000088055
@@ -744,18 +760,18 @@ class HeatTransfer:
         fig.suptitle("Properties at Station {}".format(int(station_number)))
         axs[0,1].set_xlabel("Time (s)")
         axs[0,1].set_ylabel("Heat transfer rate (kW/m^2)")
-        axs[0,1].plot(time[:imax], self.q_lam[station_number - 1, :imax]/1000, label=r"$\dot{q}_{lam}$")
         axs[0,1].plot(time[:imax], self.q_turb[station_number - 1, :imax]/1000, label=r"$\dot{q}_{turb}$")
-        axs[0,1].plot(time[:imax], self.q0_hemispherical_nose[:imax]/1000, label=r"$\dot{q}_{0}$")
+        axs[0,1].plot(time[:imax], self.q_lam[station_number - 1, :imax]/1000, label=r"$\dot{q}_{lam}$")
+        #axs[0,1].plot(time[:imax], self.q0_hemispherical_nose[:imax]/1000, label=r"$\dot{q}_{0}$")
         axs[0,1].legend()
         axs[0,1].grid()
 
         axs[1,1].set_title("Temperatures")
         axs[1,1].set_xlabel("Time (s)")
         axs[1,1].set_ylabel("Temperature (K)")
-        axs[1,1].plot(time[:imax], self.Te[station_number - 1, :imax], label=r"$T_{e}$")
-        axs[1,1].plot(time[:imax], self.Trec_lam[station_number - 1, :imax], label=r"$T_{rec, lam}$")
         axs[1,1].plot(time[:imax], self.Trec_turb[station_number - 1, :imax], label=r"$T_{rec, turb}$")
+        axs[1,1].plot(time[:imax], self.Trec_lam[station_number - 1, :imax], label=r"$T_{rec, lam}$")
+        axs[1,1].plot(time[:imax], self.Te[station_number - 1, :imax], label=r"$T_{e}$")
         axs[1,1].plot(time[:imax], self.Tw[:imax], label=r"$T_{w}$")
         axs[1,1].grid()
         axs[1,1].legend()
