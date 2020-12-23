@@ -8,8 +8,13 @@ Reference material:
 
 Assumptions:
 -------------------
+- Uniform wall temperature throughout the nose cone.
 - Zero angle of attack. (if this is important, it can be implemented relatively simply and is explained in https://ntrs.nasa.gov/citations/19730063810)
 - Constant Cp and Cv (hence constant gamma)
+
+Known issues:
+-------------
+- Divide by zero error when doing heat transfer calculations at Station 1 (the nose tip) - this is expected but I'm not sure if it slows down the program
 
 Things I wasn't sure of:
 -------------------------
@@ -388,14 +393,7 @@ class TangentOgive:
         return self.R * (i-1) * self.dtheta
 
 class HeatTransfer:
-    '''
-    Notes
-    ----------
-    - Assumes that the angle of attack is always zero
-    - Assumes that the wall temperature is uniform along the nose cone
-
-    '''
-    def __init__(self, tangent_ogive, trajectory_data, rocket, starting_temperature = None):
+    def __init__(self, tangent_ogive, trajectory_data, rocket, starting_temperature = None, turbulent_transition_Rex = 7.5e6):
         self.tangent_ogive = tangent_ogive
         self.trajectory_data = trajectory_data
         if type(self.trajectory_data) is dict:
@@ -403,27 +401,28 @@ class HeatTransfer:
         else: 
             self.trajectory_dict = self.trajectory_data.to_dict(orient="list")
         self.rocket = rocket
+        self.turbulent_transition_Rex = turbulent_transition_Rex
 
         #Timestep index
         self.i = 0
         
         #Arrays to store the fluid properties at each discretised point on the nose cone (1 to 15), and at each timestep
-        self.M = np.zeros([15, len(self.trajectory_dict["time"])])        #Local Mach number
-        self.P = np.zeros([15, len(self.trajectory_dict["time"])])        #Local pressure
+        self.M = np.full([15, len(self.trajectory_dict["time"])], float("NaN"))        #Local Mach number
+        self.P = np.full([15, len(self.trajectory_dict["time"])], float("NaN"))        #Local pressure
         if starting_temperature == None:
             starting_temperature = Atmosphere(pos_i2alt(self.trajectory_dict["pos_i"][0])).temperature[0]   #Assume the nose cone starts with ambient temperature
         self.Tw = np.full(len(self.trajectory_dict["time"]), starting_temperature)                          #Wall temperature - for now assume that wall temperature is constant
-        self.Te = np.zeros([15, len(self.trajectory_dict["time"])])                                         #Temperature at the edge of the boundary layer
-        self.Tstar = np.zeros([15, len(self.trajectory_dict["time"])])                                      #T* as defined in the paper
-        self.Trec_lam = np.zeros([15, len(self.trajectory_dict["time"])])                                   #Temperature corresponding to hrec_lam
-        self.Trec_turb = np.zeros([15, len(self.trajectory_dict["time"])])                                  #Temperature corresponding to hrec_turb
-        self.Hstar_function = np.zeros([15, len(self.trajectory_dict["time"])])                             #This array is used to minimise number of calculations for the integration needed in H*(x)
-        self.Rex = np.zeros([15, len(self.trajectory_dict["time"])])                                        #Local Reynolds number
+        self.Te = np.full([15, len(self.trajectory_dict["time"])], float("NaN"))                                         #Temperature at the edge of the boundary layer
+        self.Tstar = np.full([15, len(self.trajectory_dict["time"])], float("NaN"))                                      #T* as defined in the paper
+        self.Trec_lam = np.full([15, len(self.trajectory_dict["time"])], float("NaN"))                                   #Temperature corresponding to hrec_lam
+        self.Trec_turb = np.full([15, len(self.trajectory_dict["time"])], float("NaN"))                                  #Temperature corresponding to hrec_turb
+        self.Hstar_function = np.full([15, len(self.trajectory_dict["time"])], float("NaN"))                             #This array is used to minimise number of calculations for the integration needed in H*(x)
+        self.Rex = np.full([15, len(self.trajectory_dict["time"])], float("NaN"))                                        #Local Reynolds number
 
         #Arrays to store the heat transfer rates
-        self.q_lam = np.zeros([15, len(self.trajectory_dict["time"])])                  #Laminar boundary layer
-        self.q_turb = np.zeros([15, len(self.trajectory_dict["time"])])                 #Turbunulent boundary layer
-        self.q0_hemispherical_nose = np.zeros(len(self.trajectory_dict["time"]))        #At the stagnation point for a rocket with a hemispherical nose cone - used as a reference point
+        self.q_lam = np.full([15, len(self.trajectory_dict["time"])], float("NaN"))                     #Laminar boundary layer
+        self.q_turb = np.full([15, len(self.trajectory_dict["time"])], float("NaN"))                    #Turbunulent boundary layer
+        self.q0_hemispherical_nose = np.full(len(self.trajectory_dict["time"]), float("NaN"))     #At the stagnation point for a rocket with a hemispherical nose cone - used as a reference point
 
     def step(self, print_style=None):
         '''
@@ -571,12 +570,7 @@ class HeatTransfer:
 
 
                 #Now deal with the heat transfer itself
-                #The heat transfer rates at the nose will be infinity, so just set them now to save time:
-                self.q_lam[0, self.i] = float("NaN")
-                self.q_turb[0, self.i] = float("NaN")
-
-                #Run through all the other points on the nosecone
-                for j in [1,2,3,4,5,6,7,8,9,10,11,12,13,14]:
+                for j in range(15):
                     #Edge of boundary layer temperature - i.e. flow temperature post-shock and after Prandtl-Meyer expansion
                     self.Te[j, self.i] = T02T(oblique_T0S, self.M[j, self.i]) 
 
@@ -680,7 +674,7 @@ class HeatTransfer:
 
         else:
             if print_style != None:
-                print("Subsonic flow, skipping step number {}".format(self.i))
+                print("Subsonic freestream flow, skipping step number {}".format(self.i))
 
         
         self.i = self.i + 1
@@ -694,8 +688,8 @@ class HeatTransfer:
 
         while self.i-starting_index <= iterations:
             if print_style=="minimal":
-                if (self.i - starting_index) % (int(0.25*iterations)) == 0:
-                    print("{:.1f}% complete, i = {}".format(counter/4 * 100, self.i))
+                if (self.i - starting_index) % (int(iterations/10)) == 0:
+                    print("{:.1f}% complete, i = {}".format(counter/10 * 100, self.i))
                     counter = counter + 1
 
             self.step()
@@ -709,6 +703,8 @@ class HeatTransfer:
                 "Tw" : self.Tw.tolist(),
                 "Te" : self.Te.tolist(),
                 "Tstar" : self.Tstar.tolist(),
+                "Trec_lam" : self.Trec_lam.tolist(),
+                "Trec_turb" : self.Trec_turb.tolist(),
                 "Hstar_function" : self.Hstar_function.tolist(),
                 "Rex" : self.Rex.tolist()}
 
@@ -727,50 +723,57 @@ class HeatTransfer:
         self.Tw = np.array(dict["Tw"])
         self.Te = np.array(dict["Te"])
         self.Tstar = np.array(dict["Tstar"])
+        self.Trec_lam = np.array(dict["Trec_lam"])
+        self.Trec_turb = np.array(dict["Trec_turb"])
         self.Hstar_function = np.array(dict["Hstar_function"])
         self.Rex = np.array(dict["Rex"])
 
     def plot_station(self, station_number=10, imax=None):
         assert station_number <= 15 and station_number >= 1, "Station number must be between 1 and 15 (inclusive)"
 
-        q_lam = self.q_lam[station_number - 1, :imax]
-        q_turb = self.q_turb[station_number - 1, :imax]
-        
-        trajectory_dict = self.trajectory_data.to_dict(orient="list")
-
         time = self.trajectory_dict["time"]
         alt = np.zeros(len(time))
         for i in range(len(time)):
             alt[i] = pos_i2alt(self.trajectory_dict["pos_i"][i])
 
-        fig, axs = plt.subplots(3, 1)
+        fig, axs = plt.subplots(2, 2)
 
         if imax == None:
             imax = len(time)
 
-        axs[0].set_title("Heat transfer rates at station {}".format(int(station_number)))
-        axs[0].set_xlabel("Time (s)")
-        axs[0].set_ylabel("Heat transfer rate (W/m^2)")
-        axs[0].plot(time[:imax], self.q_lam[station_number - 1, :imax], label="Laminar boundary layer")
-        axs[0].plot(time[:imax], self.q_turb[station_number - 1, :imax], label="Turbulent boundary layer")
-        axs[0].plot(time[:imax], self.q0_hemispherical_nose[:imax], label="Hemispherical nose stagnation point")
-        axs[0].legend(bbox_to_anchor=(1.05, 1))
-        axs[0].grid()
+        fig.suptitle("Properties at Station {}".format(int(station_number)))
+        axs[0,1].set_xlabel("Time (s)")
+        axs[0,1].set_ylabel("Heat transfer rate (kW/m^2)")
+        axs[0,1].plot(time[:imax], self.q_lam[station_number - 1, :imax]/1000, label=r"$\dot{q}_{lam}$")
+        axs[0,1].plot(time[:imax], self.q_turb[station_number - 1, :imax]/1000, label=r"$\dot{q}_{turb}$")
+        axs[0,1].plot(time[:imax], self.q0_hemispherical_nose[:imax]/1000, label=r"$\dot{q}_{0}$")
+        axs[0,1].legend()
+        axs[0,1].grid()
 
-        axs[1].set_title("Temperatures")
-        axs[1].set_xlabel("Time (s)")
-        axs[1].set_ylabel("Temperature (K)")
-        axs[1].plot(time[:imax], self.Te[station_number - 1, :imax], label=r"$T_{e}$")
-        axs[1].plot(time[:imax], self.Trec_lam[station_number - 1, :imax], label=r"$T_{rec, lam}$")
-        axs[1].plot(time[:imax], self.Trec_turb[station_number - 1, :imax], label=r"$T_{rec, turb}$")
-        axs[1].grid()
-        axs[1].legend(bbox_to_anchor=(1.05, 1))
+        axs[1,1].set_title("Temperatures")
+        axs[1,1].set_xlabel("Time (s)")
+        axs[1,1].set_ylabel("Temperature (K)")
+        axs[1,1].plot(time[:imax], self.Te[station_number - 1, :imax], label=r"$T_{e}$")
+        axs[1,1].plot(time[:imax], self.Trec_lam[station_number - 1, :imax], label=r"$T_{rec, lam}$")
+        axs[1,1].plot(time[:imax], self.Trec_turb[station_number - 1, :imax], label=r"$T_{rec, turb}$")
+        axs[1,1].plot(time[:imax], self.Tw[:imax], label=r"$T_{w}$")
+        axs[1,1].grid()
+        axs[1,1].legend()
 
-        axs[2].set_title("Altitude")
-        axs[2].set_xlabel("Time (s)")
-        axs[2].set_ylabel("Altitude (m)")
-        axs[2].plot(time[:imax], alt[:imax], color='orange')
-        axs[2].grid()
+        axs[1,0].set_title("Local Reynolds Number")
+        axs[1,0].set_xlabel("Time (s)")
+        axs[1,0].set_ylabel("Re(x)")
+        axs[1,0].plot(time[:imax], self.Rex[station_number - 1, :imax], color='green', label=r'$Re_{x}$')
+        axs[1,0].plot(time[:imax], np.full(len(time[:imax]), self.turbulent_transition_Rex), color='green', linestyle="--", label=r'$Re_{transition}$')
+        axs[1,0].set_yscale("log")
+        axs[1,0].legend()
+        axs[1,0].grid()
+
+        axs[0,0].set_title("Altitude")
+        axs[0,0].set_xlabel("Time (s)")
+        axs[0,0].set_ylabel("Altitude (m)")
+        axs[0,0].plot(time[:imax], alt[:imax], color='orange')
+        axs[0,0].grid()
 
         fig.tight_layout()
         plt.show()
@@ -789,9 +792,9 @@ class HeatTransfer:
         axs[0,0].set_title("Heat transfer rates")
         axs[0,0].set_xlabel("Station")
         axs[0,0].set_ylabel("Heat transfer rate (kW/m^2)")
-        qlam_plot, = axs[0,0].plot(np.array(range(15))+1, self.q_lam[:, i]/1000, label = r"$Q_{lam}$")
-        qturb_plot, = axs[0,0].plot(np.array(range(15))+1, self.q_turb[:, i]/1000, label = r"$Q_{turb}$")
-        q0_plot, = axs[0,0].plot(np.array(range(15))+1, np.full(15, self.q0_hemispherical_nose[i]/1000), label = r"$Q_{0}$")
+        qlam_plot, = axs[0,0].plot(np.array(range(15))+1, self.q_lam[:, i]/1000, label = r"$\dot{q}_{lam}$")
+        qturb_plot, = axs[0,0].plot(np.array(range(15))+1, self.q_turb[:, i]/1000, label = r"$\dot{q}_{turb}$")
+        q0_plot, = axs[0,0].plot(np.array(range(15))+1, np.full(15, self.q0_hemispherical_nose[i]/1000), label = r"$\dot{q}_{0}$")
         axs[0,0].legend(bbox_to_anchor=(-0.4, 1))
         axs[0,0].grid()
 
