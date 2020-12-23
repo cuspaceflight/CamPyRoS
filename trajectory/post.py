@@ -859,6 +859,7 @@ class HeatTransfer:
             imax = len(time)
 
         fig.suptitle("Properties at Station {}".format(int(station_number)))
+        axs[0,1].set_title("Heat transfer rates")
         axs[0,1].set_xlabel("Time (s)")
         axs[0,1].set_ylabel("Heat transfer rate (kW/m^2)")
         axs[0,1].plot(time[:imax], self.q_turb[station_number - 1, :imax]/1000, label=r"$\dot{q}_{turb}$")
