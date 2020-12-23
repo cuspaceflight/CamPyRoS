@@ -10,6 +10,7 @@ Reference material:
 
 Assumptions:
 -------------------
+- If a variable wall temperature is used, the nosecone is modelled as a very simple lumped mass for temperature rises.
 - Uniform wall temperature throughout the nose cone.
 - Zero angle of attack. (if this is important, it can be implemented relatively simply and is explained in https://ntrs.nasa.gov/citations/19730063810)
 - Constant Cp and Cv (hence constant gamma)
@@ -17,9 +18,13 @@ Assumptions:
 Known issues:
 -------------
 - The thermo module seems to have trouble finding the viscosity at some point - I think in post normal-shockwave conditions.
+- I have not checked my model for wall temperature rise against any real data or the NASA examples.
 
 Things I wasn't sure of:
 -------------------------
+- For the lumped mass wall temperature rise model, I improvised a way to deal with the infinite qdot at the nose tip (but am not sure how valid it is)
+    I simply assumed the heat transfer rates at Station 1 (the nose tip) to be the same as those at Station 2
+
 - Calculating for H*(0) - Equation (18) from https://arc.aiaa.org/doi/pdf/10.2514/3.62081
     I think that the rho(x) and mu(x) in Equation (18) are just rho(0) and mu(0), since they're evaluated at 'x=0'. This seemed to give the right values.
 - Calculating H*(x) - Equation (17) from https://arc.aiaa.org/doi/pdf/10.2514/3.62081
@@ -366,7 +371,7 @@ def cone_shock(cone_angle, Ma, T, p, rho):
 
 #Heat Transfer Analysis
 class TangentOgive:
-    def __init__(self, xprime, yprime):
+    def __init__(self, xprime, yprime, specific_heat_capacity = 900, mass = 1):
         #https://arc.aiaa.org/doi/pdf/10.2514/3.62081 used for nomenclature
         self.xprime = xprime    #Longitudinal dimension
         self.yprime = yprime    #Base radius
@@ -374,6 +379,8 @@ class TangentOgive:
         self.R = (xprime**2 + yprime**2)/(2*yprime)         #Ogive radius
         self.theta = np.arctan2(xprime, self.R - yprime)
         self.dtheta = 0.1*self.theta
+
+        self.heat_capacity = specific_heat_capacity * mass
 
         #Each point (1 to 15) and its distance along the nose cone surface from the nose tip
         self.S_array = np.zeros(15)
@@ -399,25 +406,63 @@ class TangentOgive:
         return self.R * (i-1) * self.dtheta
 
 class HeatTransfer:
-    def __init__(self, tangent_ogive, trajectory_data, rocket, starting_temperature = None, turbulent_transition_Rex = 7.5e6):
+    def __init__(self, tangent_ogive, trajectory_data, rocket, 
+                 fixed_wall_temperature = True,
+                 starting_temperature = None, 
+                 nosecone_mass = None, 
+                 specific_heat_capacity = 900, 
+                 turbulent_transition_Rex = 7.5e6):
+        '''
+        Object used to run aerodynamic heating analyses
+
+        Inputs
+        -------
+        tangent_ogive : TangentOgive
+            TangentOgive object specifying the nosecone geometry
+        trajectory_data : dict or pandas DataFrame
+            Data on the rocket's trajectory, needs to have "pos_i" and "vel_i". 
+        rocket : Rocket
+            Rocket object. It's only need to get LaunchSite information.
+        fixed_wall_temperature : bool
+            If True, the wall temperature is fixed to its starting value. Otherwise a simple model is used to model its temperature change.
+        starting_temperature : float, optional
+            Temperature that the nose cone starts with (K). Defaults to None, in which case the rocket starts with the local atmospheric temperature. 
+        nosecone_mass : float, optional
+            Mass of the nosecone (kg) - used to find its heat capacity. Only needed if you're modelling variable temperatures
+        specific_heat_capacity : float, optional
+            Specific heat capacity of the nosecone (J/kg/K). Defaults to an approximate value for aluminium.
+        turbulent_transition_Rex : float, optional
+            Local Reynolds number at which the boundary layer transition from laminar to turbulent. Defaults to 7.5e6.    
+        '''
         self.tangent_ogive = tangent_ogive
         self.trajectory_data = trajectory_data
+        self.rocket = rocket
+        self.turbulent_transition_Rex = turbulent_transition_Rex
+        self.fixed_wall_temperature = fixed_wall_temperature
+
+        #Convert the data into a dictionary if it isn't already one:
         if type(self.trajectory_data) is dict:
             self.trajectory_dict = self.trajectory_data
         else: 
             self.trajectory_dict = self.trajectory_data.to_dict(orient="list")
-        self.rocket = rocket
-        self.turbulent_transition_Rex = turbulent_transition_Rex
 
-        #Timestep index
+        #If we want a variable wall temperature:
+        if self.fixed_wall_temperature == False:
+            assert nosecone_mass != None, "You need to input a value for the nosecone mass if you want to model a variable wall temperature"
+            self.heat_capacity = specific_heat_capacity * nosecone_mass
+
+        #Timestep index:
         self.i = 0
         
         #Arrays to store the fluid properties at each discretised point on the nose cone (1 to 15), and at each timestep
         self.M = np.full([15, len(self.trajectory_dict["time"])], float("NaN"))        #Local Mach number
         self.P = np.full([15, len(self.trajectory_dict["time"])], float("NaN"))        #Local pressure
+        
+        self.Tw = np.full(len(self.trajectory_dict["time"]), float("NaN"))                                  #Wall temperature - for now assume that wall temperature is constant
         if starting_temperature == None:
             starting_temperature = Atmosphere(pos_i2alt(self.trajectory_dict["pos_i"][0])).temperature[0]   #Assume the nose cone starts with ambient temperature
-        self.Tw = np.full(len(self.trajectory_dict["time"]), starting_temperature)                          #Wall temperature - for now assume that wall temperature is constant
+        self.Tw[0] = starting_temperature
+        
         self.Te = np.full([15, len(self.trajectory_dict["time"])], float("NaN"))                                         #Temperature at the edge of the boundary layer
         self.Tstar = np.full([15, len(self.trajectory_dict["time"])], float("NaN"))                                      #T* as defined in the paper
         self.Trec_lam = np.full([15, len(self.trajectory_dict["time"])], float("NaN"))                                   #Temperature corresponding to hrec_lam
@@ -684,20 +729,70 @@ class HeatTransfer:
                         print("TW  ={:.6} K          TREF ={:06.2f} K        TREC_LAM  ={:06.2f} K     TREC_TURB  ={:06.2f} K".format(self.Tw[self.i], self.Tstar[j, self.i], hrec_lam/cp_air(), hrec_lam/cp_air()))
                         print("QLAM={:.6} kW/m^2     QTURB={:06.2f} kW/m^2   QLAM/QSTAG={:06.2f}       QTURB/QSTAG={:06.2f}".format(self.q_lam[j, self.i]/1000, self.q_turb[j, self.i]/1000, self.q_lam[j, self.i]/self.q0_hemispherical_nose[self.i], self.q_turb[j, self.i]/self.q0_hemispherical_nose[self.i]))
                         print("")
+
+
+                #Simple lumped mass model for increase in wall temperature:
+                if self.fixed_wall_temperature == False:
+
+                    #Points 12 - 15 are below the bottom of the nosecone, so we'll ignore them.
+                    qdot_array = np.zeros(11)
+                    qdotr_array = np.zeros(11) #Local q * local nosecone radius
+
+                    for j in range(len(qdot_array)):
+                        #The nose tip (Station 1) has q = infinity, so we'll ignore it for now
+                        if j == 0:
+                            pass
+
+                        #Check if we have a laminar or turbulent boundary layer at each point:
+                        else:
+                            if self.Rex[j, self.i] < self.turbulent_transition_Rex:
+                                #Laminar boundary layer
+                                qdot_array[j] = self.q_lam[j, self.i]
+                            else:
+                                #Turbulent boundary layer
+                                qdot_array[j] = self.q_turb[j, self.i]
+                        
+                        #qdot(x) * r(x)
+                        qdotr_array[j] = qdot_array[j] * self.tangent_ogive.r(j+1)
+                    
+                    #Set the heat transfer rates at Station 1 (the nose tip) to be the same as that at Station 2
+                    qdot_array[0] = qdot_array[1]
+                    qdotr_array[0] = qdotr_array[1]
+
+                    #Integrate to get the total heat transferred
+                    Qdot_tot = 2*np.pi * np.trapz(qdotr_array, self.tangent_ogive.S_array[:11])    #Qdot = ∫qdot dA = ∫qdot (2πrdx) = 2π∫qdot r dx
+                    Q_tot = Qdot_tot * (self.trajectory_dict["time"][self.i+1] - self.trajectory_dict["time"][self.i])  #Q = ∫Qdot dt, using left Riemann sum
+
+                    #Get the change in temperature, and add it to the current temperature
+                    dT = Q_tot/self.heat_capacity
+                    self.Tw[self.i + 1] = self.Tw[self.i] + dT
+
+                else:
+                    #If using a fixed wall temperature:
+                    self.Tw[self.i + 1] = self.Tw[self.i]
+
             else:
                 if print_style != None:
                     print("Subsonic flow post-shock (Minf = {:.2f}, MS = {:.2f}), skipping step number {}".format(Minf, oblique_MS, self.i))
+
+                #Wall temperature doesn't change:
+                self.Tw[self.i + 1] = self.Tw[self.i]
 
         else:
             if print_style != None:
                 print("Subsonic freestream flow, skipping step number {}".format(self.i))
 
+            #Wall temperature doesn't change:
+            self.Tw[self.i + 1] = self.Tw[self.i]
         
         self.i = self.i + 1
 
     def run(self, iterations = None, starting_index = 0, print_style="minimal"):
         if iterations == None:
             iterations = len(self.trajectory_dict["time"]) - 1
+
+        if self.fixed_wall_temperature == False and starting_index != 0:
+            print("WARNING: You should normally start the simulation from starting_index = 0 if you're using a variable wall temperature. Doing otherwise may give inaccurate results or errors.")
 
         self.i = starting_index
         counter = 0
@@ -709,6 +804,10 @@ class HeatTransfer:
                     counter = counter + 1
 
             self.step()
+        
+        if self.fixed_wall_temperature == False and print_style=="minimal":
+            print("Maximum wall temparature = {:.4f} °C".format(np.nanmax(self.Tw)-273.15))
+            print("Minimum wall temperature = {:.4f} °C".format(np.nanmin(self.Tw)-273.15))
 
     def to_json(self, directory="aero_heating_output.json"):
         dict = {"q_lam" : self.q_lam.tolist(), 
@@ -726,6 +825,8 @@ class HeatTransfer:
 
         with open(directory, "w") as write_file:
             json.dump(dict, write_file)
+
+        print("Exported data to {}".format(directory))
 
     def from_json(self, directory):
         with open(directory, "r") as read_file:
