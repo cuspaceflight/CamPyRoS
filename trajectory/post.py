@@ -457,12 +457,17 @@ class HeatTransfer:
         #Arrays to store the fluid properties at each discretised point on the nose cone (1 to 15), and at each timestep
         self.M = np.full([15, len(self.trajectory_dict["time"])], float("NaN"))        #Local Mach number
         self.P = np.full([15, len(self.trajectory_dict["time"])], float("NaN"))        #Local pressure
-        
-        self.Tw = np.full(len(self.trajectory_dict["time"]), float("NaN"))                                  #Wall temperature - for now assume that wall temperature is constant
+
+        #Initialise the wall temperature:
         if starting_temperature == None:
-            starting_temperature = Atmosphere(pos_i2alt(self.trajectory_dict["pos_i"][0])).temperature[0]   #Assume the nose cone starts with ambient temperature
-        self.Tw[0] = starting_temperature
-        
+            starting_temperature = Atmosphere(pos_i2alt(self.trajectory_dict["pos_i"][0])).temperature[0]           #Assume the nose cone starts with ambient temperature
+
+        if self.fixed_wall_temperature == True:
+            self.Tw = np.full(len(self.trajectory_dict["time"]), starting_temperature)
+        else:
+            self.Tw = np.full(len(self.trajectory_dict["time"]), float("NaN"))                                          
+            self.Tw[0] = starting_temperature
+
         self.Te = np.full([15, len(self.trajectory_dict["time"])], float("NaN"))                                         #Temperature at the edge of the boundary layer
         self.Tstar = np.full([15, len(self.trajectory_dict["time"])], float("NaN"))                                      #T* as defined in the paper
         self.Trec_lam = np.full([15, len(self.trajectory_dict["time"])], float("NaN"))                                   #Temperature corresponding to hrec_lam
