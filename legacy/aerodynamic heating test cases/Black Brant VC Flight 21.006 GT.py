@@ -12,11 +12,11 @@ Notes:
 
 '''
 
-import trajectory, trajectory.post, trajectory.aero, csv
+import trajectory, trajectory.heating, trajectory.aero, csv
 import numpy as np
 from trajectory.transforms import pos_l2i, pos_i2l, vel_l2i, vel_i2l, direction_l2i, direction_i2l, i2airspeed, pos_i2alt
 from trajectory.constants import r_earth
-from martlet4 import martlet4
+from martlet4 import martlet4   #It doesn't matter which rocket we use, we just need something to use as an input.
 import matplotlib.pyplot as plt
 
 '''
@@ -69,8 +69,8 @@ plt.show()
 
 '''Specify the nosecone and create the HeatTransfer analysis object'''
 #Nosecone dimensions from the NASA report: xprime = 71.3 inches = 1.81102 m , yprime = 0.72 ft = 0.219456 m
-tangent_ogive = trajectory.post.TangentOgive(xprime = 1.81102, yprime = 0.219456)
-analysis = trajectory.post.HeatTransfer(tangent_ogive, trajectory_data, martlet4, starting_temperature = 300)
+tangent_ogive = trajectory.heating.TangentOgive(xprime = 1.81102, yprime = 0.219456)
+analysis = trajectory.heating.AeroHeatingAnalysis(tangent_ogive, trajectory_data, martlet4, starting_temperature = 300)
 
 '''Run the simulation'''
 #analysis.step()

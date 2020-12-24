@@ -5,20 +5,18 @@ Note that Problem BA in the NASA document is actually at an angle of attack of 1
 
 '''
 
-import trajectory, trajectory.aero, csv
-import trajectory.post as post
+import trajectory, trajectory.aero, trajectory.heating, csv
 import numpy as np
 from trajectory.transforms import pos_l2i, pos_i2l, vel_l2i, vel_i2l, direction_l2i, direction_i2l, i2airspeed, pos_i2alt
 
-from martlet4 import martlet4
+from martlet4 import martlet4   #It doesn't matter which rocket we use, we just need something to use as an input.
 
 '''
 Specify the nosecone, using:
 xprime = 2.741 ft = 0.8354568 m
 yprime = 0.5 ft = 0.1524 m 
 '''
-tangent_ogive = trajectory.post.TangentOgive(xprime = 0.8354568, yprime = 0.1524)
-#tangent_ogive = post.TangentOgive(xprime = 2.741, yprime = 0.5)
+tangent_ogive = trajectory.heating.TangentOgive(xprime = 0.8354568, yprime = 0.1524)
 
 #Freestream conditions:
 ALT = 15240         #50000 ft
@@ -43,5 +41,5 @@ trajectory_data = {"time" : [0, 1],
                  "w_b" : [None, None],
                  "events" : []}
 
-analysis = post.HeatTransfer(tangent_ogive, trajectory_data, martlet4, starting_temperature = 300)
+analysis = trajectory.heating.AeroHeatingAnalysis(tangent_ogive, trajectory_data, martlet4, starting_temperature = 300)
 analysis.step(print_style = "FORTRAN")
