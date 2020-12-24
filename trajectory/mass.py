@@ -15,8 +15,8 @@ import numpy as np
 class CylindricalMassModel:
     """Simple cylindrical model of the rockets mass and moments of inertia.
 
-    Note
-    ----
+    Notes
+    ----------
     Assumes the rocket is a solid cylinder, constant volume, which has a mass that reduces with time (i.e. the density of the cylinder reducs)
 
     Parameters
