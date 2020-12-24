@@ -1,5 +1,5 @@
 '''
-Script that defines the martlet4 Rocket object, so that you can import it and use it for other purposes (e.g. aerodynamic heating analysis)
+Script that creates the martlet4 Rocket object, so that you can import it and use it for other purposes (e.g. aerodynamic heating analysis)
 '''
 
 import trajectory, trajectory.aero, csv

@@ -1,0 +1,6 @@
+Move the programs into a directory where they can import the 'trajectory' module, then just run them. 
+
+Uncomment the relevant lines if you want to generate new data, instead of just importing it from a .JSON.
+
+Most of them import a "martlet4" to use as a rocket, but if this isn't available you can make an arbritrary rocket object, the details of the rocket don't matter.
+
