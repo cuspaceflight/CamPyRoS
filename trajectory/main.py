@@ -199,33 +199,28 @@ class Wind:
             self.date=run_date
             self.forcast_time=forcast_time
             self.run_time=forcast_plus_time
-            self.df,self.points=self.load_data(closest(self.centre_lat,.25),closest(self.centre_long,.25))
+            self.data_x,self.data_y,self.data_geo,self.points,self.lats,self.longs=self.load_data(closest(self.centre_lat,.25),closest(self.centre_long,.25))
             
             if self.fast == True:
                 self.winds=self.load_fast(lat,long)
     
     def load_fast(self,lat,long):
-        mean=[]
-        lats=closest(lat,.25)
-        longs=closest(long,.25)
+        sample_point=[('latitude', lat),('longitude', long)]
+        w_x=self.data_x.interpolate(sample_point, iris.analysis.Linear())
+        w_y=self.data_y.interpolate(sample_point, iris.analysis.Linear())
+        geos=self.data_geo.interpolate(sample_point, iris.analysis.Linear())  
+
         x=[]
         y=[]
-        for n in [0,1]:
-            for m in [0,1]:
-                x.append(scipy.interpolate.interp1d(self.df.query("lat==%s"%lats[n]).query("long==%s"%longs[m])["alt"],self.df.query("lat==%s"%lats[n]).query("long==%s"%longs[m])["w_x"], fill_value='extrapolate'))
-                y.append(scipy.interpolate.interp1d(self.df.query("lat==%s"%lats[n]).query("long==%s"%longs[m])["alt"],self.df.query("lat==%s"%lats[n]).query("long==%s"%longs[m])["w_y"], fill_value='extrapolate'))
-        
-        mean_x=[]
-        mean_y=[]
         for alt in np.linspace(0,45000,1000):
-            mean_x.append(np.mean([x[0](alt),x[1](alt),x[2](alt),x[3](alt)]))
-            mean_y.append(np.mean([y[0](alt),y[1](alt),y[2](alt),y[3](alt)]))
-        mean=np.array([-np.array(mean_y),np.array(mean_x),np.zeros(len(mean_x))])
+            press=scipy.interpolate.interp1d(geos.data,geos.coord("pressure").points,fill_value="extrapolate")(alt)
+            x.append(scipy.interpolate.interp1d(w_x.coord("pressure").points,w_x.data,fill_value="extrapolate")(press))
+            y.append(scipy.interpolate.interp1d(w_y.coord("pressure").points,w_y.data,fill_value="extrapolate")(press))
+        w=np.array([-np.array(y),np.array(x),np.zeros(len(x))])
     
-        return scipy.interpolate.interp1d(np.linspace(0,45000,1000),mean,fill_value='extrapolate')
+        return scipy.interpolate.interp1d(np.linspace(0,45000,1000),w,fill_value='extrapolate')
 
     def load_data(self,lats,longs):
-        tl=time.time()
         """Loads wind data for particualr lat long to the objects df. 
 
         Notes
@@ -275,47 +270,13 @@ class Wind:
                     if chunk: 
                         f.write(chunk)
         if os.path.getsize("%s/%s_%s_%s_%s_%s.grb2"%(self.data_loc,lat_bottom,long_left,self.date,self.forcast_time,self.run_time))<1000:
-            raise RuntimeError("The weather data you requested was not found, this is usually because it was for an invalid date/time. lat=%s,long=%s was requested"%(lat,longi))
+            raise RuntimeError("The weather data you requested was not found, this is usually because it was for an invalid date/time. lats=%s,longs=%s was requested"%(lats,longs))
         data=iris.load("%s/%s_%s_%s_%s_%s.grb2"%(self.data_loc,lat_bottom,long_left,self.date,self.forcast_time,self.run_time))
-        for index,row in enumerate(data):
-            try:
-                row.coord("pressure")
-                if row.standard_name=="x_wind":
-                    row_x_wind=index
-                elif row.standard_name=="y_wind":
-                    row_y_wind=index
-                elif row.standard_name=="geopotential_height":
-                    row_geo=index
-            except:
-                pass
-        lats=list(data[row_geo].coord("latitude").points)
-        longs=list(data[row_geo].coord("longitude").points)
-        df=pd.DataFrame(columns=["lat","long","alt","w_x","w_y"])
-        points=[]
-        for long in longs:
-            for lat in lats:
-                press_1=data[row_x_wind].extract(iris.Constraint(latitude=lat,longitude=long)).coord("pressure").points
-                press_2=data[row_y_wind].extract(iris.Constraint(latitude=lat,longitude=long)).coord("pressure").points
-                press_3=data[row_geo].extract(iris.Constraint(latitude=lat,longitude=long)).coord("pressure").points
-                press=[]
-                for pres in press_1:
-                    if (pres in press_2 and pres in press_3):
-                        press.append(pres)
-                for pres in press:
-                    try:
-                        if ([lat,long] not in self.points or [lat,long] not in points):
-                            w_x=data[row_x_wind].extract(iris.Constraint(latitude=lat,longitude=long,pressure=pres)).data
-                            w_y=data[row_y_wind].extract(iris.Constraint(latitude=lat,longitude=long,pressure=pres)).data
-                            alt=10*metpy.calc.geopotential_to_height(data[row_geo].extract(iris.Constraint(latitude=lat,longitude=long,pressure=pres)).data*units.m**2/units.s**2).magnitude
-                            row={"lat":lat,"long":np.mod(long,360),"alt":alt,"w_x":w_x,"w_y":w_y}
-                            df=df.append(row,ignore_index=True)
-                    except KeyError:
-                        warnings.warn("Wind datapoint lat=%s, long=%s, pres=%s was missed because of an unknown Iris error, this is non fatal as it will be interpolated from other values"%(lat,long,pres))
-                    except:
-                        warnings.warn("Wind datapoint lat=%s, long=%s, pres=%s was missed because of an unknown Iris error, this may be a fatal result if there are many instances in one dataset"%(lat,long,pres))
-                #Add a lookup check here (i.e. query for lat long and check not none)
-                points.append([lat,long])
-        return df,points
+        data_x=data[1]
+        data_y=data[3]
+        data_geo=data[0]
+
+        return data_x,data_y,data_geo,points(lats,longs),lats,longs
 
     def get_wind(self,lat,long,alt):
         """Returns wind for a specific lat,long,alt 
@@ -335,41 +296,21 @@ class Wind:
         """ 
         lat,long=validate_lat_long(lat,long)
         if self.variable == True and self.fast==False and 0<alt<80000:
-            lat,long=long,lat#These are switched somehow balancing evrerywhere else, should be fixedß
             lats=closest(lat,.25)
             longs=closest(long,.25)
             if not all(point in self.points for point in points(lats,longs)):
-                new_df,new_points=self.load_data(lats,longs)
-                self.df+=new_df
-                self.points+=new_points
-                #would self.df,self.points+=self.load_data(lats,longs) be valid?
+                self.data_x,self.data_y,self.data_geo,self.points,self.lats,self.longs=self.load_data(lats+self.lats,longs+self.longs)#This is kind of inefficient but I can't work out how to join cubes/it says it won't do it
 
-            search_lats=self.df.lat.values
-            #This search method was approx an order of magnitude faster in my testing
+            sample_point=[('latitude', lat),('longitude', long)]
+            w_x=self.data_x.interpolate(sample_point, iris.analysis.Linear())
+            w_y=self.data_y.interpolate(sample_point, iris.analysis.Linear())
+            geos=self.data_geo.interpolate(sample_point, iris.analysis.Linear())
 
-            m=self.df[ne.evaluate("search_lats==%s"%lats[0])]
-            search_longs=m.long.values
-            row=m[ne.evaluate("search_longs==%s"%np.mod(longs[0],360))]
-            a=scipy.interpolate.interp1d(row["alt"],np.array([-row["w_y"],row["w_x"],np.zeros(len(row["w_y"]))]), fill_value='extrapolate')(alt)
-
-            m=self.df[ne.evaluate("search_lats==%s"%lats[0])]
-            search_longs=m.long.values
-            row=m[ne.evaluate("search_longs==%s"%np.mod(longs[1],360))]
-            b=scipy.interpolate.interp1d(row["alt"],np.array([-row["w_y"],row["w_x"],np.zeros(len(row["w_y"]))]), fill_value='extrapolate')(alt)
-            y_0=a+(long-longs[0])*(b-a)/(longs[1]-longs[0])
-
-            m=self.df[ne.evaluate("search_lats==%s"%lats[1])]
-            search_longs=m.long.values
-            row=m[ne.evaluate("search_longs==%s"%np.mod(longs[0],360))]
-            a=scipy.interpolate.interp1d(row["alt"],np.array([-row["w_y"],row["w_x"],np.zeros(len(row["w_y"]))]), fill_value='extrapolate')(alt)
-
-            m=self.df[ne.evaluate("search_lats==%s"%lats[1])]
-            search_longs=m.long.values
-            row=m[ne.evaluate("search_longs==%s"%np.mod(longs[1],360))]
-            b=scipy.interpolate.interp1d(row["alt"],np.array([-row["w_y"],row["w_x"],np.zeros(len(row["w_y"]))]), fill_value='extrapolate')(alt)
-            y_1=a+(long-longs[0])*(b-a)/(longs[1]-longs[0])
+            press=scipy.interpolate.interp1d(geos.data,geos.coord("pressure").points,fill_value="extrapolate")(alt)
+            w_x=scipy.interpolate.interp1d(w_x.coord("pressure").points,w_x.data,fill_value="extrapolate")(press)
+            w_y=scipy.interpolate.interp1d(w_y.coord("pressure").points,w_y.data,fill_value="extrapolate")(press)
             
-            return y_0+(lat-lats[0])*(y_1-y_0)/(lats[1]-lats[0])
+            return np.array([-w_y,w_x,0])
         elif self.variable == True and self.fast==True:
             return self.winds(alt)
         else:

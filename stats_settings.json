@@ -8,7 +8,7 @@
         "alt":[0,0,"abs"],
         "long":[0.1160127,0.0,"abs"],
         "lat":[52.2079404,0.0,"abs"],
-        "fast_wind":1,
+        "fast_wind":0,
         "run_date":"20201219",
         "run_time":"00",
         "run_plus_time":"000"

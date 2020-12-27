@@ -79,7 +79,7 @@ launch_site = trajectory.LaunchSite(rail_length=10,
                                     variable_wind=True,
                                     forcast_plus_time="016",
                                     run_date="20201216",
-                                    fast_wind=False)
+                                    fast_wind=True)
 
 """launch_site = trajectory.LaunchSite(rail_length=5, 
                                     rail_yaw=0, 
