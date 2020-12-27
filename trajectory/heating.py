@@ -586,7 +586,7 @@ class AeroHeatingAnalysis:
 
         #Initialise the wall temperature:
         if starting_temperature == None:
-            starting_temperature = Atmosphere(pos_i2alt(self.trajectory_dict["pos_i"][0])).temperature[0]           #Assume the nose cone starts with ambient temperature
+            starting_temperature = Atmosphere(pos_i2alt(self.trajectory_dict["pos_i"][0], self.trajectory_dict["time"][0])).temperature[0]           #Assume the nose cone starts with ambient temperature
 
         if self.fixed_wall_temperature == True:
             self.Tw = np.full(len(self.trajectory_dict["time"]), starting_temperature)
@@ -620,7 +620,7 @@ class AeroHeatingAnalysis:
         '''
 
         #Get altitude:
-        alt = pos_i2alt(self.trajectory_dict["pos_i"][self.i])
+        alt = pos_i2alt(self.trajectory_dict["pos_i"][self.i], self.trajectory_dict["time"][self.i])
 
         #Get ambient conditions:
         Pinf = Atmosphere(alt).pressure[0]
@@ -1027,7 +1027,7 @@ class AeroHeatingAnalysis:
         time = self.trajectory_dict["time"]
         alt = np.zeros(len(time))
         for i in range(len(time)):
-            alt[i] = pos_i2alt(self.trajectory_dict["pos_i"][i])
+            alt[i] = pos_i2alt(self.trajectory_dict["pos_i"][i], self.trajectory_dict["time"][i])
 
         fig, axs = plt.subplots(2, 2)
 
@@ -1087,7 +1087,7 @@ class AeroHeatingAnalysis:
         '''
         fig, axs = plt.subplots(2, 2)
 
-        alt = pos_i2alt(self.trajectory_dict["pos_i"][i])
+        alt = pos_i2alt(self.trajectory_dict["pos_i"][i], self.trajectory_dict["time"][i])
         Vinf = np.linalg.norm(i2airspeed(self.trajectory_dict["pos_i"][i], self.trajectory_dict["vel_i"][i], self.rocket.launch_site, self.trajectory_dict["time"][i]))
         Minf = Vinf/Atmosphere(alt).speed_of_sound[0]
         fig.suptitle('i={} time = {:.2f} s alt={:.2f} km Minf={:.2f}'.format(i, self.trajectory_dict["time"][i], alt/1000, Minf))
@@ -1100,7 +1100,7 @@ class AeroHeatingAnalysis:
         axs[0,0].set_ylabel("Heat transfer rate (kW/m^2)")
         qlam_plot, = axs[0,0].plot(np.array(range(15))+1, self.q_lam[:, i]/1000, label = r"$\dot{q}_{lam}$")
         qturb_plot, = axs[0,0].plot(np.array(range(15))+1, self.q_turb[:, i]/1000, label = r"$\dot{q}_{turb}$")
-        q0_plot, = axs[0,0].plot(np.array(range(15))+1, np.full(15, self.q0_hemispherical_nose[i]/1000), label = r"$\dot{q}_{0}$")
+        #q0_plot, = axs[0,0].plot(np.array(range(15))+1, np.full(15, self.q0_hemispherical_nose[i]/1000), label = r"$\dot{q}_{0}$")
         axs[0,0].legend(bbox_to_anchor=(-0.4, 1))
         axs[0,0].grid()
 
@@ -1116,11 +1116,12 @@ class AeroHeatingAnalysis:
         axs[0,1].legend(bbox_to_anchor=(1.05, 1))
         axs[0,1].grid() 
 
-        axs[1,0].set_title("Pressures")
+        axs[1,0].set_title("Local Reynolds numbers")
         axs[1,0].set_xlabel("Station")
-        axs[1,0].set_ylabel("Pressure (kPa)")
-        pe_plot, = axs[1,0].plot(np.array(range(15))+1, self.P[:, i]/1000, label=r"$(P_e)$")
-        pinf_plot, = axs[1,0].plot(np.array(range(15))+1, np.full(15, Atmosphere(alt).pressure[0]/1000), label=r"$(P_inf)$")
+        axs[1,0].set_ylabel("Reynolds number")
+        axs[1,0].set_yscale("log")
+        Re_plot, = axs[1,0].plot(np.array(range(15))+1, self.Rex[:, i], label=r"$Re_x$", color="green")
+        Re_transition_plot, = axs[1,0].plot(np.array(range(15))+1, np.full(15, self.turbulent_transition_Rex), label=r"$Re_{transition}$", color="green", linestyle='--')
         axs[1,0].legend(bbox_to_anchor=(-0.4, 1))
         axs[1,0].grid()
 
@@ -1153,11 +1154,10 @@ class AeroHeatingAnalysis:
             index = int(slider_value)
 
             #Get current altitude
-            alt = pos_i2alt(self.trajectory_dict["pos_i"][index])
+            alt = pos_i2alt(self.trajectory_dict["pos_i"][index], self.trajectory_dict["time"][index])
 
             #Update curves
-            pe_plot.set_ydata(self.P[:, index]/1000)
-            pinf_plot.set_ydata(np.full(15, Atmosphere(alt).pressure[0]/1000))
+            Rex_plot.set_ydata(self.Rex[:, index])
             Te_plot.set_ydata(self.Te[:, index])
             Tstar_plot.set_ydata(self.Tstar[:, index])
             Tw_plot.set_ydata(np.full(15, self.Tw[index]))
@@ -1166,7 +1166,7 @@ class AeroHeatingAnalysis:
             Trec_turb_plot.set_ydata(self.Trec_turb[:, index])
             qlam_plot.set_ydata(self.q_lam[:, index]/1000)
             qturb_plot.set_ydata(self.q_turb[:, index]/1000)
-            q0_plot.set_ydata(np.full(15, self.q0_hemispherical_nose[index]/1000))
+            #q0_plot.set_ydata(np.full(15, self.q0_hemispherical_nose[index]/1000))
             
             #Rescale the limits if asked to
             if automatic_rescaling==True:
@@ -1204,7 +1204,7 @@ class AeroHeatingAnalysis:
         '''
         fig, axs = plt.subplots(2, 2)
 
-        alt = pos_i2alt(self.trajectory_dict["pos_i"][i])
+        alt = pos_i2alt(self.trajectory_dict["pos_i"][i], self.trajectory_dict["time"][i])
         Vinf = np.linalg.norm(i2airspeed(self.trajectory_dict["pos_i"][i], self.trajectory_dict["vel_i"][i], self.rocket.launch_site, self.trajectory_dict["time"][i]))
         Minf = Vinf/Atmosphere(alt).speed_of_sound[0]
         fig.suptitle('i={} time = {:.2f} s alt={:.2f} km Minf={:.2f}'.format(i, self.trajectory_dict["time"][i], alt/1000, Minf))
@@ -1268,7 +1268,7 @@ class AeroHeatingAnalysis:
             index = int(slider_value)
 
             #Get current altitude
-            alt = pos_i2alt(self.trajectory_dict["pos_i"][index])
+            alt = pos_i2alt(self.trajectory_dict["pos_i"][index], self.trajectory_dict["time"][index])
 
             #Recreate the title
             Vinf = np.linalg.norm(i2airspeed(self.trajectory_dict["pos_i"][index], self.trajectory_dict["vel_i"][index], self.rocket.launch_site, self.trajectory_dict["time"][index]))
