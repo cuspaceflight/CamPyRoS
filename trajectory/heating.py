@@ -17,7 +17,7 @@ Assumptions:
 -------------------
 - If a variable wall temperature is used, the nosecone is modelled as a very simple lumped mass for temperature rises.
 - Uniform wall temperature throughout the nose cone.
-- Zero angle of attack. (if this is important, it can be implemented relatively simply and is explained in https://ntrs.nasa.gov/citations/19730063810)
+- Zero angle of attack. (if non-zero angle of attack is important, it can be implemented relatively simply and is explained in https://ntrs.nasa.gov/citations/19730063810)
 - Constant Cp and Cv (hence constant gamma)
 
 Known issues:
