@@ -799,3 +799,28 @@ def inertial_position(simulation_output):
     ax.plot(x,y,z)
     set_axes_equal(ax)
     plt.show()
+
+def plot_aero_force_alt(simulation_output, rocket):
+    output_dict = simulation_output.to_dict(orient="list")
+    burnout_time = rocket.motor.motor_time_data[-1]
+
+    force = []
+    force_x_b = []
+    force_y_b = []
+    force_z_b = []
+    alt = []
+
+    for i in range(len(output_dict["time"])):
+        b2i = Rotation.from_matrix(output_dict["b2imat"][i])
+
+        force_b, cop, q = rocket.aero_forces(output_dict["pos_i"][i], output_dict["vel_i"][i], b2i, output_dict["w_b"][i], output_dict["time"][i])
+
+        force_x_b.append(force_b[0])
+        force_y_b.append(force_b[1])
+        force_z_b.append(force_b[2])
+        force.append(np.linalg.norm(np.array(force_b)))
+        
+        alt.append(pos_i2l(output_dict["pos_i"][i], rocket.launch_site, output_dict["time"][i])[2])
+
+    plt.plot(alt,force)
+    plt.show()

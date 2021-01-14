@@ -79,7 +79,7 @@ launch_site = trajectory.LaunchSite(rail_length=10,
                                     variable_wind=True,
                                     forcast_plus_time="016",
                                     run_date="20201216",
-                                    fast_wind=True)
+                                    fast_wind=False)
 
 """launch_site = trajectory.LaunchSite(rail_length=5, 
                                     rail_yaw=0, 
@@ -102,7 +102,7 @@ martlet4 = trajectory.Rocket(mass_model, pulsar, aerodynamic_coefficients, launc
 
 '''Run the simulation'''
 t=time.time()
-simulation_output = martlet4.run(debug=True,to_json="output.json")
+#simulation_output = martlet4.run(debug=True,to_json="output.json")
 print(time.time()-t)
 
 '''Example of how you can import data from a .csv file'''
@@ -110,11 +110,11 @@ imported_data = trajectory.from_json("output.json")
 
 '''Plot the results'''
 
-trajectory.plot_launch_trajectory_3d(imported_data, martlet4, show_orientation=False) #Could have also used simulation_output instead of imported_data
-trajectory.plot_altitude_time(imported_data, martlet4)
-trajectory.plot_ypr(imported_data, martlet4)
+#trajectory.plot_launch_trajectory_3d(imported_data, martlet4, show_orientation=False) #Could have also used simulation_output instead of imported_data
+#trajectory.plot_altitude_time(imported_data, martlet4)
+#trajectory.plot_ypr(imported_data, martlet4)
 #trajectory.animate_orientation(imported_data)
 
 '''Extra plots you could make'''
 #trajectory.plot_mass(imported_data, martlet4)
-trajectory.plot_aero(imported_data, martlet4)
+trajectory.plot_aero_force_alt(imported_data, martlet4)
