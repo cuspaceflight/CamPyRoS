@@ -1,8 +1,13 @@
+import json, subprocess
+
 import tkinter as tk
+import tkinter.filedialog
 from tkinter import ttk
+
 from .main import LaunchSite, Parachute, Motor, Wind, Rocket
 from .aero import RASAeroData
 
+'''DATA AND CONSTANTS'''
 #Dictionary of objects the user is allowed to add
 OBJECTS_DICTIONARY = {"Launch Site" : LaunchSite, 
                       "Parachute" : Parachute, 
@@ -39,14 +44,13 @@ INPUTS_DICTIONARY = {"Launch Site" : LAUNCH_SITE_INPUTS,
 current_objects = {}
 current_methods = {}
 
+'''CLASSES'''
 #Main window and functions
 class Main:
     def __init__(self, master):
         self.master = master
         self.master.title("CUSF 6DOF Trajectory Simulator")
-        self.init_UI()
-        
-    def init_UI(self):
+
         #Menu
         menubar = tk.Menu(self.master)
         file_menu = tk.Menu(menubar, tearoff=False)
@@ -54,6 +58,8 @@ class Main:
         menubar.add_cascade(label="File", menu=file_menu)
         self.master.config(menu=menubar)
         
+        file_menu.add_command(label="Open", command=self.open)
+        file_menu.add_command(label="Save", command=self.save)
         file_menu.add_command(label="Save as", command=self.save_as)
         file_menu.add_command(label="Generate code", command=self.generate_code)
         
@@ -90,11 +96,25 @@ class Main:
         code_text.config(state='disabled')
         code_text.pack(expand=True, fill='both')
         
+    def open(self):
+        popup_message("'Open' is not yet implemented")
+
+    def save(self):
+        popup_message("'Save' is not yet implemented")
+
     def save_as(self):
-        print("'Save as' is not yet implemented")
-        
+        #Ask where you want to save the file
+        save_file = tk.filedialog.asksaveasfile(defaultextension=".json", filetypes=[("JSON files", ".json")])
+
+        #Save current_objects and current_methods as a JSON
+        with open(save_file.name, 'w') as fp:
+            json.dump({"current_objects" : current_objects, "current_methods" : current_methods}, fp)
+
+        popup_message("Successfully saved file to {}".format(save_file.name))
+        save_file.close()
+
     def generate_code(self):
-        print("'Generate code' is not yet functional")
+        popup_message("'Generate code' is not yet functional")
 
 #List of objects
 class ObjectsList(tk.Listbox):
@@ -152,24 +172,33 @@ class AddObjectWindow(tk.Toplevel):
         self.options_list = tk.Listbox(self)
         for i in range(len(OBJECTS_DICTIONARY.keys())):
             self.options_list.insert(i+1, list(OBJECTS_DICTIONARY.keys())[i])
-        self.options_list.pack(side="left", expand=True, fill="y")
+        self.options_list.pack(side="left", expand=True, fill="both")
 
         #Inputs frame
         self.inputs_frame = tk.Frame(self)
-        self.inputs_frame.pack(side="right", expand=True, fill="both")
+        self.inputs_frame.pack(side="top", expand=True, fill="both")
 
         #When you click on an an item
         self.options_list.bind('<<ListboxSelect>>', self.show_inputs)
 
-        #Button to add the object
-        self.add_button = tk.Button(self, text ="Add object", command = self.add_object)
-        self.add_button.pack(side = "bottom")
+        #Frame at the bottom with the desired object name + an 'add object' button
+        self.bottom_frame = tk.Frame(self)
+        self.bottom_frame.pack(side = "bottom")
+
+        self.name_label = tk.Label(self.bottom_frame, text="Name")  #Label saying 'Name'
+        self.name_entry = tk.Entry(self.bottom_frame)               #Entry box for the name
+        self.add_button = tk.Button(self.bottom_frame, text ="Add object", command = self.add_object) #Button to add the object
+
+        self.name_label.grid(column = 0, row = 0)
+        self.name_entry.grid(column = 1, row = 0)
+        self.add_button.grid(column = 2, row = 0)
+
+        #Entry box 
 
     def show_inputs(self, event):
-        object_key = self.options_list.get(self.options_list.curselection())
-        #object = OBJECTS_DICTIONARY[object_key]
-        inputs = INPUTS_DICTIONARY[object_key]
-        input_keys = list(inputs.keys())
+        self.object_key = self.options_list.get(self.options_list.curselection())
+        self.inputs = INPUTS_DICTIONARY[self.object_key]
+        self.input_keys = list(self.inputs.keys())
 
         #Clear the frame of any old inputs
         for child in self.inputs_frame.winfo_children():
@@ -178,20 +207,44 @@ class AddObjectWindow(tk.Toplevel):
         #Add the input labels and entry boxes
         self.input_labels = []
         self.input_entries = []
-        for i in range(len(input_keys)):
-            self.input_labels.append(tk.Label(self.inputs_frame, text=input_keys[i]))
+        for i in range(len(self.input_keys)):
+            self.input_labels.append(tk.Label(self.inputs_frame, text=self.input_keys[i]))
             self.input_labels[i].grid(column = 0, row = i)
 
-            datatype = inputs[input_keys[i]]
+            datatype = self.inputs[self.input_keys[i]]
             if datatype == float or datatype == int or datatype == str:
                 self.input_entries.append(tk.Entry(self.inputs_frame))
                 self.input_entries[i].grid(column = 1, row = i)
+
             elif datatype == bool:
                 self.input_entries.append(TrueFalse(self.inputs_frame))
                 self.input_entries[i].grid(column = 1, row = i)
 
     def add_object(self):
-        popup_message("The 'add object' button is not yet functional")
+        #popup_message("The 'Add object' button is not yet functional")
+        object_name = self.name_entry.get()
+        if object_name == '':
+            popup_message("You must input a name for the object")
+            return None #Break out of the function early
+
+        dictionary_to_save = {}
+
+        #Keep track of what kind of object we're saving
+        dictionary_to_save["__OBJECT__"] = self.object_key
+
+        #Save what the user entered for each input
+        for i in range(len(self.input_entries)):
+            datatype = self.inputs[self.input_keys[i]]
+
+            if datatype == float or datatype == int or datatype == str:
+                dictionary_to_save[self.input_keys[i]] = datatype(self.input_entries[i].get())
+            elif datatype == bool:
+                dictionary_to_save[self.input_keys[i]] = bool(self.input_entries[i].var.get())
+
+        #Save everything to the 'current_objects' dictionary
+        current_objects[object_name] = dictionary_to_save
+        refresh_objects_list()
+        self.destroy()
 
 #Window that opens when you want to add a new step/method
 class AddMethodWindow(tk.Toplevel):
@@ -209,6 +262,8 @@ class TrueFalse(tk.Frame):
         self.RFalse = tk.Radiobutton(self, text="False", variable=self.var, value=0)
         self.RFalse.grid(column = 1, row = 0)
 
+
+'''FUNCTIONS'''
 #Call this function to make a popup message
 def popup_message(message):
     error_window = tk.Toplevel(main_gui.master)
@@ -218,6 +273,17 @@ def popup_message(message):
     error_label.pack(side = "top")
     ok_button = tk.Button(error_window, text = "OK", command = lambda : error_window.destroy())
     ok_button.pack(side = "bottom")
+
+#Call this function to refresh the objects list
+def refresh_objects_list():
+    objects_list = list(current_objects.keys())
+
+    #Clear the list
+    main_gui.objects_list.delete(0, 'end')
+
+    #Repopulate the list
+    for i in range(len(objects_list)):
+        main_gui.objects_list.insert(i+1, objects_list[i])
 
 root = tk.Tk()
 root.state('zoomed')
