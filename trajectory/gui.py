@@ -1,8 +1,43 @@
 import tkinter as tk
 from tkinter import ttk
+from .main import LaunchSite, Parachute, Motor, Wind, Rocket
+from .aero import RASAeroData
 
 #Dictionary of objects the user is allowed to add
-OBJECTS_DICTIONARY = {"Launch Site" : None, "Rocket" : None}
+OBJECTS_DICTIONARY = {"Launch Site" : LaunchSite, 
+                      "Parachute" : Parachute, 
+                      "Motor" : Motor, 
+                      "RASAeroData" : RASAeroData, 
+                      "Wind" : Wind, 
+                      "Rocket" : Rocket}
+
+#Possible inputs and the datatype, for each object
+LAUNCH_SITE_INPUTS = {"Rail length (m)" : float,
+                        "Rail Yaw (deg)" : float, 
+                        "Rail Pitch (deg)" : float, 
+                        "Altitude (m)" : float, 
+                        "Longitude (deg)" : float, 
+                        "Latitude (deg)" : float, 
+                        "Variable Wind?" : bool,
+                        "Forecast plus time" : float,
+                        "Run Date (yyyymmdd)" : int,
+                        "Fast wind?" : bool}
+PARACHUTE_INPUTS = {"Not yet implemented" : str}
+MOTOR_INPUTS = {"Not yet implemented" : str}
+RASAERODATA_INPUTS = {"Not yet implemented" : str}
+WIND_INPUTS = {"Not yet implemented" : str}
+ROCKET_INPUTS = {"Not yet implemented" : str}
+
+INPUTS_DICTIONARY = {"Launch Site" : LAUNCH_SITE_INPUTS,
+                     "Parachute" : PARACHUTE_INPUTS, 
+                     "Motor" : MOTOR_INPUTS, 
+                     "RASAeroData" : RASAERODATA_INPUTS, 
+                     "Wind" : WIND_INPUTS, 
+                     "Rocket" : ROCKET_INPUTS}
+
+#Keep track of the objects and methods that the user has made:
+current_objects = {}
+current_methods = {}
 
 #Main window and functions
 class Main:
@@ -113,25 +148,78 @@ class AddObjectWindow(tk.Toplevel):
         tk.Toplevel.__init__(self, parent)
         self.title("Add object")
 
+        #Set up the Listbox
         self.options_list = tk.Listbox(self)
         for i in range(len(OBJECTS_DICTIONARY.keys())):
             self.options_list.insert(i+1, list(OBJECTS_DICTIONARY.keys())[i])
         self.options_list.pack(side="left", expand=True, fill="y")
-        self.description = tk.Text(self)
-        self.description.pack(side="right", expand=True, fill="both")
-        self.description.config(state='disabled')
 
-    def show_description(self):
-        pass
+        #Inputs frame
+        self.inputs_frame = tk.Frame(self)
+        self.inputs_frame.pack(side="right", expand=True, fill="both")
 
+        #When you click on an an item
+        self.options_list.bind('<<ListboxSelect>>', self.show_inputs)
+
+        #Button to add the object
+        self.add_button = tk.Button(self, text ="Add object", command = self.add_object)
+        self.add_button.pack(side = "bottom")
+
+    def show_inputs(self, event):
+        object_key = self.options_list.get(self.options_list.curselection())
+        #object = OBJECTS_DICTIONARY[object_key]
+        inputs = INPUTS_DICTIONARY[object_key]
+        input_keys = list(inputs.keys())
+
+        #Clear the frame of any old inputs
+        for child in self.inputs_frame.winfo_children():
+            child.destroy()
+        
+        #Add the input labels and entry boxes
+        self.input_labels = []
+        self.input_entries = []
+        for i in range(len(input_keys)):
+            self.input_labels.append(tk.Label(self.inputs_frame, text=input_keys[i]))
+            self.input_labels[i].grid(column = 0, row = i)
+
+            datatype = inputs[input_keys[i]]
+            if datatype == float or datatype == int or datatype == str:
+                self.input_entries.append(tk.Entry(self.inputs_frame))
+                self.input_entries[i].grid(column = 1, row = i)
+            elif datatype == bool:
+                self.input_entries.append(TrueFalse(self.inputs_frame))
+                self.input_entries[i].grid(column = 1, row = i)
+
+    def add_object(self):
+        popup_message("The 'add object' button is not yet functional")
 
 #Window that opens when you want to add a new step/method
 class AddMethodWindow(tk.Toplevel):
     def __init__(self, parent):
         tk.Toplevel.__init__(self, parent)
         self.title("Add method")
-        
+
+#True of False radiobutton widget
+class TrueFalse(tk.Frame):
+    def __init__(self, parent):
+        tk.Frame.__init__(self, parent)
+        self.var = tk.IntVar()
+        self.RTrue = tk.Radiobutton(self, text="True", variable=self.var, value=1)
+        self.RTrue.grid(column = 0, row = 0)
+        self.RFalse = tk.Radiobutton(self, text="False", variable=self.var, value=0)
+        self.RFalse.grid(column = 1, row = 0)
+
+#Call this function to make a popup message
+def popup_message(message):
+    error_window = tk.Toplevel(main_gui.master)
+    error_window.title("Error")
+    error_window.attributes('-topmost', 'true')
+    error_label = tk.Label(error_window, text=message)
+    error_label.pack(side = "top")
+    ok_button = tk.Button(error_window, text = "OK", command = lambda : error_window.destroy())
+    ok_button.pack(side = "bottom")
+
 root = tk.Tk()
 root.state('zoomed')
-my_gui = Main(root)
+main_gui = Main(root)
 root.mainloop()
