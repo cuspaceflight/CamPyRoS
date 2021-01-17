@@ -26,3 +26,5 @@ output.json
 *.grib
 *.NC
 *.anl
+*.lock
+*.dirlock
