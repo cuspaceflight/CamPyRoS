@@ -3,7 +3,7 @@ import trajectory, csv,time
 import numpy as np
 import pandas as pd
 
-'''Import motor data - copied from Joe Hunt's simulation'''
+'''Import motor data to use for the mass model - copied from Joe Hunt's simulation'''
 with open('novus_sim_6.1/motor_out.csv') as csvfile:
     motor_out = csv.reader(csvfile)
 
@@ -46,7 +46,7 @@ c_damp_pitch = trajectory.pitch_damping_coefficient(rocket_length, rocket_radius
 c_damp_roll = 0
 
 #Import drag coefficients from RASAero II
-aerodynamic_coefficients = trajectory.RASAeroData("data/Martlet4RasAeroII.CSV", ref_area, c_damp_pitch, c_damp_roll)
+aerodynamic_coefficients = trajectory.AeroData.from_rasaero("data/Martlet4RasAeroII.CSV", ref_area, c_damp_pitch, c_damp_roll)
 
 '''Set up the mass model'''
 liquid_fuel = trajectory.LiquidFuel(lden_data, lmass_data, rocket_radius, pos_tank_bottom, motor_time_data)
@@ -61,15 +61,8 @@ mass_model = trajectory.HybridMassModel(rocket_length, solid_fuel, liquid_fuel, 
 #mass_model = trajectory.CylindricalMassModel(dry_mass + np.array(prop_mass_data), motor_time_data, rocket_length, rocket_radius)
 
 '''Create the other objects needed to initialise the Rocket object'''
-pulsar = trajectory.Motor(motor_time_data, 
-                          prop_mass_data, 
-                          cham_pres_data, 
-                          throat_data, 
-                          gamma_data, 
-                          nozzle_efficiency_data, 
-                          exit_pres_data, 
-                          area_ratio_data)
-
+pulsar = trajectory.Motor.from_novus('novus_sim_6.1/motor_out.csv')
+'''
 launch_site = trajectory.LaunchSite(rail_length=10, 
                                     rail_yaw=0, 
                                     rail_pitch=0, 
@@ -80,22 +73,22 @@ launch_site = trajectory.LaunchSite(rail_length=10,
                                     forcast_plus_time="016",
                                     run_date="20201216",
                                     fast_wind=False)
-
-"""launch_site = trajectory.LaunchSite(rail_length=5, 
+'''
+launch_site = trajectory.LaunchSite(rail_length=5, 
                                     rail_yaw=0, 
                                     rail_pitch=0, 
                                     alt=1, 
                                     longi=0, 
                                     lat=0, 
                                     variable_wind=False,
-                                    default_wind=np.array([5,0,0]))"""#Use this version if you don't want to use the real wind (e.g. to test something else)
+                                    default_wind=np.array([5,0,0]))#Use this version if you don't want to use the real wind (e.g. to test something else)
 
 parachute = trajectory.Parachute(main_s = 13.9,
                                  main_c_d = 0.78,
                                  drogue_s = 1.13,
                                  drogue_c_d = 0.78,
                                  main_alt = 1000,
-                                 attatch_distance = 0)
+                                 attach_distance = 0)
 
 """Create the Rocket object"""
 martlet4 = trajectory.Rocket(mass_model, pulsar, aerodynamic_coefficients, launch_site, h=0.05, variable=True, alt_poll_interval=1, parachute=parachute)
