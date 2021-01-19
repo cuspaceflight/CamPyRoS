@@ -1,6 +1,6 @@
 {
     "name":"stats_example_massive_launch",
-    "itterations":1000,
+    "itterations":50,
     "launch_site":{
         "rail_length":[10,0.1,"abs"],
         "rail_yaw":[0,45,"abs"],
@@ -9,7 +9,7 @@
         "long":[0.1160127,0.0,"abs"],
         "lat":[52.2079404,0.0,"abs"],
         "fast_wind":0,
-        "run_date":"20201219",
+        "run_date":"20210115",
         "run_time":"00",
         "run_plus_time":"000"
     },

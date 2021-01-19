@@ -297,17 +297,7 @@ class StatisticalModel:
             save location, if not specified is generated so needs to be returned to be known
         """    
         save_loc="results/%s"%self.name
-        if not os.path.exists(save_loc):
-            os.makedirs(save_loc)
-        if ray_mode=="All":
-            ray.init()
-        elif ray_mode=="Single":
-            ray.init(local_mode=True)
-        elif ray_mode=="auto"
-            ray.init(address="auto")
-        else:
-            print("Invalid ray mode, falling back to single core (inefficeint)")
-            ray.init(local_mode=True)
+        ray.init()
         for run in range(1,self.itterations+1):
             self.run_itteration.remote(self,run,save_loc)
         input("Press enter when complete otherwise it pretends to have finished")

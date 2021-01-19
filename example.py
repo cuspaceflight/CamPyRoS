@@ -102,7 +102,7 @@ martlet4 = trajectory.Rocket(mass_model, pulsar, aerodynamic_coefficients, launc
 
 '''Run the simulation'''
 t=time.time()
-#simulation_output = martlet4.run(debug=True,to_json="output.json")
+simulation_output = martlet4.run(debug=True,to_json="output.json")
 print(time.time()-t)
 
 '''Example of how you can import data from a .csv file'''
