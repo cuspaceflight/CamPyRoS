@@ -373,6 +373,7 @@ class Wind:
             return self.winds(alt)
         else:
             return self.default
+            
 class Parachute:
     """Object holding the parachute information
     Note
@@ -393,7 +394,7 @@ class Parachute:
         Coefficient of drag for main chute/
     main_alt : float
         Altitude at which main deploys
-    attatch_distance : float
+    attach_distance : float
         Distance from the nose of the rocket that the parachute is attatched /m
     Attributes
     ----------
@@ -407,17 +408,17 @@ class Parachute:
         Coefficient of drag for main chute/
     main_alt : float
         Altitude at which main deploys
-    attatch_distance : float
+    attach_distance : float
         Distance from the nose of the rocket that the parachute is attatched /m
     """
-    def __init__(self,main_s,main_c_d,drogue_s,drogue_c_d,main_alt,attatch_distance):
+    def __init__(self,main_s,main_c_d,drogue_s,drogue_c_d,main_alt,attach_distance):
         self.main_s=main_s
         self.main_c_d=main_c_d
         self.drogue_s=drogue_s
         self.drogue_c_d=drogue_c_d
 
         self.main_alt = main_alt
-        self.attatch_distance=attatch_distance
+        self.attach_distance=attach_distance
 
     def get(self,alt):
         """Returns the current parachute area and drag coefficient (checks if main is deployed)
@@ -438,59 +439,6 @@ class Parachute:
             c_d=self.drogue_c_d
             s=self.drogue_s
         return c_d,s
-
-class Motor:
-    """Object holding the performance data for the engine
-    Parameters
-    ----------
-    motor_time_data : list
-        Time since ignition (with times corresponding to the other input lists) /s
-    prop_mass_data : list
-        Propellant mass /kg
-    cham_pres_data : list
-        Chamber Pressure /Pa
-    throat_data : list
-        Throat diameter /m
-    gamma_data : list
-        Nozzle inlet gamma (ratio of specific heats)
-    nozzle_efficiency_data : list
-        Nozzle efficiency
-    exit_pres_data : list 
-        Exit pressure /Pa
-    area_ratio_data : list 
-        Area ratio
-    Attributes
-    ----------
-    motor_time_data : list
-        Time since ignition (with times corresponding to the other input lists) /s
-    prop_mass_data : list
-        Propellant mass /kg
-    cham_pres_data : list
-        Chamber Pressure /Pa
-    throat_data : list
-        Throat diameter /m
-    gamma_data : list
-        Nozzle inlet gamma (ratio of specific heats)
-    nozzle_efficiency_data : list
-        Nozzle efficiency
-    exit_pres_data : list 
-        Exit pressure /Pa
-    area_ratio_data : list 
-        Area ratio
-    """   
-      
-    def __init__(self, motor_time_data, prop_mass_data, cham_pres_data, throat_data,
-                 gamma_data, nozzle_efficiency_data, exit_pres_data, area_ratio_data):
-        self.motor_time_data = motor_time_data
-        self.prop_mass_data = prop_mass_data
-        self.cham_pres_data = cham_pres_data
-        self.throat_data = throat_data
-        self.gamma_data = gamma_data
-        self.nozzle_efficiency_data = nozzle_efficiency_data
-        self.exit_pres_data = exit_pres_data
-        self.area_ratio_data = area_ratio_data
-
-        self.mdot_data = np.gradient(self.prop_mass_data, self.motor_time_data)       #Get the mass flow rates as an array, by doing d(prop_mass_data)/dt
 
 class LaunchSite:
     """Object holding the launch site information
