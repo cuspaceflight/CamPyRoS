@@ -50,11 +50,12 @@ https://arc.aiaa.org/doi/pdf/10.2514/3.62081 - Aerodynamic heating
 
 https://ntrs.nasa.gov/citations/19730063810 - Implementation of aerodynamic heating in FORTRAN
 
+https://openfoamwiki.net/index.php/Contrib/PyFoam - Python library for controlling OpenFoam
+
 https://pdfs.semanticscholar.org/ace3/5a61803390b0e0b70f6ca34492ad20a03e03.pdf - Coupling a 6DOF simulation with CFD
 
 https://www.precice.org/ - Precise Code Interaction Coupling Environment - Can be used to couple Python to ANSYS Fluent
 
-http://ohllab.org/CFD_course/index.html - PyCFD
 
 #### Stats
 https://www.umass.edu/remp/Papers/Smith&Wells_NERA06.pdf - How many samples
