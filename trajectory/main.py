@@ -550,7 +550,7 @@ class Rocket:
     burn_out : bool
         Engine burned out? Initialises to False
     env_vars : dictionary
-        Stores the coefficiants for the enviromental variables (see above)
+        Stores the coefficients for the enviromental variables (see above)
     
     """   
     def __init__(self, mass_model, motor, aero, launch_site, h=0.01, variable=True, rtol=1e-7, atol=1e-14, parachute=Parachute(0,0,0,0,0,0),alt_poll_interval=1,thrust_vector=np.array([1,0,0]),errors={"gravity":1.0,"pressure":1.0,"density":1.0,"speed_of_sound":1.0}):
@@ -731,32 +731,16 @@ class Rocket:
         Returns
         -------
         numpy array
-            Thrust forces on the rocket in the body frame [x,y,z] /N
+            Thrust forces on the rocket in the body frame [x,y,z] (N)
+        numpy array
+            Jet damping moment in body frame [x, y, z] (Nm)
         """        
         vector = np.array(vector)
         alt = pos_i2alt(pos_i,time)
 
-        if time < max(self.motor.motor_time_data):
-            #Get the motor parameters at the current moment in time
-            pres_cham = np.interp(time, self.motor.motor_time_data, self.motor.cham_pres_data)
-            dia_throat = np.interp(time, self.motor.motor_time_data, self.motor.throat_data)
-            gamma = np.interp(time, self.motor.motor_time_data, self.motor.gamma_data)
-            nozzle_efficiency = np.interp(time, self.motor.motor_time_data, self.motor.nozzle_efficiency_data)
-            pres_exit = np.interp(time, self.motor.motor_time_data, self.motor.exit_pres_data)
-            nozzle_area_ratio = np.interp(time, self.motor.motor_time_data, self.motor.area_ratio_data)
-            mdot = np.interp(time, self.motor.motor_time_data, self.motor.mdot_data)
-
-            #Get atmospheric pressure (to calculate pressure thrust)
-            pres_static = Atmosphere(alt).pressure[0]*self.env_vars["pressure"]
-            
-            #Calculate the thrust
-            area_throat = ((dia_throat/2)**2)*np.pi
-            thrust = (area_throat*pres_cham*(((2*gamma**2/(gamma-1))
-                                             *((2/(gamma+1))**((gamma+1)/(gamma-1)))
-                                             *(1-(pres_exit/pres_cham)**((gamma-1)/gamma)))**0.5)
-                                             +(pres_exit-pres_static)*area_throat*nozzle_area_ratio)
-    
-            thrust *= nozzle_efficiency
+        if time < self.motor.cut_off_time:
+            ambient_pressure = Atmosphere(alt).pressure[0]*self.env_vars["pressure"]
+            thrust = self.motor_thrust(time) + (motor.ambient_pressure - ambient_pressure) * motor.exit_area
         else:
             #If the engine has finished burning, no thrust is produced
             thrust = 0
