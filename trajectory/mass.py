@@ -330,7 +330,7 @@ class SolidFuel:
     def izz(self, time):
         return self.iyy(time)
 
-class CustomMass:
+class DryMass:
     """For storing custom mass data (must be constants)
 
     Parameters
@@ -343,6 +343,8 @@ class CustomMass:
         Y-Y principal moment of inertia (kg m^2)
     izz : float
         Z-Z principle moment of inertia (kg m^2)
+    cog : float
+        Distance between centre of gravity and nose tip (m)
 
     Attributes
     ----------
@@ -350,37 +352,19 @@ class CustomMass:
     ixx : float
     iyy : float
     izz : float
+    cog : float
 
     """
 
     def __init__(self, mass, ixx, iyy, izz, cog):
-        self._mass = mass
-        self._ixx = ixx
-        self._iyy = iyy
-        self._izz = izz
-
-    @property
-    def mass(self):
-        return self._mass
-    
-    @property
-    def ixx(self):
-        return self._ixx
-
-    @property
-    def iyy(self):
-        return self._iyy
-
-    @property
-    def izz(self):
-        return self._izz
+        self.mass = mass
+        self.ixx = ixx
+        self.iyy = iyy
+        self.izz = izz
+        self.cog = cog
 
 class HollowCylinder:
     """To help calculate moments of inertia for a hollow (i.e. annular) cylinder
-
-    Notes
-    ----------
-    - Does not store COG data for the cylinder. COG will simply be half way up the length of the cylinder (since it is modelled as uniform)
 
     Parameters
     ----------
@@ -392,36 +376,37 @@ class HollowCylinder:
         Length (m)
     mass : float
         Mass (kg)
+    cog : float
+        Distance between the centre gravity and the nose tip (m)
 
     Attributes
     ----------
     r_out : float
     r_in : float
     l : float
+    t : float
+    a : float
     mass : float
+    cog: float
+    ixx : float
+    iyy : float
+    izz : float
 
     """
 
-    def __init__(self, r_out, r_in, l, mass):
+    def __init__(self, r_out, r_in, l, mass, cog):
         self.r_out = r_out
         self.r_in = r_in
         self.l = l
+
+        self.t = self.r_out - self.r_in
+        self.a = (self.r_out + self.r_in)/2
+
         self.mass = mass
-
-    def t(self):
-        return self.r_out - self.r_in
-    
-    def a(self):
-        return (self.r_out + self.r_in)/2
-    
-    def ixx(self):
-        return self.mass * (self.a()**2 + (self.t()**2)/4)
-
-    def iyy(self):
-        return self.mass * ((self.a()**2)/2 + (self.t()**2)/8 + (self.l**2)/12)
-
-    def izz(self):
-        return self.iyy()
+        self.cog = cog
+        self.ixx = self.mass * (self.a**2 + (self.t**2)/4)
+        self.iyy = self.mass * ((self.a**2)/2 + (self.t**2)/8 + (self.l**2)/12)
+        self.izz = self.iyy
 
 class HybridMassModel:
     """Mass model for a a rocket that uses hybrid fuel
@@ -529,6 +514,90 @@ class HybridMassModel:
         return dry_component + liquid_component + solid_component
 
     
+#Universal mass model
+class MassModel:
+    '''
+    Notes
+    ------
+    - Assumes all centres of mass lie on the x-x axis.
+    '''
+
+    def __init__(self):
+        self.constants = []
+        self.variables = []
+
+    '''Mass-related properties of the rocket'''
+    def mass(self, time):
+        mass = 0
+
+        for mass_model in self.constants:
+            mass = mass + mass_model.mass
+
+        for mass_model in self.variables:
+            mass = mass + mass_model.mass(time)
+
+        return mass
+
+    def cog(self, time):
+        cog = 0
+
+        for mass_model in self.constants:
+            cog = cog + mass_model.mass * mass_model.cog
+
+        for mass_model in self.variables:
+            cog = cog + mass_model.mass(time) * mass_model.cog(time)
+
+        cog = cog/self.mass(time)
+
+        return cog
+
+    def ixx(self, time):
+        ixx = 0
+        cog = self.cog(time)
+
+        #Parralel axis theorem is not necessary for ixx since the body is axially symmetric about x-x.
+        for mass_model in self.constants:
+            ixx = ixx + mass_model.ixx
+
+        for mass_model in self.variables:
+            ixx = ixx + mass_model.ixx(time)
+
+        return ixx
+    
+    def iyy(self, time):
+        iyy = 0
+
+        #Parralel axis theorem
+        for mass_model in self.constants:
+            iyy = iyy + mass_model.iyy + mass_model.mass * (mass_model.cog - self.cog(time))**2
+
+        for mass_model in self.variables:
+            iyy = iyy + mass_model.iyy(time) + mass_model.mass(time) * (mass_model.cog(time) - self.cog(time))**2
+
+        return iyy
+
+    def izz(self, time):
+        izz = 0
+
+        #Parralel axis theorem
+        for mass_model in self.constants:
+            izz = izz + mass_model.izz + mass_model.mass * (mass_model.cog - self.cog(time))**2
+
+        for mass_model in self.variables:
+            izz = izz + mass_model.izz(time) + mass_model.mass(time) * (mass_model.cog(time) - self.cog(time))**2
+
+        return izz
 
 
+    '''Functions to add new components'''
+    def add_dry_mass(self, mass, ixx, iyy, izz, cog):
+        self.constants.append(DryMass(mass, ixx, iyy, izz, cog))
 
+    def add_liquid(self, liq_den, liq_mass, tank_radius, pos_tank_bottom, time_data):
+        self.variables.append(LiquidFuel(liq_den, liq_mass, tank_radius, pos_tank_bottom, time_data))
+
+    def add_solid_fuel(self, fuel_mass, fuel_density, r_out, length, pos_bottom, time_data):
+        self.variables.append(SolidFuel(fuel_mass, fuel_density, r_out, length, pos_bottom, time_data))
+
+    def add_hollow_cylinder(self, r_out, r_in, l, mass, cog):
+        self.constants.append(HollowCylinder(r_out, r_in, l, mass, cog))
