@@ -152,7 +152,7 @@ def plot_launch_trajectory_3d(simulation_output, rocket, show_orientation=False,
     ax.scatter(x_l[0], y_l[0], z_l[0], c='red', label="Launch site", linewidths=3)
     
     #Get burnout position
-    burnout_time = rocket.motor.motor_time_data[-1]
+    burnout_time = rocket.motor.time_array[-1]
     burnout_index = (np.abs(np.array(simulation_output["time"]) - burnout_time)).argmin()
     ax.scatter(x_l[burnout_index], y_l[burnout_index], z_l[burnout_index], c='green', label="Engine burnout", linewidths=3)
 

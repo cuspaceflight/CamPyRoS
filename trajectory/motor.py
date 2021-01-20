@@ -6,10 +6,9 @@ import matplotlib.pyplot as plt
 class Motor:
     """Object holding the performance data for the engine
 
-    Notes
+    Assumptions
     ---------
-    - Assumes constant nozzle exit area
-    - Thrust must be given with an ambient pressure of 1 bar.
+    - Constant nozzle exit area
 
     Parameters
     ----------
@@ -38,28 +37,18 @@ class Motor:
         Ambient pressure corresponding to the thrust data (Pa). 
     """   
       
-    def __init__(self, thrust, mdot, cut_off_time, exit_area, ambient_pressure = 1e5):
-        self.thrust = thrust
-        self.mdot = mdot
-        self.cut_off_time = cut_off_time
-        self.exit_area = exit_area
-        self.ambient_pressure = ambient_pressure
+    def __init__(self, thrust_array, time_array, exit_area, pos, ambient_pressure = 1e5):
+        self.thrust_array = thrust_array            #Thrust data (N)
+        self.time_array = time_array                #Times corresponding to thrust_array data points (s)
+        self.pos = pos                              #Distance between the nose tip and the point at which the thrust acts (m)
+        self.exit_area = exit_area                  #Nozzle exit area (m^2)
+        self.ambient_pressure = ambient_pressure    #Ambient pressure used to obtain the thrust_array data (Pa)
+
+    def thrust(self, time):
+        return np.interp(time, self.time_array, self.thrust_array)
 
     @staticmethod
-    def from_arrays(thrust_data, propellent_mass_data, time_data, exit_area, ambient_pressure = 1e5):
-        mdot = np.gradient(propellent_mass_data, time_data)
-
-        thrust_func = scipy.interpolate.interp1d(time_data, thrust_data)
-        mdot_func = scipy.interpolate.interp1d(time_data, mdot)
-
-        return Motor(thrust = thrust_func, 
-                     mdot = mdot_func, 
-                     cut_off_time = time[-1], 
-                     exit_area = exit_area, 
-                     ambient_pressure = ambient_pressure)
-        
-    @staticmethod
-    def from_novus(csv_directory):
+    def from_novus(csv_directory, pos):
         '''Modified from Joe Hunt's NOVUS simulator'''
 
         #Collect data from the CSV
@@ -90,7 +79,7 @@ class Motor:
         nozzle_area_ratio = np.array(area_ratio_data)
         mdot = np.gradient(prop_mass_data, time_data)
         
-        #We want the thrust when the ambient pressure = 1 bar
+        #Let's use ambient pressure = 1 bar
         pres_ambient = 1e5
         
         #Calculate the thrust
@@ -103,12 +92,8 @@ class Motor:
 
         thrust = thrust * nozzle_efficiency
 
-        #Generate the functions and return the Motor object
-        thrust_func = scipy.interpolate.interp1d(time_data, thrust)
-        mdot_func = scipy.interpolate.interp1d(time_data, mdot)
-
-        return Motor(thrust = thrust_func, 
-                     mdot = mdot_func, 
-                     cut_off_time = time_data[-1], 
+        return Motor(thrust_array = thrust, 
+                     time_array = time_data,
                      exit_area = exit_area[0], 
+                     pos = pos,
                      ambient_pressure = pres_ambient)

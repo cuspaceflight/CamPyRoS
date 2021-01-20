@@ -1,65 +1,48 @@
-import trajectory, csv,time
-
+import trajectory
+import csv
+import time
 import numpy as np
 import pandas as pd
 
-'''Import motor data to use for the mass model - copied from Joe Hunt's simulation'''
-with open('novus_sim_6.1/motor_out.csv') as csvfile:
-    motor_out = csv.reader(csvfile)
+'''Import motor data to use for the mass model'''
+motor_csv = pd.read_csv('novus_sim_6.1/motor_out.csv')
 
-    (motor_time_data, prop_mass_data, cham_pres_data,
-     throat_data, gamma_data, nozzle_efficiency_data,
-     exit_pres_data, area_ratio_data, vden_data, vmass_data, lden_data, lmass_data, fuel_mass_data) = [], [], [], [], [], [], [], [], [], [], [], [], []
-
-    next(motor_out)
-    for row in motor_out:
-        motor_time_data.append(float(row[0]))
-        prop_mass_data.append(float(row[1]))
-        cham_pres_data.append(float(row[2]))
-        throat_data.append(float(row[3]))
-        gamma_data.append(float(row[4]))
-        nozzle_efficiency_data.append(float(row[5]))
-        exit_pres_data.append(float(row[6]))
-        area_ratio_data.append(float(row[7]))
-        vden_data.append(float(row[8]))
-        vmass_data.append(float(row[9]))
-        lden_data.append(float(row[10]))
-        lmass_data.append(float(row[11]))
-        fuel_mass_data.append(float(row[12]))
-        
-        #This is a bit inefficient given that these are constants, (we only need to record them once):
-        DENSITY_FUEL = float(row[13])
-        DIA_FUEL = float(row[14])
-        LENGTH_PORT = float(row[15])
+time_array = motor_csv['Time']
+smass_array = motor_csv['Solid Fuel Mass (kg)']
+S_DEN = motor_csv['Solid Fuel Density (kg/m^3)'][0]
+S_L = motor_csv['Solid Fuel Length (m)'][0]
+S_ROUT = motor_csv['Solid Fuel Outer Diameter (m)'][0]
+vmass_array =  motor_csv['Vapour Mass (kg)']
+vden_array = motor_csv['Vapour Density (kg/m^3)']
+lmass_array = motor_csv['Liquid Mass (kg)']
+lden_array = motor_csv['Liquid Density (kg/m^3)']
 
 '''Rocket parameters'''
-DRY_MASS = 60                               # kg
-ROCKET_LENGTH = 6.529                       # m
-ROCKET_RADIUS = 98.5e-3                     # m
-ROCKET_WALL_THICKNESS = 1e-2                # m - This is just needed for the mass model
-POS_TANK_BOTTOM = 4.456                     # m - Distance between the nose tip and the bottom of the nitrous tank
-POS_SOLIDFUEL_BOTTOM = 4.856+LENGTH_PORT    # m - Distance between the nose tip and bottom of the solid fuel grain 
-REF_AREA = 0.0305128422                     # m^2 - Reference area for aerodynamic coefficients
+DRY_MASS = 60                       #Rocket dry mass (kg)
+ROCKET_L = 6.529                    #Rocket length (m)
+ROCKET_R = 98.5e-3                  #Rocket radius (m)
+ROCKET_T = 1e-2                     #Rocket wall thickness (m) - used when approximating the rocket airframe as a thin walled cylinder
+POS_TANK_BOTTOM = 4.456             #Distance between the nose tip and the bottom of the nitrous tank (m)
+POS_SOLIDFUEL_BOTTOM = 4.856 + S_L  #Distance between the nose tip and bottom of the solid fuel grain (m)
+REF_AREA = 0.0305128422             #Reference area for aerodynamic coefficients (m^2)
 
 '''Set up aerodynamic properties'''
 #Get approximate values for the rotational damping coefficients
-C_DAMP_PITCH = trajectory.pitch_damping_coefficient(ROCKET_LENGTH, ROCKET_RADIUS, fin_number = 4, area_per_fin = 0.07369928)
+C_DAMP_PITCH = trajectory.pitch_damping_coefficient(ROCKET_L, ROCKET_R, fin_number = 4, area_per_fin = 0.07369928)
 C_DAMP_ROLL = 0
 
 #Import drag coefficients from RASAero II
-aerodynamic_coefficients = trajectory.AeroData.from_rasaero("data/Martlet4RasAeroII.CSV", REF_AREA, C_DAMP_PITCH, C_DAMP_ROLL)
+aero_data = trajectory.AeroData.from_rasaero("data/Martlet4RASAeroII.CSV", REF_AREA, C_DAMP_PITCH, C_DAMP_ROLL)
 
 '''Set up the mass model'''
-liquid_fuel = trajectory.LiquidFuel(lden_data, lmass_data, ROCKET_RADIUS, POS_TANK_BOTTOM, motor_time_data)
-solid_fuel = trajectory.SolidFuel(fuel_mass_data, DENSITY_FUEL, DIA_FUEL/2, LENGTH_PORT, POS_SOLIDFUEL_BOTTOM, motor_time_data)
-dry_mass_model = trajectory.HollowCylinder(ROCKET_RADIUS, ROCKET_RADIUS - ROCKET_WALL_THICKNESS, ROCKET_LENGTH, DRY_MASS)
-
-mass_model = trajectory.HybridMassModel(ROCKET_LENGTH, solid_fuel, liquid_fuel, vmass_data, 
-                                        dry_mass_model.mass, dry_mass_model.ixx(), dry_mass_model.iyy(), dry_mass_model.izz(), 
-                                        dry_cog = ROCKET_LENGTH/2)
+mass_model = trajectory.MassModel()
+mass_model.add_hollowcylinder(DRY_MASS, ROCKET_R, ROCKET_R - ROCKET_T, ROCKET_L, ROCKET_L/2)
+mass_model.add_liquidtank(lmass_array, lden_array, time_array, ROCKET_R, POS_TANK_BOTTOM, vmass_array, vden_array)
+mass_model.add_solidfuel(smass_array, time_array, S_DEN, S_ROUT, S_L, POS_SOLIDFUEL_BOTTOM)
 
 '''Create the other objects needed to initialise the Rocket object'''
-pulsar = trajectory.Motor.from_novus('novus_sim_6.1/motor_out.csv')
+pulsar = trajectory.Motor.from_novus('novus_sim_6.1/motor_out.csv', pos = ROCKET_L)
+
 '''
 launch_site = trajectory.LaunchSite(rail_length=10, 
                                     rail_yaw=0, 
@@ -81,31 +64,33 @@ launch_site = trajectory.LaunchSite(rail_length=5,
                                     variable_wind=False,
                                     default_wind=np.array([5,0,0]))#Use this version if you don't want to use the real wind (e.g. to test something else)
 
-parachute = trajectory.Parachute(main_s = 13.9,
-                                 main_c_d = 0.78,
-                                 drogue_s = 1.13,
-                                 drogue_c_d = 0.78,
-                                 main_alt = 1000,
-                                 attach_distance = 0)
+parachute = trajectory.Parachute(main_s=13.9,
+                                 main_c_d=0.78,
+                                 drogue_s=1.13,
+                                 drogue_c_d=0.78,
+                                 main_alt=1000,
+                                 attach_distance=0)
 
 """Create the Rocket object"""
-martlet4 = trajectory.Rocket(mass_model, pulsar, aerodynamic_coefficients, launch_site, h=0.05, variable=True, alt_poll_interval=1, parachute=parachute)
+martlet4 = trajectory.Rocket(mass_model, 
+                            pulsar, 
+                            aero_data, 
+                            launch_site, 
+                            h=0.05, 
+                            variable=True, 
+                            alt_poll_interval=1, 
+                            parachute=parachute)
 
 '''Run the simulation'''
 t=time.time()
-simulation_output = martlet4.run(debug=True,to_json="output.json")
-print(time.time()-t)
+#simulation_output = martlet4.run(debug=True,to_json="data/trajectory.json")
+print(f"Simulation run time: {time.time()-t:.2f} s")
 
 '''Example of how you can import data from a .csv file'''
-imported_data = trajectory.from_json("output.json")
+imported_data = trajectory.from_json("data/trajectory.json")
 
 '''Plot the results'''
-
 trajectory.plot_launch_trajectory_3d(imported_data, martlet4, show_orientation=False) #Could have also used simulation_output instead of imported_data
 trajectory.plot_altitude_time(imported_data, martlet4)
 trajectory.plot_ypr(imported_data, martlet4)
 #trajectory.animate_orientation(imported_data)
-
-'''Extra plots you could make'''
-#trajectory.plot_mass(imported_data, martlet4)
-trajectory.plot_aero(imported_data, martlet4)
