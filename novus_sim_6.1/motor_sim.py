@@ -86,7 +86,7 @@ tmass = lmass+vmass
  area_ratio_data) = ([], [], [], [], [], [], [], [], [], [], [], [])
 
 #additional properties needed for the 6DOF simulation
-(vmass_data, lden_data, lmass_data, fuel_mass_data) = ([], [], [], [])
+(vden_data, vmass_data, lden_data, lmass_data, fuel_mass_data) = ([], [], [], [], [])
 
 # print initial conditions
 print("Initial conditions:\ntime:", time, "s\ntank temperature:", temp-273.15,
@@ -249,9 +249,11 @@ while True:
 
     #additional data for the 6DOF simulation
     vmass_data.append(vmass)
+    vden_data.append(vden)
     lden_data.append(lden)
     lmass_data.append(lmass)
     fuel_mass_data.append(fuel_mass)
+    
 
 
 ###############################################################################
@@ -321,7 +323,7 @@ with  open("motor_out.csv", "w", newline='') as motor_file:
                           'Chamber pressure (Pa)', 'Throat diameter (m)',
                           'Nozzle inlet gamma', 'Nozzle efficiency',
                           'Exit static pressure (Pa)', 'Area ratio', 
-                          'Vapour Mass (kg)', 'Liquid Density (kg/m^3)', 'Liquid Mass (kg)', 'Solid Fuel Mass (kg)',
+                          'Vapour Density (kg/m^3)', 'Vapour Mass (kg)', 'Liquid Density (kg/m^3)', 'Liquid Mass (kg)', 'Solid Fuel Mass (kg)',
                           'Solid Fuel Density (kg/m^3)', 'Solid Fuel Outer Diameter (m)', 'Solid Fuel Length (m)'])
 
     for i in range(len(time_data)):
@@ -329,7 +331,7 @@ with  open("motor_out.csv", "w", newline='') as motor_file:
                               throat_data[i], gamma_data[i],
                               nozzle_efficiency_data[i], exit_pressure_data[i],
                               area_ratio_data[i], 
-                              vmass_data[i], lden_data[i], lmass_data[i], fuel_mass_data[i],
+                              vden_data[i], vmass_data[i], lden_data[i], lmass_data[i], fuel_mass_data[i],
                               DENSITY_FUEL, DIA_FUEL, LENGTH_PORT])
 
     #I think we assume all the vapour is dumped for the last step? - Daniel Gibbons 10/12/2020 
@@ -337,7 +339,7 @@ with  open("motor_out.csv", "w", newline='') as motor_file:
                           throat_data[-1], gamma_data[-1],
                           nozzle_efficiency_data[-1], exit_pressure_data[-1],
                           area_ratio_data[-1],
-                          0, lden_data[-1], lmass_data[-1], fuel_mass_data[-1],
+                          vden_data[-1], 0, lden_data[-1], lmass_data[-1], fuel_mass_data[-1],
                           DENSITY_FUEL, DIA_FUEL, LENGTH_PORT])
 
 ###############################################################################
