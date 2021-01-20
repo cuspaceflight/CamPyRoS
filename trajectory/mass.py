@@ -285,5 +285,5 @@ class MassModel:
     def add_cylindricalapproximation(self, mass_array, time_array, r, l): 
         self.variables.append(CylindricalApproximation(mass_array, time_array, r, l))
 
-    def add_hollow_cylinder(self, mass, r_out, r_in, l, cog):
+    def add_hollowcylinder(self, mass, r_out, r_in, l, cog):
         self.constants.append(HollowCylinder(mass, r_out, r_in, l, cog))

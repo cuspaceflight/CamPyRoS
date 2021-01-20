@@ -37,8 +37,10 @@ import numpy as np
 import pandas as pd
 
 import scipy.interpolate
+import scipy.misc
 from scipy.spatial.transform import Rotation
 import scipy.integrate as integrate
+
 from datetime import date
 
 from .constants import r_earth, ang_vel_earth, f
@@ -500,7 +502,7 @@ class Rocket:
         Mass model object, must have mass, ixx, iyy, izz, cog class methods which return them at time 
     motor : Motor Object
         Motor object that stores peformace parameters over time
-    aero : Aero Object
+    aero : AeroData Object
         Most have area, cop, cn and ca class methods which return that at time
     launch_site : Launch site object
         Stores launch site parameters
@@ -738,9 +740,13 @@ class Rocket:
         vector = np.array(vector)
         alt = pos_i2alt(pos_i,time)
 
-        if time < self.motor.cut_off_time:
+        if time < self.motor.time_array[-1]:
             ambient_pressure = Atmosphere(alt).pressure[0]*self.env_vars["pressure"]
-            thrust = self.motor_thrust(time) + (motor.ambient_pressure - ambient_pressure) * motor.exit_area
+            thrust = self.motor.thrust(time) + (self.motor.ambient_pressure - ambient_pressure) * self.motor.exit_area
+            
+            #Calculate the mass flow rate from the change in the rocket's mass
+            mdot = scipy.misc.derivative(self.mass_model.mass, time, dx=0.005)
+
         else:
             #If the engine has finished burning, no thrust is produced
             thrust = 0
@@ -751,7 +757,7 @@ class Rocket:
         
         #Jet damping moment (due to the exhaust gases being rotated at w_b) - page 8 of https://apps.dtic.mil/sti/pdfs/AD0642855.pdf 
         #We will assume that the propellant COG is the same as the rocket COG.
-        jet_damping_moment = mdot * (self.mass_model.cog(time) - self.mass_model.l)**2 * np.array([0, w_b[1], w_b[2]])
+        jet_damping_moment = mdot * (self.mass_model.cog(time) - self.motor.pos)**2 * np.array([0, w_b[1], w_b[2]])
 
         #Return the thrust as a vector in body coordinates, and the jet damping moment
         return thrust*vector/np.linalg.norm(vector), jet_damping_moment
@@ -827,7 +833,7 @@ class Rocket:
             cog = self.mass_model.cog(time)
         
             #Get the moment arms
-            r_engine_cog_b = (self.mass_model.l - cog)*np.array([-1,0,0])   #Vector (in body coordinates) of nozzle exit, relative to CoG
+            r_engine_cog_b = (self.motor.pos - cog)*np.array([-1,0,0])   #Vector (in body coordinates) of nozzle exit, relative to CoG
             r_cop_cog_b = (cop - cog)*np.array([-1,0,0])                    #Vector (in body coordinates) of CoP, relative to CoG
             
             #Calculate moments in body coordinates using moment = r x F    
@@ -1059,7 +1065,7 @@ class Rocket:
                 current_alt=pos_i2alt(self.pos_i,self.time)
                 if self.alt_record>current_alt:
                     if debug==True:
-                        print("Parachute deployed at %sm at %ss"%(pos_i2alt(self.pos_i,self.time),self.time))
+                        print("Parachute deployed at {:.2f} km at {:.2f} s".format(pos_i2alt(self.pos_i,self.time)/1000, self.time))
                     events.append("Parachute deployed")
                     self.parachute_deployed=True
                     self.w_b=np.array([0,0,0])
@@ -1092,9 +1098,6 @@ def from_json(directory):
         "events" : array:
             List of useful events        
     """
-    #How you could try to do this without the json module:
-    #return pd.read_json(directory, orient="split")
-
     #Import the JSON as a dict first (the in-built Python JSON library works better than panda's does I think)
     with open(directory, "r") as read_file:
         dict = json.load(read_file)
