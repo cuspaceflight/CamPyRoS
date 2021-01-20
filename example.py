@@ -9,7 +9,7 @@ with open('novus_sim_6.1/motor_out.csv') as csvfile:
 
     (motor_time_data, prop_mass_data, cham_pres_data,
      throat_data, gamma_data, nozzle_efficiency_data,
-     exit_pres_data, area_ratio_data, vmass_data, lden_data, lmass_data, fuel_mass_data) = [], [], [], [], [], [], [], [], [], [], [], []
+     exit_pres_data, area_ratio_data, vden_data, vmass_data, lden_data, lmass_data, fuel_mass_data) = [], [], [], [], [], [], [], [], [], [], [], [], []
 
     next(motor_out)
     for row in motor_out:
@@ -21,44 +21,42 @@ with open('novus_sim_6.1/motor_out.csv') as csvfile:
         nozzle_efficiency_data.append(float(row[5]))
         exit_pres_data.append(float(row[6]))
         area_ratio_data.append(float(row[7]))
-        vmass_data.append(float(row[8]))
-        lden_data.append(float(row[9]))
-        lmass_data.append(float(row[10]))
-        fuel_mass_data.append(float(row[11]))
+        vden_data.append(float(row[8]))
+        vmass_data.append(float(row[9]))
+        lden_data.append(float(row[10]))
+        lmass_data.append(float(row[11]))
+        fuel_mass_data.append(float(row[12]))
         
         #This is a bit inefficient given that these are constants, (we only need to record them once):
-        DENSITY_FUEL = float(row[12])
-        DIA_FUEL = float(row[13])
-        LENGTH_PORT = float(row[14])
+        DENSITY_FUEL = float(row[13])
+        DIA_FUEL = float(row[14])
+        LENGTH_PORT = float(row[15])
 
 '''Rocket parameters'''
-dry_mass = 60                               # kg
-rocket_length = 6.529                       # m
-rocket_radius = 98.5e-3                     # m
-rocket_wall_thickness = 1e-2                # m - This is just needed for the mass model
-pos_tank_bottom = 4.456                     # m - Distance between the nose tip and the bottom of the nitrous tank
-pos_solidfuel_bottom = 4.856+LENGTH_PORT    # m - Distance between the nose tip and bottom of the solid fuel grain 
-ref_area = 0.0305128422                     # m^2 - Reference area for aerodynamic coefficients
+DRY_MASS = 60                               # kg
+ROCKET_LENGTH = 6.529                       # m
+ROCKET_RADIUS = 98.5e-3                     # m
+ROCKET_WALL_THICKNESS = 1e-2                # m - This is just needed for the mass model
+POS_TANK_BOTTOM = 4.456                     # m - Distance between the nose tip and the bottom of the nitrous tank
+POS_SOLIDFUEL_BOTTOM = 4.856+LENGTH_PORT    # m - Distance between the nose tip and bottom of the solid fuel grain 
+REF_AREA = 0.0305128422                     # m^2 - Reference area for aerodynamic coefficients
 
 '''Set up aerodynamic properties'''
 #Get approximate values for the rotational damping coefficients
-c_damp_pitch = trajectory.pitch_damping_coefficient(rocket_length, rocket_radius, fin_number = 4, area_per_fin = 0.07369928)
-c_damp_roll = 0
+C_DAMP_PITCH = trajectory.pitch_damping_coefficient(ROCKET_LENGTH, ROCKET_RADIUS, fin_number = 4, area_per_fin = 0.07369928)
+C_DAMP_ROLL = 0
 
 #Import drag coefficients from RASAero II
-aerodynamic_coefficients = trajectory.AeroData.from_rasaero("data/Martlet4RasAeroII.CSV", ref_area, c_damp_pitch, c_damp_roll)
+aerodynamic_coefficients = trajectory.AeroData.from_rasaero("data/Martlet4RasAeroII.CSV", REF_AREA, C_DAMP_PITCH, C_DAMP_ROLL)
 
 '''Set up the mass model'''
-liquid_fuel = trajectory.LiquidFuel(lden_data, lmass_data, rocket_radius, pos_tank_bottom, motor_time_data)
-solid_fuel = trajectory.SolidFuel(fuel_mass_data, DENSITY_FUEL, DIA_FUEL/2, LENGTH_PORT, pos_solidfuel_bottom, motor_time_data)
-dry_mass_model = trajectory.HollowCylinder(rocket_radius, rocket_radius - rocket_wall_thickness, rocket_length, dry_mass)
+liquid_fuel = trajectory.LiquidFuel(lden_data, lmass_data, ROCKET_RADIUS, POS_TANK_BOTTOM, motor_time_data)
+solid_fuel = trajectory.SolidFuel(fuel_mass_data, DENSITY_FUEL, DIA_FUEL/2, LENGTH_PORT, POS_SOLIDFUEL_BOTTOM, motor_time_data)
+dry_mass_model = trajectory.HollowCylinder(ROCKET_RADIUS, ROCKET_RADIUS - ROCKET_WALL_THICKNESS, ROCKET_LENGTH, DRY_MASS)
 
-mass_model = trajectory.HybridMassModel(rocket_length, solid_fuel, liquid_fuel, vmass_data, 
+mass_model = trajectory.HybridMassModel(ROCKET_LENGTH, solid_fuel, liquid_fuel, vmass_data, 
                                         dry_mass_model.mass, dry_mass_model.ixx(), dry_mass_model.iyy(), dry_mass_model.izz(), 
-                                        dry_cog = rocket_length/2)
-
-#Alterative, simpler, solid cylinder mass model:
-#mass_model = trajectory.CylindricalMassModel(dry_mass + np.array(prop_mass_data), motor_time_data, rocket_length, rocket_radius)
+                                        dry_cog = ROCKET_LENGTH/2)
 
 '''Create the other objects needed to initialise the Rocket object'''
 pulsar = trajectory.Motor.from_novus('novus_sim_6.1/motor_out.csv')
