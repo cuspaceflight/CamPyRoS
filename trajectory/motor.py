@@ -4,40 +4,28 @@ import scipy.interpolate
 import matplotlib.pyplot as plt
 
 class Motor:
-    """Object holding the performance data for the engine
+    """Object for holding rocket engine data. 
+    
+    Assumes constant nozzle exit area.
 
-    Assumptions
-    ---------
-    - Constant nozzle exit area
+    Args:
+        thrust_array (list): Thrust data (N).
+        time_array (list): Times corresponding to thrust_array data points (s).
+        exit_area (float): Nozzle exit area (m^2).
+        pos (float): Distance between the nose tip and the point at which the thrust acts (m).
+        ambient_pressure (float, optional): Ambient pressure used to obtain the thrust_array data (Pa). Defaults to 1e5.
 
-    Parameters
-    ----------
-    thrust : function(time)
-        Function that returns the thrust (N), given the time since ignition (s).
-    mdot : function(time)
-        Function that returns the propellant mass flow rate (kg/s), given the time since ignition (s). This is used solely for jet damping calculations.
-    exit_area : float
-        Nozzle exit area (m^2)
-    cut_off_time : float
-        Time (s) since ignition at which the engine cuts off.
-    ambient_pressure : float
-        Ambient pressure corresponding to the thrust data (Pa). Defaults to 1e5 Pa (i.e. 1 bar).
+    Attributes:
+        thrust_array (list): Thrust data (N).
+        time_array (list): Times corresponding to thrust_array data points (s).
+        exit_area (float): Nozzle exit area (m^2).
+        pos (float): Distance between the nose tip and the point at which the thrust acts (m).
+        ambient_pressure (float, optional): Ambient pressure used to obtain the thrust_array data (Pa).
 
-    Attributes
-    ----------
-    thrust : function(time)
-        Returns the thrust (N) given the time since ignition
-    mdot : function(time)
-        Returns the mass flow rate of propellant (kg/s), given the time since ignition. This is used purely for jet damping calculations.
-    cut_off_time : float
-        Time (s) since ignition at which the engine cuts off.
-    exit_area : float
-        Nozzle exit area (m^2)
-    ambient_pressure : float
-        Ambient pressure corresponding to the thrust data (Pa). 
-    """   
+    """
       
     def __init__(self, thrust_array, time_array, exit_area, pos, ambient_pressure = 1e5):
+
         self.thrust_array = thrust_array            #Thrust data (N)
         self.time_array = time_array                #Times corresponding to thrust_array data points (s)
         self.pos = pos                              #Distance between the nose tip and the point at which the thrust acts (m)
@@ -45,11 +33,27 @@ class Motor:
         self.ambient_pressure = ambient_pressure    #Ambient pressure used to obtain the thrust_array data (Pa)
 
     def thrust(self, time):
+        """Function for calculating the thrust at a given time, with an ambient pressure of self.ambient_pressure.
+
+        Args:
+            time (float): Time since ignition (s).
+
+        Returns:
+            float: Thrust (N).
+        """
         return np.interp(time, self.time_array, self.thrust_array)
 
     @staticmethod
     def from_novus(csv_directory, pos):
-        '''Modified from Joe Hunt's NOVUS simulator'''
+        """Generate Motor object from a novus_sim_6 output csv file. Modified from Joe Hunt's NOVUS simulator.
+
+        Args:
+            csv_directory (string): Directory of the .CSV file.
+            pos (float): Distance between the nose tip and the point at which the thrust acts (m).
+
+        Returns:
+            Motor: The Motor object.
+        """
 
         #Collect data from the CSV
         with open(csv_directory) as csvfile:
@@ -77,7 +81,6 @@ class Motor:
         nozzle_efficiency = np.array(nozzle_efficiency_data)
         pres_exit = np.array(exit_pres_data)
         nozzle_area_ratio = np.array(area_ratio_data)
-        mdot = np.gradient(prop_mass_data, time_data)
         
         #Let's use ambient pressure = 1 bar
         pres_ambient = 1e5

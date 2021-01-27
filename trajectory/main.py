@@ -31,30 +31,59 @@ ang_vel_earth : float
     The angular velocity of the Earth
 """
 
-import csv, warnings, os, sys, json, iris, requests, metpy.calc, os.path, time
-from metpy.units import units
+import csv
+import warnings
+import os
+import sys
+import json
+import iris
+import requests
+import metpy.calc
+import os.path
+import time
 import numpy as np
 import pandas as pd
+from metpy.units import units
 
-import scipy.interpolate
-import scipy.misc
-from scipy.spatial.transform import Rotation
+import scipy.interpolate, scipy.misc
 import scipy.integrate as integrate
+from scipy.spatial.transform import Rotation
 
 from datetime import date
+from ambiance import Atmosphere
 
 from .constants import r_earth, ang_vel_earth, f
 from .transforms import pos_l2i, pos_i2l, vel_l2i, vel_i2l, direction_l2i, direction_i2l, i2airspeed, i2lla, pos_i2alt
-from ambiance import Atmosphere
+
 
 def warning_on_one_line(message, category, filename, lineno, file=None, line=None):
-    """A one line warning format"""
+    """A one line warning format
+
+    Args:
+        message ([type]): [description]
+        category ([type]): [description]
+        filename ([type]): [description]
+        lineno ([type]): [description]
+        file ([type], optional): [description]. Defaults to None.
+        line ([type], optional): [description]. Defaults to None.
+
+    Returns:
+        [type]: [description]
+    """
     return '%s:%s: %s:%s\n' % (filename, lineno, category.__name__, message)
 
 warnings.formatwarning = warning_on_one_line
 
 def validate_lat_long(lat,long):
-    """Makes latitude and longitude valid for wind"""
+    """Makes latitude and longitude valid for wind
+
+    Args:
+        lat ([type]): [description]
+        long ([type]): [description]
+
+    Returns:
+        [type]: [description]
+    """
     if abs(lat)>90:
         lat=np.sign(lat)*(180-abs(lat))
         long+=180
@@ -68,6 +97,15 @@ def validate_lat_long(lat,long):
     return round(lat,4),round(long,4)
 
 def closest(num,incriment):
+    """[summary]
+
+    Args:
+        num ([type]): [description]
+        incriment ([type]): [description]
+
+    Returns:
+        [type]: [description]
+    """
     a=round(num/incriment)*incriment
     if a>num:
         b=a-.25
@@ -76,55 +114,20 @@ def closest(num,incriment):
     return [a,b]
 
 def points(lats,longs):
+    """[summary]
+
+    Args:
+        lats ([type]): [description]
+        longs ([type]): [description]
+
+    Returns:
+        [type]: [description]
+    """
     points=[]
     for n in [0,1]:
         for m in [0,1]:
             points.append([lats[n],longs[m]])
     return points
-
-def load_motor(file):
-    with open('novus_sim_6.1/motor_out.csv') as csvfile:
-        motor_out = csv.reader(csvfile)
-
-        (motor_time_data, prop_mass_data, cham_pres_data,
-        throat_data, gamma_data, nozzle_efficiency_data,
-        exit_pres_data, area_ratio_data, vmass_data, lden_data, lmass_data, fuel_mass_data) = [], [], [], [], [], [], [], [], [], [], [], []
-
-        next(motor_out)
-        for row in motor_out:
-            motor_time_data.append(float(row[0]))
-            prop_mass_data.append(float(row[1]))
-            cham_pres_data.append(float(row[2]))
-            throat_data.append(float(row[3]))
-            gamma_data.append(float(row[4]))
-            nozzle_efficiency_data.append(float(row[5]))
-            exit_pres_data.append(float(row[6]))
-            area_ratio_data.append(float(row[7]))
-            vmass_data.append(float(row[8]))
-            lden_data.append(float(row[9]))
-            lmass_data.append(float(row[10]))
-            fuel_mass_data.append(float(row[11]))
-            
-            #This is a bit inefficient given that these are constants, (we only need to record them once):
-            DENSITY_FUEL = float(row[12])
-            DIA_FUEL = float(row[13])
-            LENGTH_PORT = float(row[14])
-        
-    return {"motor_time":motor_time_data,
-            "prop_mass":prop_mass_data,
-            "cham_pres":cham_pres_data,
-            "throat":throat_data,
-            "gamma":gamma_data,
-            "nozzle_efficiency":nozzle_efficiency_data,
-            "exit_pres":exit_pres_data,
-            "area_ratio":area_ratio_data,
-            "vmass":vmass_data,
-            "lden":lden_data,
-            "lmass":lmass_data,
-            "fuel_mass":fuel_mass_data,
-            "density_fuel":DENSITY_FUEL,
-            "dia_fuel":DIA_FUEL,
-            "length_port":LENGTH_PORT}
 
 class Wind:
     #Data will be strored in data_loc in the format lat_long_date_run_period.grb2 where lat and long are the bottom left values
@@ -154,6 +157,7 @@ class Wind:
         Forcast run time, must be 00,06,12 or 18, defaults to 00
     forcast_plus_time : string, optional
         Hours forcast forward from forcast time, must be three digits between 000 and 123 (?), defaults to 000
+        
     Attributes
     ----------
     centre_lat : float
@@ -641,18 +645,10 @@ class Rocket:
             alt=-5000
         elif alt>81020:
             alt=81020
-        #print(self.launch_site.wind.get_wind(lat,long,alt))
+
         v_rel_wind = b2i.inv().apply(direction_l2i((i2airspeed(pos_i, vel_i, self.launch_site, time) - self.launch_site.wind.get_wind(lat,long,alt)), self.launch_site, time) )
         air_speed = np.linalg.norm(v_rel_wind)
         mach = air_speed/(Atmosphere(alt).speed_of_sound[0]*self.env_vars["speed_of_sound"])
-
-        #Angles of attack, as defined in Paper A: NASA Basic Considerations for Rocket Trajectory Simulation
-        #np.angle(1j*a + b) is equivelant to np.arctan2(a/b) 
-        #alpha = np.angle(1j*v_rel_wind[2] + v_rel_wind[0])
-        #beta = np.arctan2(v_rel_wind[1], (v_rel_wind[0]**2 + v_rel_wind[2]**2 )**0.5 )
-        #delta = np.arctan2((v_rel_wind[2]**2 + v_rel_wind[1]**2)**0.5, v_rel_wind[0])
-        #alpha_star = np.arctan2(v_rel_wind[2], (v_rel_wind[0]**2 + v_rel_wind[1]**2 )**0.5 )
-        #beta_star = np.angle(1j*v_rel_wind[1] + v_rel_wind[0])
 
         #Angle of attack as defined in https://ascelibrary.org/doi/pdf/10.1061/%28ASCE%29AS.1943-5525.0000051
         alpha = np.arccos(np.dot(v_rel_wind/air_speed, [1,0,0]))
@@ -660,19 +656,16 @@ class Rocket:
         #Dynamic pressure at the current altitude and velocity - WARNING: Am I using the right density?
         q = 0.5*Atmosphere(alt).density[0]*self.env_vars["density"]*(air_speed**2)
         
-        #Reference area for coefficients
-        S = self.aero.ref_area
-        
         #Drag/Force coefficients
-        CA = self.aero.CA(mach, abs(alpha))[0]       
-        CN = self.aero.CN(mach, abs(alpha))[0]   
+        CA = self.aero.error["CA"] * self.aero.CA(mach, abs(alpha))     
+        CN = self.aero.error["CN"] * self.aero.CN(mach, abs(alpha))
         
         #Forces
-        FA = CA*q*S * np.array([-np.sign(v_rel_wind[0]), 0, 0])                         
-        FN = CN*q*S * np.cross([1,0,0], np.cross([1,0,0], v_rel_wind/air_speed) )                       
+        FA = CA*q*self.aero.ref_area * np.array([-np.sign(v_rel_wind[0]), 0, 0])                         
+        FN = CN*q*self.aero.ref_area * np.cross([1,0,0], np.cross([1,0,0], v_rel_wind/air_speed) )                       
 
         #Distance between rocket's nose tip and the COP:
-        pos_cop = self.aero.COP(mach, abs(alpha))[0]
+        pos_cop = self.aero.error["COP"] * self.aero.COP(mach, abs(alpha))
         
         #Return the forces (note that they're given using the body coordinate system, [x_b, y_b, z_b]).
         #Also return the distance that the COP is from the front of the rocket.
@@ -713,7 +706,6 @@ class Rocket:
         """Returns thrust and moments generated by the motor, in body frame.
         Note
         ----
-        - Mainly derived from Joe Hunt's NOVUS Simulation
         - Jet damping moment is calculated assuming the propellant COG is the same as that for the whole rocket. This will usually be less accurate if you have propellants near the top or bottom of the rocket.
 
         Parameters
@@ -745,7 +737,7 @@ class Rocket:
             thrust = self.motor.thrust(time) + (self.motor.ambient_pressure - ambient_pressure) * self.motor.exit_area
             
             #Calculate the mass flow rate from the change in the rocket's mass
-            mdot = scipy.misc.derivative(self.mass_model.mass, time, dx=0.005)
+            mdot = scipy.misc.derivative(self.mass_model.mass, time, dx=1)	#Not sure what I should use for 'dx' here.
 
         else:
             #If the engine has finished burning, no thrust is produced
@@ -764,9 +756,11 @@ class Rocket:
         
     def gravity(self, pos_i, time): 
         """Returns the gravity force, as a vector in inertial coordinates.
+
         Note
         ----
         -Uses a spherical Earth gravity model
+
         Parameters
         ----------
         pos_i : numpy array
@@ -1024,9 +1018,6 @@ class Rocket:
             #Now use the inbuilt json module to export it
             with open(to_json, "w+") as write_file:
                 json.dump(dict, write_file)
-            
-            #How you could do this without the json module - but the JSON is stored in a less intuitive format:
-            #record.to_json(path_or_buf = to_json, orient="split")
 
             if debug == True:
                 print("Exported JSON data to '{}'".format(to_json))
