@@ -1,34 +1,40 @@
 """6DOF Trajectory Simulator
-Contains the classes and functions for the core trajectory simulation
+Contains the classes and functions for the core trajectory simulation. SI units unless stated otherwise.
+
 Example
 -------
 A small, single stage rocket can be found in examples, to run
         $ python example/example.py
-Notes
------
-    SI units unless stated otherwise
-    Coordinate systems:
-    x_b,y_b,z_b = Body coordinate system (origin on rocket, rotates with the rocket)
-    x_i,y_i,z_i = Inertial coordinate system (does not rotate, origin at centre of the Earth)
-    x_l, y_l, z_l = Launch site coordinate system (origin has the launch site's longitude and latitude, but is at altitude = 0). Rotates with the Earth.
-    Directions are defined below.
-    - Body:
-        y points east and z north at take off (before rail alignment is accounted for) x up.
-        x is along the "long" axis of the rocket.
-    - Launch site:
-        z points perpendicular to the earth, y in the east direction and x tangential to the earth pointing south
+
+Known issues:
+-------------
+- Unsure about the use of "scipy.misc.derivative(self.mass_model.mass, time, dx=1)" in Rocket.thrust()
+
+Coordinate systems:
+-------------------
+
+Body (x_b, y_b, z_b)
+    - Origin on rocket
+    - Rotates with the rocket.
+
+    - y points east and z north at take off (before rail alignment is accounted for) x up.
+    - x is along the "long" axis of the rocket.
+
+Launch site (x_l, y_l, z_l):
+    - Origin has the launch site's longitude and latitude, but is at altitude = 0.
+    - Rotates with the Earth.
+
+    - z points up (normal to the surface of the Earth).
+    - y points East (tangentially to the surface of the Earth).
+    - x points South (tangentially to the surface of the Earth).
         
-    - Inertial:
-        Origin at centre of the Earth
-        z points to north from centre of earth, x aligned with launchsite at start and y orthogonal
-Attributes
-----------
-r_earth : float
-    Radius of Earth/m
-e_earth : float
-    Eccentricity of the Earth, currently set to zero to simplify calculations (i.e. spherical Earth model is being used)
-ang_vel_earth : float
-    The angular velocity of the Earth
+Inertial (x_i, y_i, z_i):
+    - Origin at centre of the Earth.
+    - Does not rotate.
+
+    - z points to North from the centre of Earth.
+    - x aligned with launch site at start .
+    - y defined from x and z (so it is a right hand coordinate system).
 """
 
 import csv
@@ -653,7 +659,7 @@ class Rocket:
         #Angle of attack as defined in https://ascelibrary.org/doi/pdf/10.1061/%28ASCE%29AS.1943-5525.0000051
         alpha = np.arccos(np.dot(v_rel_wind/air_speed, [1,0,0]))
         
-        #Dynamic pressure at the current altitude and velocity - WARNING: Am I using the right density?
+        #Dynamic pressure at the current altitude and velocity
         q = 0.5*Atmosphere(alt).density[0]*self.env_vars["density"]*(air_speed**2)
         
         #Drag/Force coefficients
@@ -667,8 +673,10 @@ class Rocket:
         #Distance between rocket's nose tip and the COP:
         pos_cop = self.aero.error["COP"] * self.aero.COP(mach, abs(alpha))
         
-        #Return the forces (note that they're given using the body coordinate system, [x_b, y_b, z_b]).
-        #Also return the distance that the COP is from the front of the rocket.
+        #Return:
+        #The forces (note that they're given using the body coordinate system, [x_b, y_b, z_b]).
+        #The distance that the COP is from the front of the rocket.
+        #The dynamic pressure
         return FA+FN, pos_cop, q
         
     def aero_damping_moment(self, pos_i, vel_i, b2i, w_b, time):  
@@ -783,6 +791,16 @@ class Rocket:
         return -self.env_vars["gravity"]*3.986004418e14 * self.mass_model.mass(time) * pos_i / np.linalg.norm(pos_i)**3
 
     def parachute_force(self, q, velocity, alt):
+        """Get the parachute force
+
+        Args:
+            q (float): Dynamic pressure (Pa).
+            velocity (array): Velocity vector (m/s).
+            alt (float): Altitude (m).
+
+        Returns:
+            array: Parachute force vector (N).
+        """
         c_d,s=self.parachute.get(alt)
         return -.5*q*s*c_d*velocity/np.linalg.norm(velocity)
     
