@@ -8,7 +8,7 @@ A small, single stage rocket can be found in examples, to run
 
 Known issues:
 -------------
-- Unsure about the use of "scipy.misc.derivative(self.mass_model.mass, time, dx=1)" in Rocket.thrust()
+- Unsure about the use of "dx" in "scipy.misc.derivative(self.mass_model.mass, time, dx=1)" in Rocket.thrust()
 
 Coordinate systems:
 -------------------
