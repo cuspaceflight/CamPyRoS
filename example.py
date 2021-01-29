@@ -33,6 +33,7 @@ C_DAMP_ROLL = 0
 
 #Import drag coefficients from RASAero II
 aero_data = trajectory.AeroData.from_rasaero("data/Martlet4RASAeroII.CSV", REF_AREA, C_DAMP_PITCH, C_DAMP_ROLL)
+#aero_data.show_plot()   #Show plots of how the program interpreted the data, so you can visually check if it's correct
 
 '''Set up the mass model'''
 mass_model = trajectory.MassModel()
