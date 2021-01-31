@@ -24,6 +24,7 @@ Known issues:
 -------------
 - The thermo module seems to have trouble finding the viscosity at some point - I think in post normal-shockwave conditions.
 - I have not checked my model for wall temperature rise against any real data or the NASA examples.
+- The current oblique shock functions were obtained from GitHub, so are technically copyrighted. I've added a custom ones which aren't currently used, but I haven't tested it as of yet.
 
 Things I wasn't sure of:
 -------------------------
@@ -77,6 +78,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 import thermo.mixture, matplotlib.widgets, json, scipy.integrate, scipy.optimize
+import gas_dynamics as gd
 
 from ambiance import Atmosphere
 from .transforms import pos_l2i, pos_i2l, vel_l2i, vel_i2l, direction_l2i, direction_i2l, i2airspeed, pos_i2alt
@@ -334,7 +336,7 @@ def mu_air(T, P):
     #return 1.81e-5
     
 
-#Olibque shockwave functions, modified from: https://gist.github.com/gusgordon/3fa0a80e767a34ffb8b112c8630c5484
+#Olique shockwave functions, modified from: https://gist.github.com/gusgordon/3fa0a80e767a34ffb8b112c8630c5484
 def taylor_maccoll(y, theta, gamma=1.4):
     # Taylor-Maccoll function
     # Source: https://www.grc.nasa.gov/www/k-12/airplane/coneflow.html
@@ -345,7 +347,7 @@ def taylor_maccoll(y, theta, gamma=1.4):
     ]
     return dydt
 
-def oblique_shock(theta, Ma, T, p, rho, gamma=1.4):
+def oblique_shock_github(theta, Ma, T, p, rho, gamma=1.4):
     """
     Computes the weak oblique shock resulting from supersonic
     flow impinging on a wedge in 2 dimensional flow.
@@ -385,7 +387,7 @@ def oblique_shock(theta, Ma, T, p, rho, gamma=1.4):
     v_y = v2 * np.sin(a)
     return B, a, Ma2, T2, p2, rho2, v_x, v_y
 
-def cone_shock(cone_angle, Ma, T, p, rho):
+def cone_shock_github(cone_angle, Ma, T, p, rho):
     """
     Computes properties of the conical oblique shock resulting
     from supersonic flow impinging on a cone in 3 dimensional flow.
@@ -404,7 +406,7 @@ def cone_shock(cone_angle, Ma, T, p, rho):
     wedge_angles = np.linspace(cone_angle, 0, 300)
 
     for wedge_angle in wedge_angles:
-        B, a, Ma2, T2, p2, rho2, v_x, v_y = oblique_shock(wedge_angle, Ma, T, p, rho)
+        B, a, Ma2, T2, p2, rho2, v_x, v_y = oblique_shock_github(wedge_angle, Ma, T, p, rho)
         v_theta = v_y * np.cos(B) - v_x * np.sin(B)
         v_r = v_y * np.sin(B) + v_x * np.cos(B)
         y0 = [v_r, v_theta]
@@ -413,6 +415,20 @@ def cone_shock(cone_angle, Ma, T, p, rho):
         sol = scipy.integrate.odeint(taylor_maccoll, y0, thetas)
         if sol[-1, 1] < 0:
             return B, a, Ma2, T2, p2, rho2, v_x, v_y
+
+#Custom oblique shock functions using gas_dynamics:
+def oblique_shock(theta, Ma, T, p, rho, gamma=1.4, R=287):
+    beta = gd.shocks.shocks.shock_angle(Ma, theta * 180/np.pi) * np.pi/180
+
+    #From CUED 3A3 Databook
+    PS = p*(1 + 2*gamma/(gamma+1) * (Ma**2 * np.sin(beta)**2 - 1))
+    rhoS = rho*((gamma+1)*Ma**2*np.sin(beta)**2)/(2*(1 + (gamma-1)/2 * Ma**2 * np.sin(beta)**2))
+    MS = ((1 + (gamma-1)/2 * Ma**2*np.sin(beta)**2)/(gamma*Ma**2 * np.sin(beta)**2 - (gamma-1)/2))**0.5 / np.sin(beta - theta)
+
+    #Ideal gas - p = rho R T
+    TS = PS/(rhoS*R)
+
+    return 0, 0, MS, TS, PS, rhoS, 0, 0
 
 #Aerodynamic heating analysis
 class TangentOgive:
@@ -658,7 +674,7 @@ class AeroHeatingAnalysis:
         #Check if we're supersonic - if so we'll have a shock wave
         if Minf > 1:
             #For an oblique shock (tangent ogive nose cone)
-            oblique_shock_data = cone_shock(self.tangent_ogive.theta, Minf, Tinf, Pinf, rhoinf) 
+            oblique_shock_data = cone_shock_github(self.tangent_ogive.theta, Minf, Tinf, Pinf, rhoinf) 
             oblique_PS = oblique_shock_data[4]
             oblique_TS = oblique_shock_data[3]
             oblique_MS = oblique_shock_data[2]
