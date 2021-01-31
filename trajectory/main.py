@@ -669,7 +669,7 @@ class Rocket:
         
         #KEEP TRACK OF FORCES AND MOMENTS
         #--------------------------------
-        #A force should be included in either F_b or F_i, but not both. F_b and F_i will be added together at the end (after doing a coordinate transform). The same applies for M_b and M_i.
+        #A force should be added to either F_b or F_i, but not both. F_b and F_i will be added together at the end (after doing a coordinate transform). The same applies for M_b and M_i.
         F_b = np.array([0.0, 0.0, 0.0])
         F_i = np.array([0.0, 0.0, 0.0])
 
