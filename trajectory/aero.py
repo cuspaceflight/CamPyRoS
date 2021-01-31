@@ -49,13 +49,13 @@ class AeroData:
         self.COP_func = scipy.interpolate.interp2d(self.Mach_grid, self.alpha_grid, self.COP_grid)
 
     def CA(self, Mach, alpha):
-        return self.CA_func(Mach, alpha)
+        return self.error["CA"] * self.CA_func(Mach, alpha)
 
     def CN(self, Mach, alpha):
-        return self.CN_func(Mach, alpha)
+        return self.error["CN"] * self.CN_func(Mach, alpha)
 
     def COP(self, Mach, alpha):
-        return self.COP_func(Mach, alpha)
+        return self.error["COP"] * self.COP_func(Mach, alpha)
     
     def show_plot(self, Mach = np.linspace(0, 25, 500), alpha = np.linspace(0, 4, 5)*np.pi/180):
         """"Shows plots of the CA, CN and COP functions, so you can visually check if the system has interpreted your data correctly.
