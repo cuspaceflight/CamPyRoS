@@ -216,7 +216,7 @@ class Wind:
             press=scipy.interpolate.interp1d(geos.data,geos.coord("pressure").points,fill_value="extrapolate")(alt)
             x.append(scipy.interpolate.interp1d(w_x.coord("pressure").points,w_x.data,fill_value="extrapolate")(press))
             y.append(scipy.interpolate.interp1d(w_y.coord("pressure").points,w_y.data,fill_value="extrapolate")(press))
-        w=np.array([-np.array(y),np.array(x),np.zeros(len(x))])
+        w=np.array([-np.array(x),-np.array(y),np.zeros(len(x))])
     
         return scipy.interpolate.interp1d(np.linspace(0,45000,1000),w,fill_value='extrapolate')
 
@@ -310,7 +310,7 @@ class Wind:
             w_x=scipy.interpolate.interp1d(w_x.coord("pressure").points,w_x.data,fill_value="extrapolate")(press)
             w_y=scipy.interpolate.interp1d(w_y.coord("pressure").points,w_y.data,fill_value="extrapolate")(press)
             
-            return np.array([-w_y,w_x,0])
+            return np.array([-w_x,-w_y,0])
         elif self.variable == True and self.fast==True:
             return self.winds(alt)
         else:

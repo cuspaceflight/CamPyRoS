@@ -28,3 +28,4 @@ output.json
 *.anl
 *.lock
 *.dirlock
+*.arl
