@@ -10,3 +10,4 @@ pandas==0.25.3
 MetPy==0.12.2
 iris==1.0.7
 thermo==0.1.40
+gas-dynamics==0.4.2
