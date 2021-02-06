@@ -22,13 +22,13 @@ The repository contains some examples you can run:
 
 
 ## Potential for expansion
-- GUI: An incomplete (and outdated) GUI has been made using Tkinter, and is in gui.py.
-- Fin cant, roll damping, and roll acceleration: [OpenRocket Technical Documentation](http://openrocket.info/documentation.html)
-- Slosh modelling: Some functions from the following source have been implemented in slosh.py [The Dynamic Behavior of Liquids in Moving Containers, with Applications to Space Vehicle Technology](https://ntrs.nasa.gov/citations/19670006555).
-- CFD coupling: [PyFoam](https://openfoamwiki.net/index.php/Contrib/PyFoam), [Simulations of 6-DOF Motion
+- **GUI:** An incomplete (and outdated) GUI has been made using Tkinter, and is in gui.py.
+- **Fin cant, roll damping, and roll acceleration:** [OpenRocket Technical Documentation](http://openrocket.info/documentation.html)
+- **Slosh modelling:** Some slosh modelling functions have been put together in slosh.py, based on the following source - [The Dynamic Behavior of Liquids in Moving Containers, with Applications to Space Vehicle Technology](https://ntrs.nasa.gov/citations/19670006555).
+- **CFD coupling:** [PyFoam](https://openfoamwiki.net/index.php/Contrib/PyFoam), [Simulations of 6-DOF Motion
 with a Cartesian Method](https://pdfs.semanticscholar.org/ace3/5a61803390b0e0b70f6ca34492ad20a03e03.pdf)
-- Multiphysics coupling: [PRECICE](https://www.precice.org/)
-- Comparison with check cases: [Six degree-of-freedom (6-DOF) Flight Simulation Check-cases](https://nescacademy.nasa.gov/flightsim/)  
+- **Multiphysics coupling:** [PRECICE](https://www.precice.org/)
+- **Comparison with check cases:** [Six degree-of-freedom (6-DOF) Flight Simulation Check-cases](https://nescacademy.nasa.gov/flightsim/)  
 
 
 ## License
