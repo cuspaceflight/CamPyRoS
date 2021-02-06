@@ -62,6 +62,27 @@ from ambiance import Atmosphere
 from .constants import r_earth, ang_vel_earth, f
 from .transforms import pos_l2i, pos_i2l, vel_l2i, vel_i2l, direction_l2i, direction_i2l, i2airspeed, i2lla, pos_i2alt
 
+__copyright__ = """
+
+    Copyright 2021 Jago Strong-Wright & Daniel Gibbons
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+"""
+
+#print("""<name tbc>  Copyright (C) 2021  Jago Strong-Wright & Daniel Gibbons
+#    This program comes with ABSOLUTELY NO WARRANTY; for details see licence.txt""")
 
 def warning_on_one_line(message, category, filename, lineno, file=None, line=None):
     """A one line warning format
@@ -137,8 +158,6 @@ def points(lats,longs):
     return points
 
 class Wind:
-    #Data will be strored in data_loc in the format lat_long_date_run_period.grb2 where lat and long are the bottom left values
-    #Run has to be 00, 06, 12 or 18
     """Wind object
 
     Note
@@ -217,6 +236,17 @@ class Wind:
                 self.winds=self.load_fast(lat,long)
     
     def load_fast(self,lat,long):
+        """Returns an interpolation object of wind by altitude for the specified location
+        This method is much faster than the normal method but if the rocket has significant downrange 
+        it becomes inaccurate
+
+        Args:
+            lat (float): latitude
+            long (float): longitude
+
+        Returns:
+            scipy.interpolate.interpolate.interp1d: interpolation class of wind vector by altitude
+        """        
         mean=[]
         lats=closest(lat,.25)
         longs=closest(long,.25)
@@ -237,7 +267,6 @@ class Wind:
         return scipy.interpolate.interp1d(np.linspace(0,45000,1000),mean,fill_value='extrapolate')
 
     def load_data(self,lats,longs):
-        tl=time.time()
         """Loads wind data for particualr lat long to the objects df. 
 
         Notes
@@ -279,15 +308,13 @@ class Wind:
                 long_left_request=long_left
             
             url="https://nomads.ncep.noaa.gov/cgi-bin/filter_gfs_0p25_1hr.pl?file=gfs.t{run}z.pgrb2.0p25.f{hour}&lev_0.4_mb=on&lev_1000_mb=on&lev_100_mb=on&lev_10_mb=on&lev_150_mb=on&lev_15_mb=on&lev_180-0_mb_above_ground=on&lev_1_mb=on&lev_200_mb=on&lev_20_mb=on&lev_250_mb=on&lev_255-0_mb_above_ground=on&lev_2_mb=on&lev_300_mb=on&lev_30-0_mb_above_ground=on&lev_30_mb=on&lev_350_mb=on&lev_3_mb=on&lev_400_mb=on&lev_40_mb=on&lev_450_mb=on&lev_500_mb=on&lev_50_mb=on&lev_550_mb=on&lev_5_mb=on&lev_600_mb=on&lev_650_mb=on&lev_700_mb=on&lev_70_mb=on&lev_750_mb=on&lev_7_mb=on&lev_800_mb=on&lev_850_mb=on&lev_900_mb=on&lev_925_mb=on&lev_950_mb=on&lev_975_mb=on&var_HGT=on&var_UGRD=on&var_VGRD=on&subregion=&leftlon={leftlon}&rightlon={rightlon}&toplat={toplat}&bottomlat={bottomlat}&dir=%2Fgfs.{date}%2F{run}".format(leftlon=long_left_request,rightlon=long_right,toplat=lat_top,bottomlat=lat_bottom,date=self.date,run=self.forcast_time,hour=self.run_time)
-            
             r = requests.get(url, stream=True)
-
             with open("%s/%s_%s_%s_%s_%s.grb2"%(self.data_loc,lat_bottom,long_left,self.date,self.forcast_time,self.run_time),'wb') as f:
                 for chunk in r.iter_content(chunk_size=1024):
                     if chunk: 
                         f.write(chunk)
         if os.path.getsize("%s/%s_%s_%s_%s_%s.grb2"%(self.data_loc,lat_bottom,long_left,self.date,self.forcast_time,self.run_time))<1000:
-            raise RuntimeError("The weather data you requested was not found, this is usually because it was for an invalid date/time. lat=%s,long=%s was requested"%(lat,longi))
+            raise RuntimeError("The weather data you requested was not found, this is usually because it was for an invalid date/time. lat=%s,long=%s was requested"%(lat_bottom,long_left))
         data=iris.load("%s/%s_%s_%s_%s_%s.grb2"%(self.data_loc,lat_bottom,long_left,self.date,self.forcast_time,self.run_time))
         for index,row in enumerate(data):
             try:
@@ -327,7 +354,6 @@ class Wind:
                         warnings.warn("Wind datapoint lat=%s, long=%s, pres=%s was missed because of an unknown Iris error, this may be a fatal result if there are many instances in one dataset"%(lat,long,pres))
                 #Add a lookup check here (i.e. query for lat long and check not none)
                 points.append([lat,long])
-        print("load time %s"%(time.time()-tl))
         return df,points
 
     def get_wind(self,lat,long,alt):
@@ -526,8 +552,7 @@ class Rocket:
     atol : float
         Absolute error tollerance for integration /
     errors : dictionary, optional
-        Multiplied factor for the gravity, pressure, density and speed of sound used in the model,
-        defaults to {"gravity":1.0,"pressure":1.0,"density":1.0,"speed_of_sound":1.0}
+        Multiplied factor for the gravity, pressure, density and speed of sound used in the model, defaults to {"gravity":1.0,"pressure":1.0,"density":1.0,"speed_of_sound":1.0}
     Attributes
     ----------
     mass_model : Mass Model Object
@@ -820,17 +845,17 @@ class Rocket:
             Record of simulation, contains interial position and velocity, angular velocity in body coordinates, orientation and events (e.g. parachute).
             Most information can be derived from this in post processing.
             "time" : array
-                List of times that all the data corresponds to /s
+            List of times that all the data corresponds to /s
             "pos_i" : array
-                List of inertial position vectors [x, y, z] /m
+            List of inertial position vectors [x, y, z] /m
             "vel_i" : array
-                List of inertial velocity vectors [x, y, z] /m/s
+            List of inertial velocity vectors [x, y, z] /m/s
             "b2imat" : array:
-                List of rotation matrices for going from the body to inertial coordinate system (i.e. a record of rocket orientation)
+            List of rotation matrices for going from the body to inertial coordinate system (i.e. a record of rocket orientation)
             "w_b" : array:
-                List of angular velocity vectors, in body coordinates [x, y, z] /rad/s
+            List of angular velocity vectors, in body coordinates [x, y, z] /rad/s
             "events" : array:
-                List of useful events        
+            List of useful events        
         """
         if debug == True:
             print("Running simulation")
@@ -978,17 +1003,17 @@ def from_json(directory):
         Record of simulation, contains interial position and velocity, angular velocity in body coordinates, orientation and events (e.g. parachute).
         Most information can be derived from this in post processing.
         "time" : array
-            List of times that all the data corresponds to /s
+        List of times that all the data corresponds to /s
         "pos_i" : array
-            List of inertial position vectors [x, y, z] /m
+        List of inertial position vectors [x, y, z] /m
         "vel_i" : array
-            List of inertial velocity vectors [x, y, z] /m/s
+        List of inertial velocity vectors [x, y, z] /m/s
         "b2imat" : array:
-            List of rotation matrices for going from the body to inertial coordinate system (i.e. a record of rocket orientation)
+        List of rotation matrices for going from the body to inertial coordinate system (i.e. a record of rocket orientation)
         "w_b" : array:
-            List of angular velocity vectors, in body coordinates [x, y, z] /rad/s
+        List of angular velocity vectors, in body coordinates [x, y, z] /rad/s
         "events" : array:
-            List of useful events        
+        List of useful events        
     """
     #Import the JSON as a dict first (the in-built Python JSON library works better than panda's does I think)
     with open(directory, "r") as read_file:

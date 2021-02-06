@@ -37,7 +37,7 @@
     <script src="_static/language_data.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="License" href="licences.html" />
+    <link rel="next" title="Need help" href="help.html" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="docsearch:language" content="en" />
   </head>
@@ -60,19 +60,23 @@
         
         
         <li class="nav-item ">
+            <a class="nav-link" href="help.html">Need help</a>
+        </li>
+        
+        <li class="nav-item ">
+            <a class="nav-link" href="trajectory.html">trajectory package</a>
+        </li>
+        
+        <li class="nav-item ">
+            <a class="nav-link" href="develop.html">Want to help out?</a>
+        </li>
+        
+        <li class="nav-item ">
             <a class="nav-link" href="licences.html">License</a>
         </li>
         
         <li class="nav-item ">
             <a class="nav-link" href=""></a>
-        </li>
-        
-        <li class="nav-item ">
-            <a class="nav-link" href="help.html">Need help</a>
-        </li>
-        
-        <li class="nav-item ">
-            <a class="nav-link" href="modules.html">trajectory</a>
         </li>
         
         
@@ -112,6 +116,8 @@
         
         
         
+        
+        
       </ul>
   
   </nav>
@@ -132,7 +138,7 @@
             <a href="#" class="nav-link">CUSF 6DOF Rocket Trajectory Simulation documentation</a><ul class="nav section-nav flex-column">
                 
         <li class="nav-item toc-entry toc-h3">
-            <a href="#guide" class="nav-link">Guide</a>
+            <a href="#getting-started" class="nav-link">Getting Started</a>
         </li>
     
         <li class="nav-item toc-entry toc-h3">
@@ -140,6 +146,10 @@
         </li>
     
             </ul>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h2">
+            <a href="#content" class="nav-link">Content</a>
         </li>
     
         <li class="nav-item toc-entry toc-h2">
@@ -161,43 +171,56 @@
                 
   <div class="section" id="cusf-6dof-rocket-trajectory-simulation-documentation">
 <h1>CUSF 6DOF Rocket Trajectory Simulation documentation<a class="headerlink" href="#cusf-6dof-rocket-trajectory-simulation-documentation" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="guide">
-<h2>Guide<a class="headerlink" href="#guide" title="Permalink to this headline">¶</a></h2>
-<p>Run the example file.:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="n">example</span><span class="o">.</span><span class="n">py</span>
-<span class="o">&gt;&gt;</span><span class="n">Running</span> <span class="n">simulation</span>
-<span class="o">&gt;&gt;</span><span class="n">t</span><span class="o">=</span><span class="mf">0.00</span> <span class="n">s</span> <span class="n">alt</span><span class="o">=</span><span class="mf">0.00</span> <span class="n">km</span> <span class="p">(</span><span class="n">h</span><span class="o">=</span><span class="mf">6.782383938042269e-09</span> <span class="n">s</span><span class="p">)</span><span class="o">.</span> <span class="n">Step</span> <span class="n">number</span> <span class="mi">0</span>
-<span class="o">&gt;&gt;</span><span class="n">t</span><span class="o">=</span><span class="mf">8.61</span> <span class="n">s</span> <span class="n">alt</span><span class="o">=</span><span class="mf">1.41</span> <span class="n">km</span> <span class="p">(</span><span class="n">h</span><span class="o">=</span><span class="mf">0.10479235692442031</span> <span class="n">s</span><span class="p">)</span><span class="o">.</span> <span class="n">Step</span> <span class="n">number</span> <span class="mi">100</span>
-<span class="o">&gt;&gt;</span><span class="n">t</span><span class="o">=</span><span class="mf">20.29</span> <span class="n">s</span> <span class="n">alt</span><span class="o">=</span><span class="mf">6.65</span> <span class="n">km</span> <span class="p">(</span><span class="n">h</span><span class="o">=</span><span class="mf">0.15804273091835203</span> <span class="n">s</span><span class="p">)</span><span class="o">.</span> <span class="n">Step</span> <span class="n">number</span> <span class="mi">200</span>
-<span class="o">&gt;&gt;</span><span class="n">Burnout</span> <span class="n">at</span> <span class="n">t</span><span class="o">=</span><span class="mf">24.78</span> <span class="n">s</span>
-<span class="o">&gt;&gt;</span><span class="n">t</span><span class="o">=</span><span class="mf">78.04</span> <span class="n">s</span> <span class="n">alt</span><span class="o">=</span><span class="mf">11.95</span> <span class="n">km</span> <span class="p">(</span><span class="n">h</span><span class="o">=</span><span class="mf">1.1551712462768395</span> <span class="n">s</span><span class="p">)</span><span class="o">.</span> <span class="n">Step</span> <span class="n">number</span> <span class="mi">300</span>
-</pre></div>
-</div>
+<p><em>Insert name</em> is a python package which provides fully featured rocket trajectory simulation including features like:</p>
+<ul class="simple">
+<li><p>6 degrees of freedom (3 translational, 3 rotational)</p></li>
+<li><p>Monte carlo stochastic analysis</p></li>
+<li><p>Aerodynamic heating model</p></li>
+<li><p>Variable mass and moments of inertia models</p></li>
+</ul>
+<div class="section" id="getting-started">
+<h2>Getting Started<a class="headerlink" href="#getting-started" title="Permalink to this headline">¶</a></h2>
+<dl class="simple">
+<dt>Dependencies require conda installation since not all are available on pip. An enviroment yaml is provided so install these with::</dt><dd><p>conda env create -f enviroment.yml -n &lt;name&gt;</p>
+</dd>
+<dt>And then activate::</dt><dd><p>conda activate &lt;name&gt;</p>
+</dd>
+</dl>
+<p>The examples will then help you get going:
+The repository contains some examples you can run:</p>
+<ul class="simple">
+<li><p><a class="reference external" href="https://github.com/CUSF-Simulation/6DOF-Trajectory-Simulation/example.ipynb">example.ipynb</a> or <cite>example.py</cite> : Launch of a simple rocket (the Martlet 4).</p></li>
+<li><p><a class="reference external" href="https://github.com/CUSF-Simulation/6DOF-Trajectory-Simulation/blob/main/Stats%20Model%20Analysis%20Example.ipynb">Stats Model Example.ipynb</a> : Example of how to use the statistics model and stochastic analysis.</p></li>
+<li><p><a class="reference external" href="https://github.com/CUSF-Simulation/6DOF-Trajectory-Simulation/blob/main/Aerodynamic%20Heating%20Example.ipynb">Aerodynamic Heating Example.ipynb</a> : Example of how to run an aerodynamic heating simulation.</p></li>
+</ul>
 </div>
 <div class="section" id="technical-documentation">
 <h2>Technical Documentation<a class="headerlink" href="#technical-documentation" title="Permalink to this headline">¶</a></h2>
-<p>Full technical documentation can be found <a class="reference external" href="https://github.com/CUSF-Simulation/6DOF-Trajectory-Simulation/docs/technical/technical.pdf">here</a></p>
+<p>Full technical documentation is coming soon</p>
+</div>
+</div>
+<div class="section" id="content">
+<h1>Content<a class="headerlink" href="#content" title="Permalink to this headline">¶</a></h1>
 <div class="toctree-wrapper compound">
 <p class="caption"><span class="caption-text">Contents</span></p>
 <ul>
+<li class="toctree-l1"><a class="reference internal" href="help.html">Need help</a></li>
+<li class="toctree-l1"><a class="reference internal" href="trajectory.html">trajectory package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="trajectory.html#known-issues">Known issues:</a></li>
+<li class="toctree-l2"><a class="reference internal" href="trajectory.html#coordinate-systems">Coordinate systems:</a></li>
+<li class="toctree-l2"><a class="reference internal" href="trajectory.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="trajectory.html#module-trajectory.aero">aero module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="trajectory.html#module-trajectory.constants">constants module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="trajectory.html#module-trajectory.mass">mass module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="trajectory.html#module-trajectory.plot">plot module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="trajectory.html#module-trajectory.statistical">statistical module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="trajectory.html#module-trajectory.transforms">transforms module</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="develop.html">Want to help out?</a></li>
 <li class="toctree-l1"><a class="reference internal" href="licences.html">License</a></li>
 <li class="toctree-l1"><a class="reference internal" href="licences.html#contact">Contact</a></li>
-<li class="toctree-l1"><a class="reference internal" href="help.html">Need help</a></li>
-<li class="toctree-l1"><a class="reference internal" href="modules.html">trajectory</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="trajectory.html">trajectory package</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="trajectory.html#submodules">Submodules</a></li>
-<li class="toctree-l3"><a class="reference internal" href="trajectory.html#module-trajectory.aero">aero module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="trajectory.html#module-trajectory.constants">constants module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="trajectory.html#module-trajectory.mass">mass module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="trajectory.html#module-trajectory.plot">plot module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="trajectory.html#module-trajectory.statistical">statistical module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="trajectory.html#module-trajectory.transforms">transforms module</a></li>
 </ul>
-</li>
-</ul>
-</li>
-</ul>
-</div>
 </div>
 </div>
 <div class="section" id="index-and-moduals">
@@ -215,7 +238,7 @@
               
               <div class='prev-next-bottom'>
                 
-    <a class='right-next' id="next-link" href="licences.html" title="next page">License</a>
+    <a class='right-next' id="next-link" href="help.html" title="next page">Need help</a>
 
               </div>
               

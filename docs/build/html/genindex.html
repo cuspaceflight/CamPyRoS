@@ -59,19 +59,23 @@
         
         
         <li class="nav-item ">
+            <a class="nav-link" href="help.html">Need help</a>
+        </li>
+        
+        <li class="nav-item ">
+            <a class="nav-link" href="trajectory.html">trajectory package</a>
+        </li>
+        
+        <li class="nav-item ">
+            <a class="nav-link" href="develop.html">Want to help out?</a>
+        </li>
+        
+        <li class="nav-item ">
             <a class="nav-link" href="licences.html">License</a>
         </li>
         
         <li class="nav-item ">
             <a class="nav-link" href=""></a>
-        </li>
-        
-        <li class="nav-item ">
-            <a class="nav-link" href="help.html">Need help</a>
-        </li>
-        
-        <li class="nav-item ">
-            <a class="nav-link" href="modules.html">trajectory</a>
         </li>
         
         
@@ -102,6 +106,8 @@
     
   
     <ul class="nav bd-sidenav">
+        
+        
         
         
         
@@ -152,7 +158,6 @@
  | <a href="#I"><strong>I</strong></a>
  | <a href="#L"><strong>L</strong></a>
  | <a href="#M"><strong>M</strong></a>
- | <a href="#N"><strong>N</strong></a>
  | <a href="#O"><strong>O</strong></a>
  | <a href="#P"><strong>P</strong></a>
  | <a href="#R"><strong>R</strong></a>
@@ -165,21 +170,29 @@
 <h2 id="A">A</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="trajectory.html#trajectory.mass.HollowCylinder.a">a() (trajectory.mass.HollowCylinder method)</a>
-</li>
       <li><a href="trajectory.html#trajectory.statistical.abs_stdev">abs_stdev() (in module trajectory.statistical)</a>
 </li>
-      <li><a href="trajectory.html#trajectory.main.Rocket.accelerations">accelerations() (trajectory.main.Rocket method)</a>
+      <li><a href="trajectory.html#trajectory.mass.MassModel.add_cylindricalapproximation">add_cylindricalapproximation() (trajectory.mass.MassModel method)</a>
+</li>
+      <li><a href="trajectory.html#trajectory.mass.MassModel.add_drymass">add_drymass() (trajectory.mass.MassModel method)</a>
+</li>
+      <li><a href="trajectory.html#trajectory.mass.MassModel.add_hollowcylinder">add_hollowcylinder() (trajectory.mass.MassModel method)</a>
+</li>
+      <li><a href="trajectory.html#trajectory.mass.MassModel.add_liquidtank">add_liquidtank() (trajectory.mass.MassModel method)</a>
+</li>
+      <li><a href="trajectory.html#trajectory.mass.MassModel.add_solidfuel">add_solidfuel() (trajectory.mass.MassModel method)</a>
 </li>
       <li><a href="trajectory.html#trajectory.main.Rocket.aero">aero (trajectory.main.Rocket attribute)</a>
-</li>
-      <li><a href="trajectory.html#trajectory.main.Rocket.aero_damping_moment">aero_damping_moment() (trajectory.main.Rocket method)</a>
 </li>
       <li><a href="trajectory.html#trajectory.statistical.StatisticalModel.aero_error">aero_error (trajectory.statistical.StatisticalModel attribute)</a>
 </li>
       <li><a href="trajectory.html#trajectory.statistical.StatisticalModel.aero_file">aero_file (trajectory.statistical.StatisticalModel attribute)</a>
 </li>
-      <li><a href="trajectory.html#trajectory.main.Rocket.aero_forces">aero_forces() (trajectory.main.Rocket method)</a>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="trajectory.html#trajectory.aero.AeroData">AeroData (class in trajectory.aero)</a>
+</li>
+      <li><a href="trajectory.html#trajectory.aero.AeroData.alpha_grid">alpha_grid (trajectory.aero.AeroData attribute)</a>
 </li>
       <li><a href="trajectory.html#trajectory.main.LaunchSite.alt">alt (trajectory.main.LaunchSite attribute)</a>
 
@@ -187,23 +200,15 @@
         <li><a href="trajectory.html#trajectory.main.Rocket.alt">(trajectory.main.Rocket attribute)</a>
 </li>
       </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="trajectory.html#trajectory.statistical.StatisticalModel.alt_poll_interval">alt_poll_interval (trajectory.statistical.StatisticalModel attribute)</a>
 </li>
       <li><a href="trajectory.html#trajectory.statistical.analyse">analyse() (in module trajectory.statistical)</a>
 </li>
-      <li><a href="trajectory.html#trajectory.main.ang_vel_earth">ang_vel_earth (in module trajectory.main)</a>
-</li>
       <li><a href="trajectory.html#trajectory.plot.animate_orientation">animate_orientation() (in module trajectory.plot)</a>
-</li>
-      <li><a href="trajectory.html#trajectory.aero.RASAeroData.area">area (trajectory.aero.RASAeroData attribute)</a>
-</li>
-      <li><a href="trajectory.html#trajectory.main.Motor.area_ratio_data">area_ratio_data (trajectory.main.Motor attribute)</a>
 </li>
       <li><a href="trajectory.html#trajectory.main.Rocket.atol">atol (trajectory.main.Rocket attribute)</a>
 </li>
-      <li><a href="trajectory.html#trajectory.main.Parachute.attatch_distance">attatch_distance (trajectory.main.Parachute attribute)</a>
+      <li><a href="trajectory.html#trajectory.main.Parachute.attach_distance">attach_distance (trajectory.main.Parachute attribute)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -223,39 +228,39 @@
 <h2 id="C">C</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="trajectory.html#trajectory.aero.RASAeroData.CA">CA (trajectory.aero.RASAeroData attribute)</a>
+      <li><a href="trajectory.html#trajectory.aero.AeroData.CA">CA() (trajectory.aero.AeroData method)</a>
+</li>
+      <li><a href="trajectory.html#trajectory.aero.AeroData.CA_grid">CA_grid (trajectory.aero.AeroData attribute)</a>
 </li>
       <li><a href="trajectory.html#trajectory.main.Wind.centre_lat">centre_lat (trajectory.main.Wind attribute)</a>
 </li>
       <li><a href="trajectory.html#trajectory.main.Wind.centre_long">centre_long (trajectory.main.Wind attribute)</a>
 </li>
-      <li><a href="trajectory.html#trajectory.main.Motor.cham_pres_data">cham_pres_data (trajectory.main.Motor attribute)</a>
-</li>
       <li><a href="trajectory.html#trajectory.main.Rocket.check_phase">check_phase() (trajectory.main.Rocket method)</a>
 </li>
       <li><a href="trajectory.html#trajectory.main.closest">closest() (in module trajectory.main)</a>
 </li>
-      <li><a href="trajectory.html#trajectory.aero.RASAeroData.CN">CN (trajectory.aero.RASAeroData attribute)</a>
+      <li><a href="trajectory.html#trajectory.aero.AeroData.CN">CN() (trajectory.aero.AeroData method)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="trajectory.html#trajectory.mass.SolidFuel.cog">cog (trajectory.mass.SolidFuel attribute)</a>
+      <li><a href="trajectory.html#trajectory.aero.AeroData.CN_grid">CN_grid (trajectory.aero.AeroData attribute)</a>
 </li>
-      <li><a href="trajectory.html#trajectory.mass.CylindricalMassModel.cog">cog() (trajectory.mass.CylindricalMassModel method)</a>
+      <li><a href="trajectory.html#trajectory.mass.CylindricalApproximation.cog">cog() (trajectory.mass.CylindricalApproximation method)</a>
 
       <ul>
-        <li><a href="trajectory.html#trajectory.mass.HybridMassModel.cog">(trajectory.mass.HybridMassModel method)</a>
+        <li><a href="trajectory.html#trajectory.mass.LiquidTank.cog">(trajectory.mass.LiquidTank method)</a>
 </li>
-        <li><a href="trajectory.html#trajectory.mass.LiquidFuel.cog">(trajectory.mass.LiquidFuel method)</a>
+        <li><a href="trajectory.html#trajectory.mass.MassModel.cog">(trajectory.mass.MassModel method)</a>
 </li>
-        <li><a href="trajectory.html#id6">(trajectory.mass.SolidFuel property)</a>
+        <li><a href="trajectory.html#trajectory.mass.SolidFuel.cog">(trajectory.mass.SolidFuel method)</a>
 </li>
       </ul></li>
-      <li><a href="trajectory.html#trajectory.aero.RASAeroData.COP">COP (trajectory.aero.RASAeroData attribute)</a>
+      <li><a href="trajectory.html#trajectory.aero.AeroData.COP">COP() (trajectory.aero.AeroData method)</a>
 </li>
-      <li><a href="trajectory.html#trajectory.mass.CustomMass">CustomMass (class in trajectory.mass)</a>
+      <li><a href="trajectory.html#trajectory.aero.AeroData.COP_grid">COP_grid (trajectory.aero.AeroData attribute)</a>
 </li>
-      <li><a href="trajectory.html#trajectory.mass.CylindricalMassModel">CylindricalMassModel (class in trajectory.mass)</a>
+      <li><a href="trajectory.html#trajectory.mass.CylindricalApproximation">CylindricalApproximation (class in trajectory.mass)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -269,31 +274,19 @@
 </li>
       <li><a href="trajectory.html#trajectory.main.Wind.default">default (trajectory.main.Wind attribute)</a>
 </li>
-      <li><a href="trajectory.html#trajectory.mass.LiquidFuel.den">den() (trajectory.mass.LiquidFuel method)</a>
-</li>
-      <li><a href="trajectory.html#trajectory.mass.LiquidFuel.den_interp">den_interp (trajectory.mass.LiquidFuel attribute)</a>
-</li>
       <li><a href="trajectory.html#trajectory.main.Wind.df">df (trajectory.main.Wind attribute)</a>
-</li>
-      <li><a href="trajectory.html#trajectory.transforms.direction_i2l">direction_i2l() (in module trajectory.transforms)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="trajectory.html#trajectory.transforms.direction_i2l">direction_i2l() (in module trajectory.transforms)</a>
+</li>
       <li><a href="trajectory.html#trajectory.transforms.direction_l2i">direction_l2i() (in module trajectory.transforms)</a>
 </li>
       <li><a href="trajectory.html#trajectory.main.Parachute.drogue_c_d">drogue_c_d (trajectory.main.Parachute attribute)</a>
 </li>
       <li><a href="trajectory.html#trajectory.main.Parachute.drogue_s">drogue_s (trajectory.main.Parachute attribute)</a>
 </li>
-      <li><a href="trajectory.html#trajectory.mass.HybridMassModel.dry_cog">dry_cog (trajectory.mass.HybridMassModel attribute)</a>
-</li>
-      <li><a href="trajectory.html#trajectory.mass.HybridMassModel.dry_ixx">dry_ixx (trajectory.mass.HybridMassModel attribute)</a>
-</li>
-      <li><a href="trajectory.html#trajectory.mass.HybridMassModel.dry_iyy">dry_iyy (trajectory.mass.HybridMassModel attribute)</a>
-</li>
-      <li><a href="trajectory.html#trajectory.mass.HybridMassModel.dry_izz">dry_izz (trajectory.mass.HybridMassModel attribute)</a>
-</li>
-      <li><a href="trajectory.html#trajectory.mass.HybridMassModel.dry_mass">dry_mass (trajectory.mass.HybridMassModel attribute)</a>
+      <li><a href="trajectory.html#trajectory.mass.DryMass">DryMass (class in trajectory.mass)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -301,19 +294,17 @@
 <h2 id="E">E</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="trajectory.html#trajectory.main.e_earth">e_earth (in module trajectory.main)</a>
-</li>
       <li><a href="trajectory.html#trajectory.plot.elipse">elipse() (in module trajectory.plot)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="trajectory.html#trajectory.main.Rocket.env_vars">env_vars (trajectory.main.Rocket attribute)</a>
 
       <ul>
         <li><a href="trajectory.html#trajectory.statistical.StatisticalModel.env_vars">(trajectory.statistical.StatisticalModel attribute)</a>
 </li>
       </ul></li>
-      <li><a href="trajectory.html#trajectory.main.Motor.exit_pres_data">exit_pres_data (trajectory.main.Motor attribute)</a>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="trajectory.html#trajectory.aero.AeroData.error">error (trajectory.aero.AeroData attribute)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -337,9 +328,9 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="trajectory.html#trajectory.main.from_json">from_json() (in module trajectory.main)</a>
 </li>
-      <li><a href="trajectory.html#trajectory.mass.SolidFuel.fuel_density">fuel_density (trajectory.mass.SolidFuel attribute)</a>
+      <li><a href="trajectory.html#trajectory.aero.AeroData.from_lists">from_lists() (trajectory.aero.AeroData static method)</a>
 </li>
-      <li><a href="trajectory.html#trajectory.mass.SolidFuel.fuel_mass">fuel_mass (trajectory.mass.SolidFuel attribute)</a>
+      <li><a href="trajectory.html#trajectory.aero.AeroData.from_rasaero">from_rasaero() (trajectory.aero.AeroData static method)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -347,8 +338,6 @@
 <h2 id="G">G</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="trajectory.html#trajectory.main.Motor.gamma_data">gamma_data (trajectory.main.Motor attribute)</a>
-</li>
       <li><a href="trajectory.html#trajectory.main.Parachute.get">get() (trajectory.main.Parachute method)</a>
 </li>
   </ul></td>
@@ -356,8 +345,6 @@
       <li><a href="trajectory.html#trajectory.plot.get_velocity_magnitude">get_velocity_magnitude() (in module trajectory.plot)</a>
 </li>
       <li><a href="trajectory.html#trajectory.main.Wind.get_wind">get_wind() (trajectory.main.Wind method)</a>
-</li>
-      <li><a href="trajectory.html#trajectory.main.Rocket.gravity">gravity() (trajectory.main.Rocket method)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -375,8 +362,6 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="trajectory.html#trajectory.mass.HollowCylinder">HollowCylinder (class in trajectory.mass)</a>
 </li>
-      <li><a href="trajectory.html#trajectory.mass.HybridMassModel">HybridMassModel (class in trajectory.mass)</a>
-</li>
   </ul></td>
 </tr></table>
 
@@ -391,52 +376,34 @@
 </li>
       <li><a href="trajectory.html#trajectory.plot.inertial_position">inertial_position() (in module trajectory.plot)</a>
 </li>
-      <li><a href="trajectory.html#trajectory.mass.CustomMass.ixx">ixx (trajectory.mass.CustomMass attribute)</a>
-</li>
-      <li><a href="trajectory.html#id0">ixx() (trajectory.mass.CustomMass property)</a>
+      <li><a href="trajectory.html#trajectory.mass.CylindricalApproximation.ixx">ixx() (trajectory.mass.CylindricalApproximation method)</a>
 
       <ul>
-        <li><a href="trajectory.html#trajectory.mass.CylindricalMassModel.ixx">(trajectory.mass.CylindricalMassModel method)</a>
+        <li><a href="trajectory.html#trajectory.mass.LiquidTank.ixx">(trajectory.mass.LiquidTank method)</a>
 </li>
-        <li><a href="trajectory.html#trajectory.mass.HollowCylinder.ixx">(trajectory.mass.HollowCylinder method)</a>
-</li>
-        <li><a href="trajectory.html#trajectory.mass.HybridMassModel.ixx">(trajectory.mass.HybridMassModel method)</a>
-</li>
-        <li><a href="trajectory.html#trajectory.mass.LiquidFuel.ixx">(trajectory.mass.LiquidFuel method)</a>
+        <li><a href="trajectory.html#trajectory.mass.MassModel.ixx">(trajectory.mass.MassModel method)</a>
 </li>
         <li><a href="trajectory.html#trajectory.mass.SolidFuel.ixx">(trajectory.mass.SolidFuel method)</a>
 </li>
       </ul></li>
-      <li><a href="trajectory.html#trajectory.mass.CustomMass.iyy">iyy (trajectory.mass.CustomMass attribute)</a>
-</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="trajectory.html#id1">iyy() (trajectory.mass.CustomMass property)</a>
+      <li><a href="trajectory.html#trajectory.mass.CylindricalApproximation.iyy">iyy() (trajectory.mass.CylindricalApproximation method)</a>
 
       <ul>
-        <li><a href="trajectory.html#trajectory.mass.CylindricalMassModel.iyy">(trajectory.mass.CylindricalMassModel method)</a>
+        <li><a href="trajectory.html#trajectory.mass.LiquidTank.iyy">(trajectory.mass.LiquidTank method)</a>
 </li>
-        <li><a href="trajectory.html#trajectory.mass.HollowCylinder.iyy">(trajectory.mass.HollowCylinder method)</a>
-</li>
-        <li><a href="trajectory.html#trajectory.mass.HybridMassModel.iyy">(trajectory.mass.HybridMassModel method)</a>
-</li>
-        <li><a href="trajectory.html#trajectory.mass.LiquidFuel.iyy">(trajectory.mass.LiquidFuel method)</a>
+        <li><a href="trajectory.html#trajectory.mass.MassModel.iyy">(trajectory.mass.MassModel method)</a>
 </li>
         <li><a href="trajectory.html#trajectory.mass.SolidFuel.iyy">(trajectory.mass.SolidFuel method)</a>
 </li>
       </ul></li>
-      <li><a href="trajectory.html#trajectory.mass.CustomMass.izz">izz (trajectory.mass.CustomMass attribute)</a>
-</li>
-      <li><a href="trajectory.html#id2">izz() (trajectory.mass.CustomMass property)</a>
+      <li><a href="trajectory.html#trajectory.mass.CylindricalApproximation.izz">izz() (trajectory.mass.CylindricalApproximation method)</a>
 
       <ul>
-        <li><a href="trajectory.html#trajectory.mass.CylindricalMassModel.izz">(trajectory.mass.CylindricalMassModel method)</a>
+        <li><a href="trajectory.html#trajectory.mass.LiquidTank.izz">(trajectory.mass.LiquidTank method)</a>
 </li>
-        <li><a href="trajectory.html#trajectory.mass.HollowCylinder.izz">(trajectory.mass.HollowCylinder method)</a>
-</li>
-        <li><a href="trajectory.html#trajectory.mass.HybridMassModel.izz">(trajectory.mass.HybridMassModel method)</a>
-</li>
-        <li><a href="trajectory.html#trajectory.mass.LiquidFuel.izz">(trajectory.mass.LiquidFuel method)</a>
+        <li><a href="trajectory.html#trajectory.mass.MassModel.izz">(trajectory.mass.MassModel method)</a>
 </li>
         <li><a href="trajectory.html#trajectory.mass.SolidFuel.izz">(trajectory.mass.SolidFuel method)</a>
 </li>
@@ -447,14 +414,6 @@
 <h2 id="L">L</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="trajectory.html#trajectory.mass.CylindricalMassModel.l">l (trajectory.mass.CylindricalMassModel attribute)</a>
-
-      <ul>
-        <li><a href="trajectory.html#trajectory.mass.HollowCylinder.l">(trajectory.mass.HollowCylinder attribute)</a>
-</li>
-        <li><a href="trajectory.html#trajectory.mass.HybridMassModel.l">(trajectory.mass.HybridMassModel attribute)</a>
-</li>
-      </ul></li>
       <li><a href="trajectory.html#trajectory.main.LaunchSite.lat">lat (trajectory.main.LaunchSite attribute)</a>
 </li>
       <li><a href="trajectory.html#trajectory.main.Rocket.launch_site">launch_site (trajectory.main.Rocket attribute)</a>
@@ -463,21 +422,17 @@
 </li>
       <li><a href="trajectory.html#trajectory.main.LaunchSite">LaunchSite (class in trajectory.main)</a>
 </li>
-      <li><a href="trajectory.html#trajectory.mass.SolidFuel.length">length (trajectory.mass.SolidFuel attribute)</a>
+      <li><a href="trajectory.html#trajectory.mass.LiquidTank.lden">lden() (trajectory.mass.LiquidTank method)</a>
+</li>
+      <li><a href="trajectory.html#trajectory.mass.LiquidTank.lheight">lheight() (trajectory.mass.LiquidTank method)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="trajectory.html#trajectory.mass.LiquidFuel.liq_den">liq_den (trajectory.mass.LiquidFuel attribute)</a>
-</li>
-      <li><a href="trajectory.html#trajectory.mass.LiquidFuel.liq_height">liq_height() (trajectory.mass.LiquidFuel method)</a>
-</li>
-      <li><a href="trajectory.html#trajectory.mass.LiquidFuel.liq_mass">liq_mass (trajectory.mass.LiquidFuel attribute)</a>
-</li>
-      <li><a href="trajectory.html#trajectory.mass.HybridMassModel.liquid_fuel">liquid_fuel (trajectory.mass.HybridMassModel attribute)</a>
-</li>
-      <li><a href="trajectory.html#trajectory.mass.LiquidFuel">LiquidFuel (class in trajectory.mass)</a>
+      <li><a href="trajectory.html#trajectory.mass.LiquidTank">LiquidTank (class in trajectory.mass)</a>
 </li>
       <li><a href="trajectory.html#trajectory.transforms.lla2i">lla2i() (in module trajectory.transforms)</a>
+</li>
+      <li><a href="trajectory.html#trajectory.mass.LiquidTank.lmass">lmass() (trajectory.mass.LiquidTank method)</a>
 </li>
       <li><a href="trajectory.html#trajectory.main.Wind.load_data">load_data() (trajectory.main.Wind method)</a>
 </li>
@@ -485,49 +440,39 @@
 </li>
       <li><a href="trajectory.html#trajectory.main.LaunchSite.longi">longi (trajectory.main.LaunchSite attribute)</a>
 </li>
+      <li><a href="trajectory.html#trajectory.mass.LiquidTank.lvol">lvol() (trajectory.mass.LiquidTank method)</a>
+</li>
   </ul></td>
 </tr></table>
 
 <h2 id="M">M</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="trajectory.html#trajectory.aero.AeroData.Mach_grid">Mach_grid (trajectory.aero.AeroData attribute)</a>
+</li>
       <li><a href="trajectory.html#trajectory.main.Parachute.main_alt">main_alt (trajectory.main.Parachute attribute)</a>
 </li>
       <li><a href="trajectory.html#trajectory.main.Parachute.main_c_d">main_c_d (trajectory.main.Parachute attribute)</a>
 </li>
       <li><a href="trajectory.html#trajectory.main.Parachute.main_s">main_s (trajectory.main.Parachute attribute)</a>
 </li>
-      <li><a href="trajectory.html#trajectory.mass.CustomMass.mass">mass (trajectory.mass.CustomMass attribute)</a>
+      <li><a href="trajectory.html#trajectory.mass.CylindricalApproximation.mass">mass() (trajectory.mass.CylindricalApproximation method)</a>
 
       <ul>
-        <li><a href="trajectory.html#trajectory.mass.CylindricalMassModel.mass">(trajectory.mass.CylindricalMassModel attribute)</a>
+        <li><a href="trajectory.html#trajectory.mass.LiquidTank.mass">(trajectory.mass.LiquidTank method)</a>
 </li>
-        <li><a href="trajectory.html#trajectory.mass.HollowCylinder.mass">(trajectory.mass.HollowCylinder attribute)</a>
-</li>
-      </ul></li>
-      <li><a href="trajectory.html#id3">mass() (trajectory.mass.CustomMass property)</a>
-
-      <ul>
-        <li><a href="trajectory.html#id4">(trajectory.mass.CylindricalMassModel method)</a>
-</li>
-        <li><a href="trajectory.html#trajectory.mass.HybridMassModel.mass">(trajectory.mass.HybridMassModel method)</a>
-</li>
-        <li><a href="trajectory.html#trajectory.mass.LiquidFuel.mass">(trajectory.mass.LiquidFuel method)</a>
+        <li><a href="trajectory.html#trajectory.mass.MassModel.mass">(trajectory.mass.MassModel method)</a>
 </li>
         <li><a href="trajectory.html#trajectory.mass.SolidFuel.mass">(trajectory.mass.SolidFuel method)</a>
 </li>
       </ul></li>
-      <li><a href="trajectory.html#trajectory.mass.LiquidFuel.mass_interp">mass_interp (trajectory.mass.LiquidFuel attribute)</a>
-
-      <ul>
-        <li><a href="trajectory.html#trajectory.mass.SolidFuel.mass_interp">(trajectory.mass.SolidFuel attribute)</a>
-</li>
-      </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="trajectory.html#trajectory.main.Rocket.mass_model">mass_model (trajectory.main.Rocket attribute)</a>
 </li>
       <li><a href="trajectory.html#trajectory.statistical.StatisticalModel.mass_model_vars">mass_model_vars (trajectory.statistical.StatisticalModel attribute)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="trajectory.html#trajectory.mass.MassModel">MassModel (class in trajectory.mass)</a>
 </li>
       <li>
     module
@@ -548,21 +493,9 @@
         <li><a href="trajectory.html#module-trajectory.transforms">trajectory.transforms</a>
 </li>
       </ul></li>
-      <li><a href="trajectory.html#trajectory.main.Motor">Motor (class in trajectory.main)</a>
-</li>
       <li><a href="trajectory.html#trajectory.main.Rocket.motor">motor (trajectory.main.Rocket attribute)</a>
 </li>
       <li><a href="trajectory.html#trajectory.statistical.StatisticalModel.motor_base">motor_base (trajectory.statistical.StatisticalModel attribute)</a>
-</li>
-      <li><a href="trajectory.html#trajectory.main.Motor.motor_time_data">motor_time_data (trajectory.main.Motor attribute)</a>
-</li>
-  </ul></td>
-</tr></table>
-
-<h2 id="N">N</h2>
-<table style="width: 100%" class="indextable genindextable"><tr>
-  <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="trajectory.html#trajectory.main.Motor.nozzle_efficiency_data">nozzle_efficiency_data (trajectory.main.Motor attribute)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -580,9 +513,9 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="trajectory.html#trajectory.main.Parachute">Parachute (class in trajectory.main)</a>
 </li>
-      <li><a href="trajectory.html#trajectory.main.Rocket.parachute_force">parachute_force() (trajectory.main.Rocket method)</a>
-</li>
       <li><a href="trajectory.html#trajectory.statistical.StatisticalModel.parachute_vars">parachute_vars (trajectory.statistical.StatisticalModel attribute)</a>
+</li>
+      <li><a href="trajectory.html#trajectory.aero.AeroData.pitch_damping_coefficient">pitch_damping_coefficient (trajectory.aero.AeroData attribute)</a>
 </li>
       <li><a href="trajectory.html#trajectory.aero.pitch_damping_coefficient">pitch_damping_coefficient() (in module trajectory.aero)</a>
 </li>
@@ -594,17 +527,15 @@
 </li>
       <li><a href="trajectory.html#trajectory.plot.plot_mass">plot_mass() (in module trajectory.plot)</a>
 </li>
-      <li><a href="trajectory.html#trajectory.plot.plot_thrust">plot_thrust() (in module trajectory.plot)</a>
-</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="trajectory.html#trajectory.plot.plot_thrust">plot_thrust() (in module trajectory.plot)</a>
+</li>
       <li><a href="trajectory.html#trajectory.plot.plot_ypr">plot_ypr() (in module trajectory.plot)</a>
 </li>
       <li><a href="trajectory.html#trajectory.main.Wind.points">points (trajectory.main.Wind attribute)</a>
 </li>
       <li><a href="trajectory.html#trajectory.main.points">points() (in module trajectory.main)</a>
-</li>
-      <li><a href="trajectory.html#trajectory.mass.SolidFuel.pos_bottom">pos_bottom (trajectory.mass.SolidFuel attribute)</a>
 </li>
       <li><a href="trajectory.html#trajectory.main.Rocket.pos_i">pos_i (trajectory.main.Rocket attribute)</a>
 </li>
@@ -614,41 +545,27 @@
 </li>
       <li><a href="trajectory.html#trajectory.transforms.pos_l2i">pos_l2i() (in module trajectory.transforms)</a>
 </li>
-      <li><a href="trajectory.html#trajectory.mass.LiquidFuel.pos_tank_bottom">pos_tank_bottom (trajectory.mass.LiquidFuel attribute)</a>
-</li>
-      <li><a href="trajectory.html#trajectory.main.Motor.prop_mass_data">prop_mass_data (trajectory.main.Motor attribute)</a>
-</li>
   </ul></td>
 </tr></table>
 
 <h2 id="R">R</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="trajectory.html#trajectory.mass.CylindricalMassModel.r">r (trajectory.mass.CylindricalMassModel attribute)</a>
-</li>
-      <li><a href="trajectory.html#trajectory.main.r_earth">r_earth (in module trajectory.main)</a>
-</li>
-      <li><a href="trajectory.html#trajectory.mass.HollowCylinder.r_in">r_in (trajectory.mass.HollowCylinder attribute)</a>
-</li>
       <li><a href="trajectory.html#trajectory.mass.SolidFuel.r_in">r_in() (trajectory.mass.SolidFuel method)</a>
 </li>
-      <li><a href="trajectory.html#trajectory.mass.HollowCylinder.r_out">r_out (trajectory.mass.HollowCylinder attribute)</a>
-
-      <ul>
-        <li><a href="trajectory.html#trajectory.mass.SolidFuel.r_out">(trajectory.mass.SolidFuel attribute)</a>
-</li>
-      </ul></li>
       <li><a href="trajectory.html#trajectory.main.LaunchSite.rail_length">rail_length (trajectory.main.LaunchSite attribute)</a>
 </li>
       <li><a href="trajectory.html#trajectory.main.LaunchSite.rail_pitch">rail_pitch (trajectory.main.LaunchSite attribute)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="trajectory.html#trajectory.main.LaunchSite.rail_yaw">rail_yaw (trajectory.main.LaunchSite attribute)</a>
 </li>
-      <li><a href="trajectory.html#trajectory.aero.RASAeroData">RASAeroData (class in trajectory.aero)</a>
+      <li><a href="trajectory.html#trajectory.aero.AeroData.ref_area">ref_area (trajectory.aero.AeroData attribute)</a>
 </li>
       <li><a href="trajectory.html#trajectory.main.Rocket">Rocket (class in trajectory.main)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="trajectory.html#trajectory.aero.AeroData.roll_damping_coefficient">roll_damping_coefficient (trajectory.aero.AeroData attribute)</a>
 </li>
       <li><a href="trajectory.html#trajectory.main.Rocket.rtol">rtol (trajectory.main.Rocket attribute)</a>
 </li>
@@ -670,7 +587,7 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="trajectory.html#trajectory.plot.set_axes_equal">set_axes_equal() (in module trajectory.plot)</a>
 </li>
-      <li><a href="trajectory.html#trajectory.mass.HybridMassModel.solid_fuel">solid_fuel (trajectory.mass.HybridMassModel attribute)</a>
+      <li><a href="trajectory.html#trajectory.aero.AeroData.show_plot">show_plot() (trajectory.aero.AeroData method)</a>
 </li>
       <li><a href="trajectory.html#trajectory.mass.SolidFuel">SolidFuel (class in trajectory.mass)</a>
 </li>
@@ -692,29 +609,9 @@
 <h2 id="T">T</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="trajectory.html#trajectory.mass.HollowCylinder.t">t() (trajectory.mass.HollowCylinder method)</a>
-</li>
-      <li><a href="trajectory.html#trajectory.mass.LiquidFuel.tank_radius">tank_radius (trajectory.mass.LiquidFuel attribute)</a>
-</li>
-      <li><a href="trajectory.html#trajectory.main.Motor.throat_data">throat_data (trajectory.main.Motor attribute)</a>
-</li>
-      <li><a href="trajectory.html#trajectory.main.Rocket.thrust">thrust() (trajectory.main.Rocket method)</a>
-</li>
       <li><a href="trajectory.html#trajectory.statistical.StatisticalModel.thrust_alignment">thrust_alignment (trajectory.statistical.StatisticalModel attribute)</a>
 </li>
       <li><a href="trajectory.html#trajectory.statistical.StatisticalModel.thrust_error">thrust_error (trajectory.statistical.StatisticalModel attribute)</a>
-</li>
-      <li><a href="trajectory.html#trajectory.mass.CylindricalMassModel.time">time (trajectory.mass.CylindricalMassModel attribute)</a>
-
-      <ul>
-        <li><a href="trajectory.html#trajectory.mass.HybridMassModel.time">(trajectory.mass.HybridMassModel attribute)</a>
-</li>
-        <li><a href="trajectory.html#trajectory.mass.LiquidFuel.time">(trajectory.mass.LiquidFuel attribute)</a>
-</li>
-        <li><a href="trajectory.html#trajectory.mass.SolidFuel.time">(trajectory.mass.SolidFuel attribute)</a>
-</li>
-      </ul></li>
-      <li><a href="trajectory.html#id5">time() (trajectory.mass.HybridMassModel property)</a>
 </li>
       <li>
     trajectory.aero
@@ -723,8 +620,6 @@
         <li><a href="trajectory.html#module-trajectory.aero">module</a>
 </li>
       </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li>
     trajectory.constants
 
@@ -739,6 +634,8 @@
         <li><a href="trajectory.html#module-trajectory.main">module</a>
 </li>
       </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li>
     trajectory.mass
 
@@ -777,29 +674,31 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="trajectory.html#trajectory.main.validate_lat_long">validate_lat_long() (in module trajectory.main)</a>
 </li>
-      <li><a href="trajectory.html#trajectory.mass.HybridMassModel.vap_mass">vap_mass() (trajectory.mass.HybridMassModel method)</a>
-</li>
-      <li><a href="trajectory.html#trajectory.mass.HybridMassModel.vap_mass_interp">vap_mass_interp (trajectory.mass.HybridMassModel attribute)</a>
-</li>
       <li><a href="trajectory.html#trajectory.main.Rocket.variable">variable (trajectory.main.Rocket attribute)</a>
 
       <ul>
         <li><a href="trajectory.html#trajectory.main.Wind.variable">(trajectory.main.Wind attribute)</a>
 </li>
       </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="trajectory.html#trajectory.statistical.variable_name">variable_name() (in module trajectory.statistical)</a>
 </li>
       <li><a href="trajectory.html#trajectory.statistical.StatisticalModel.variable_time">variable_time (trajectory.statistical.StatisticalModel attribute)</a>
 </li>
+      <li><a href="trajectory.html#trajectory.mass.LiquidTank.vden">vden() (trajectory.mass.LiquidTank method)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="trajectory.html#trajectory.main.Rocket.vel_i">vel_i (trajectory.main.Rocket attribute)</a>
 </li>
       <li><a href="trajectory.html#trajectory.transforms.vel_i2l">vel_i2l() (in module trajectory.transforms)</a>
 </li>
       <li><a href="trajectory.html#trajectory.transforms.vel_l2i">vel_l2i() (in module trajectory.transforms)</a>
 </li>
-      <li><a href="trajectory.html#trajectory.mass.LiquidFuel.vol">vol() (trajectory.mass.LiquidFuel method)</a>
+      <li><a href="trajectory.html#trajectory.mass.LiquidTank.vheight">vheight() (trajectory.mass.LiquidTank method)</a>
+</li>
+      <li><a href="trajectory.html#trajectory.mass.LiquidTank.vmass">vmass() (trajectory.mass.LiquidTank method)</a>
+</li>
+      <li><a href="trajectory.html#trajectory.mass.LiquidTank.vvol">vvol() (trajectory.mass.LiquidTank method)</a>
 </li>
   </ul></td>
 </tr></table>

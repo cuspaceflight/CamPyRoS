@@ -1,125 +1,174 @@
 name: traj
 channels:
+  - anaconda
   - idaholab
   - conda-forge
   - defaults
 dependencies:
-  - antlr-python-runtime=4.7.2
-  - appdirs=1.4.4
-  - bokeh=2.2.3
-  - brotlipy=0.7.0
-  - bzip2=1.0.8
-  - c-ares=1.17.1
-  - ca-certificates=2020.12.5
-  - cartopy=0.18.0
-  - certifi=2020.12.5
-  - cf-units=2.1.4
-  - cffi=1.14.4
-  - cftime=1.3.0
-  - click=7.1.2
-  - cloudpickle=1.6.0
-  - cryptography=3.3.1
-  - curl=7.71.1
-  - cycler=0.10.0
-  - cytoolz=0.11.0
-  - dask=2020.12.0
-  - dask-core=2020.12.0
-  - distributed=2020.12.0
-  - expat=2.2.9
-  - freetype=2.10.4
-  - fsspec=0.8.5
-  - geos=3.8.1
-  - hdf4=4.2.13
-  - hdf5=1.10.6
-  - heapdict=1.0.1
-  - idna=2.10
-  - importlib-metadata=3.4.0
-  - importlib_metadata=3.4.0
-  - importlib_resources=5.0.0
-  - ipython_genutils=0.2.0
-  - iris=2.4.0
-  - jinja2=2.11.2
-  - jpeg=9d
-  - kiwisolver=1.3.1
-  - krb5=1.17.2
-  - lcms2=2.11
-  - libblas=3.9.0
-  - libcblas=3.9.0
-  - libcurl=7.71.1
-  - libcxx=11.0.0
-  - libedit=3.1.20191231
-  - libev=4.33
-  - libffi=3.3
-  - libgfortran5=9.3.0
-  - liblapack=3.9.0
-  - libnetcdf=4.7.4
-  - libnghttp2=1.41.0
-  - libopenblas=0.3.12
-  - libpng=1.6.37
-  - libssh2=1.9.0
-  - libtiff=4.2.0
-  - libwebp-base=1.1.0
-  - llvm-openmp=11.0.0
-  - locket=0.2.0
-  - lz4-c=1.9.3
-  - markupsafe=1.1.1
-  - matplotlib-base=3.3.3
-  - metpy=1.0
-  - msgpack-python=1.0.2
-  - ncurses=6.2
-  - netcdf4=1.5.5.1
-  - numexpr=2.7.2
-  - numpy=1.19.5
-  - olefile=0.46
-  - openssl=1.1.1i
-  - packaging=20.8
-  - pandas=1.2.0
-  - partd=1.1.0
-  - pillow=8.1.0
-  - pint=0.16.1
-  - pip=20.3.3
-  - pooch=1.3.0
-  - proj=7.2.0
-  - psutil=5.8.0
-  - pycparser=2.20
-  - pyke=1.1.1
-  - pyopenssl=20.0.1
-  - pyparsing=2.4.7
-  - pyproj=3.0.0.post1
-  - pyshp=2.1.3
-  - pysocks=1.7.1
-  - python=3.8.6
-  - python-dateutil=2.8.1
-  - python_abi=3.8
-  - pytz=2020.5
-  - pyyaml=5.3.1
-  - readline=8.0
-  - requests=2.25.1
-  - scipy=1.6.0
-  - setuptools=49.6.0
-  - shapely=1.7.1
-  - six=1.15.0
-  - sortedcontainers=2.3.0
-  - sqlite=3.34.0
-  - tblib=1.6.0
-  - tk=8.6.10
-  - toolz=0.11.1
-  - tornado=6.1
-  - traitlets=5.0.5
-  - typing_extensions=3.7.4.3
-  - tzdata=2020f
-  - udunits2=2.2.27.27
-  - urllib3=1.26.2
-  - wheel=0.36.2
-  - xarray=0.16.2
-  - xxhash=0.8.0
-  - xz=5.2.5
-  - yaml=0.2.5
-  - zict=2.0.0
-  - zipp=3.4.0
-  - zlib=1.2.11
-  - zstd=1.4.8
+  - antlr-python-runtime=4.7.2=py38h32f6830_1002
+  - appdirs=1.4.4=pyh9f0ad1d_0
+  - appnope=0.1.0=py38_1001
+  - arviz=0.11.0=pyhd8ed1ab_0
+  - backcall=0.2.0=py_0
+  - bokeh=2.2.3=py38h50d1736_0
+  - brotlipy=0.7.0=py38h5406a74_1001
+  - bzip2=1.0.8=hc929b4f_4
+  - c-ares=1.17.1=hc929b4f_0
+  - ca-certificates=2020.12.5=h033912b_0
+  - cached-property=1.5.1=py_0
+  - cartopy=0.18.0=py38h6aea6a4_8
+  - cctools_osx-64=949.0.1=h2f0f38f_19
+  - certifi=2020.12.5=py38h50d1736_1
+  - cf-units=2.1.4=py38h174b24a_2
+  - cffi=1.14.4=py38h979bc6b_1
+  - cftime=1.3.0=py38hc7193ba_0
+  - clang=11.0.1=h694c41f_1
+  - clang-11=11.0.1=default_hf8bb9ca_1
+  - clang_osx-64=11.0.1=hb91bd55_0
+  - clangxx=11.0.1=default_hf8bb9ca_1
+  - clangxx_osx-64=11.0.1=h7e1b574_0
+  - click=7.1.2=pyh9f0ad1d_0
+  - cloudpickle=1.6.0=py_0
+  - compiler-rt=11.0.1=h654b07c_0
+  - compiler-rt_osx-64=11.0.1=h8c5fa43_0
+  - cryptography=3.3.1=py38h6b4ec92_1
+  - curl=7.71.1=hcb81553_8
+  - cycler=0.10.0=py_2
+  - cytoolz=0.11.0=py38h5406a74_2
+  - dask=2020.12.0=pyhd8ed1ab_0
+  - dask-core=2020.12.0=pyhd8ed1ab_0
+  - decorator=4.4.2=py_0
+  - distributed=2020.12.0=py38h50d1736_0
+  - expat=2.2.9=hb1e8313_2
+  - fastprogress=1.0.0=py_0
+  - freetype=2.10.4=h4cff582_1
+  - fsspec=0.8.5=pyhd8ed1ab_0
+  - geos=3.8.1=h4a8c4bd_0
+  - hdf4=4.2.13=h71d84a9_1004
+  - hdf5=1.10.6=nompi_hc5d9132_1114
+  - heapdict=1.0.1=py_0
+  - idna=2.10=pyh9f0ad1d_0
+  - importlib-metadata=3.4.0=py38h50d1736_0
+  - importlib_metadata=3.4.0=hd8ed1ab_0
+  - importlib_resources=5.0.0=py38h50d1736_0
+  - ipykernel=5.3.4=py38h5ca1d4c_0
+  - ipython=7.18.1=py38h5ca1d4c_0
+  - ipython_genutils=0.2.0=py_1
+  - iris=2.4.0=py38_0
+  - jedi=0.18.0=py38h50d1736_2
+  - jinja2=2.11.2=pyh9f0ad1d_0
+  - jpeg=9d=hbcb3906_0
+  - jupyter_client=6.1.7=py_0
+  - jupyter_core=4.6.3=py38_0
+  - kiwisolver=1.3.1=py38hd9c93a9_1
+  - krb5=1.17.2=h60d9502_0
+  - lcms2=2.11=h11f7e16_1
+  - ld64_osx-64=530=hea264c1_19
+  - ldid=2.1.2=h7660a38_2
+  - libblas=3.9.0=7_openblas
+  - libcblas=3.9.0=7_openblas
+  - libclang-cpp11=11.0.1=default_hf8bb9ca_1
+  - libcurl=7.71.1=h9bf37e3_8
+  - libcxx=11.0.1=habf9029_0
+  - libedit=3.1.20191231=h0678c8f_2
+  - libev=4.33=haf1e3a3_1
+  - libffi=3.3=h046ec9c_2
+  - libgfortran=5.0.0=9_3_0_h6c81a4c_16
+  - libgfortran5=9.3.0=h6c81a4c_16
+  - libgpuarray=0.7.6=h1de35cc_1003
+  - liblapack=3.9.0=7_openblas
+  - libllvm11=11.0.1=h223d4b2_0
+  - libnetcdf=4.7.4=nompi_h9d8a93f_107
+  - libnghttp2=1.41.0=h7580e61_2
+  - libopenblas=0.3.12=openmp_h54245bb_1
+  - libpng=1.6.37=h7cec526_2
+  - libsodium=1.0.18=h1de35cc_0
+  - libssh2=1.9.0=h8a08a2b_5
+  - libtiff=4.2.0=h355d032_0
+  - libwebp-base=1.1.0=hbcb3906_3
+  - llvm-openmp=11.0.0=h73239a0_1
+  - llvm-tools=11.0.1=h223d4b2_0
+  - locket=0.2.0=py_2
+  - lz4-c=1.9.3=h046ec9c_0
+  - mako=1.1.4=pyh44b312d_0
+  - markupsafe=1.1.1=py38h5406a74_3
+  - matplotlib-base=3.3.3=py38hdcc317e_0
+  - metpy=1.0=pyhd8ed1ab_0
+  - mkl=2020.4=h08c4f10_301
+  - mkl-service=2.3.0=py38h4d0b108_2
+  - msgpack-python=1.0.2=py38hd9c93a9_1
+  - ncurses=6.2=h2e338ed_4
+  - netcdf4=1.5.5.1=nompi_py38h0bc7383_100
+  - numexpr=2.7.2=py38he9f00de_0
+  - olefile=0.46=pyh9f0ad1d_1
+  - openssl=1.1.1i=h35c211d_0
+  - packaging=20.8=pyhd3deb0d_0
+  - pandas=1.2.0=py38he9f00de_1
+  - parso=0.8.0=py_0
+  - partd=1.1.0=py_0
+  - patsy=0.5.1=py_0
+  - pexpect=4.8.0=py38_1
+  - pickleshare=0.7.5=py38_1001
+  - pillow=8.1.0=py38hc1d52f7_1
+  - pint=0.16.1=py_0
+  - pip=20.3.3=pyhd8ed1ab_0
+  - pooch=1.3.0=pyhd8ed1ab_0
+  - proj=7.2.0=h19c2039_1
+  - prompt-toolkit=3.0.8=py_0
+  - psutil=5.8.0=py38h5406a74_1
+  - ptyprocess=0.6.0=py38_0
+  - pycparser=2.20=pyh9f0ad1d_2
+  - pygments=2.7.1=py_0
+  - pygpu=0.7.6=py38hc7193ba_1002
+  - pyke=1.1.1=pyhd8ed1ab_1004
+  - pyopenssl=20.0.1=pyhd8ed1ab_0
+  - pyparsing=2.4.7=pyh9f0ad1d_0
+  - pyproj=3.0.0.post1=py38h9d4eb05_0
+  - pyshp=2.1.3=pyh44b312d_0
+  - pysocks=1.7.1=py38h50d1736_3
+  - python=3.8.6=h624753d_4_cpython
+  - python-dateutil=2.8.1=py_0
+  - python_abi=3.8=1_cp38
+  - pytz=2020.5=pyhd8ed1ab_0
+  - pyyaml=5.3.1=py38h5406a74_2
+  - pyzmq=19.0.2=py38hb1e8313_1
+  - readline=8.0=h0678c8f_2
+  - requests=2.25.1=pyhd3deb0d_0
+  - scipy=1.6.0=py38h95ea19e_0
+  - seaborn=0.11.1=h694c41f_0
+  - seaborn-base=0.11.1=pyhd8ed1ab_0
+  - setuptools=49.6.0=py38h50d1736_3
+  - shapely=1.7.1=py38h8918236_1
+  - six=1.15.0=pyh9f0ad1d_0
+  - sortedcontainers=2.3.0=pyhd8ed1ab_0
+  - sqlite=3.34.0=h17101e1_0
+  - statsmodels=0.12.1=py38hc7193ba_2
+  - tapi=1100.0.11=h9ce4665_0
+  - tblib=1.6.0=py_0
+  - theano=1.0.5=py38h0a5c65b_1
+  - tk=8.6.10=h0419947_1
+  - toolz=0.11.1=py_0
+  - tornado=6.1=py38h5406a74_1
+  - tqdm=4.56.0=pyhd8ed1ab_0
+  - traitlets=5.0.5=py_0
+  - typing-extensions=3.7.4.3=0
+  - typing_extensions=3.7.4.3=py_0
+  - tzdata=2020f=he74cb21_0
+  - udunits2=2.2.27.27=h9371bac_0
+  - urllib3=1.26.2=pyhd8ed1ab_0
+  - wcwidth=0.2.5=py_0
+  - wheel=0.36.2=pyhd3deb0d_0
+  - xarray=0.16.2=pyhd8ed1ab_0
+  - xxhash=0.8.0=h35c211d_3
+  - xz=5.2.5=haf1e3a3_1
+  - yaml=0.2.5=haf1e3a3_0
+  - zeromq=4.3.3=hb1e8313_3
+  - zict=2.0.0=py_0
+  - zipp=3.4.0=py_0
+  - zlib=1.2.11=h7795811_1010
+  - zstd=1.4.8=hf387650_1
   - pip:
+    - absl-py==0.11.0
     - aiohttp==3.7.3
     - aiohttp-cors==0.7.0
     - aioredis==1.3.1
@@ -132,27 +181,55 @@ dependencies:
     - colorama==0.4.4
     - colorful==0.5.4
     - conda-pack==0.5.0
+    - dill==0.3.3
     - eccodes-python==0.9.9
     - filelock==3.0.12
+    - flatbuffers==1.12
+    - gast==0.3.3
     - google-api-core==1.25.0
     - google-auth==1.24.0
+    - google-auth-oauthlib==0.4.2
+    - google-pasta==0.2.0
     - googleapis-common-protos==1.52.0
     - gpustat==0.6.0
-    - grpcio==1.34.1
+    - grpcio==1.32.0
+    - h5py==2.10.0
     - hiredis==1.1.0
     - iris-grib==0.15.0
+    - joblib==1.0.0
     - jsonschema==3.2.0
+    - keras-preprocessing==1.1.2
+    - markdown==3.3.3
     - multidict==5.1.0
+    - numpy==1.18.5
     - nvidia-ml-py3==7.352.0
+    - oauthlib==3.1.0
     - opencensus==0.7.11
     - opencensus-context==0.1.2
+    - opt-einsum==3.3.0
+    - ovs-sphinx-theme==1.0.2
+    - pbr==5.5.1
     - prometheus-client==0.9.0
     - protobuf==3.14.0
+    - pseudonetcdf==3.1.0
     - py-spy==0.3.3
     - pyasn1==0.4.8
     - pyasn1-modules==0.2.8
+    - pybind11==2.6.1
     - pyrsistent==0.17.3
     - ray==1.1.0
     - redis==3.5.3
+    - requests-oauthlib==1.3.0
     - rsa==4.7
+    - scikit-learn==0.24.1
+    - tensorboard==2.4.1
+    - tensorboard-plugin-wit==1.8.0
+    - tensorflow==2.3.1
+    - tensorflow-estimator==2.3.0
+    - termcolor==1.1.0
+    - theano-pymc==1.1.0
+    - threadpoolctl==2.1.0
+    - werkzeug==1.0.1
+    - wrapt==1.12.1
     - yarl==1.6.3
+prefix: /anaconda3/envs/traj

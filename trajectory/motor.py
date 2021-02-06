@@ -2,6 +2,26 @@ import numpy as np
 import csv
 import scipy.interpolate
 import matplotlib.pyplot as plt
+import pandas as pd
+
+__copyright__ = """
+
+    Copyright 2021 Jago Strong-Wright & Daniel Gibbons
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+"""
+__license__ = "Apache 2.0"
 
 class Motor:
     """Object for holding rocket engine data. 
@@ -100,3 +120,37 @@ class Motor:
                      exit_area = exit_area[0], 
                      pos = pos,
                      ambient_pressure = pres_ambient)
+
+def load_motor(file):
+    """Legacy requirment for statistical models
+
+    Args:
+        file (string): Location of novus output file
+
+    Returns:
+        dict: Motor data - "motor_time","prop_mass",
+            "cham_pres","throat","gamma", "nozzle_efficiency",
+            "exit_pres","area_ratio","vmass","lden","lmass",
+            "fuel_mass","density_fuel","dia_fuel","length_port"
+    """  
+    motor_csv = pd.read_csv(file)
+
+    time_array = motor_csv['Time']
+    smass_array = motor_csv['Solid Fuel Mass (kg)']
+    S_DEN = motor_csv['Solid Fuel Density (kg/m^3)'][0]
+    S_L = motor_csv['Solid Fuel Length (m)'][0]
+    S_ROUT = motor_csv['Solid Fuel Outer Diameter (m)'][0]
+    vmass_array =  motor_csv['Vapour Mass (kg)']
+    vden_array = motor_csv['Vapour Density (kg/m^3)']
+    lmass_array = motor_csv['Liquid Mass (kg)']
+    lden_array = motor_csv['Liquid Density (kg/m^3)']
+        
+    return {"time":time_array,
+            "smass":smass_array,
+            "sden":S_DEN,
+            "s_l":S_L,
+            "s_rout":S_ROUT,
+            "vmass":vmass_array,
+            "vden":vden_array,
+            "lmass":lmass_array,
+            "lden":lden_array}

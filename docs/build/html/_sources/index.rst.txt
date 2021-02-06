@@ -1,31 +1,42 @@
 CUSF 6DOF Rocket Trajectory Simulation documentation
-=============================================================
+====================================================
+*Insert name* is a python package which provides fully featured rocket trajectory simulation including features like:
 
-Guide
-^^^^^
-Run the example file.::
+- 6 degrees of freedom (3 translational, 3 rotational)
+- Monte carlo stochastic analysis
+- Aerodynamic heating model
+- Variable mass and moments of inertia models  
 
-    python example.py
-    >>Running simulation
-    >>t=0.00 s alt=0.00 km (h=6.782383938042269e-09 s). Step number 0
-    >>t=8.61 s alt=1.41 km (h=0.10479235692442031 s). Step number 100
-    >>t=20.29 s alt=6.65 km (h=0.15804273091835203 s). Step number 200
-    >>Burnout at t=24.78 s 
-    >>t=78.04 s alt=11.95 km (h=1.1551712462768395 s). Step number 300
+Getting Started
+^^^^^^^^^^^^^^^
+Dependencies require conda installation since not all are available on pip. An enviroment yaml is provided so install these with::
+    conda env create -f enviroment.yml -n <name>
+And then activate::
+    conda activate <name>
+
+The examples will then help you get going:
+The repository contains some examples you can run:  
+
+- `example.ipynb <https://github.com/CUSF-Simulation/6DOF-Trajectory-Simulation/example.ipynb>`_ or `example.py` : Launch of a simple rocket (the Martlet 4).  
+- `Stats Model Example.ipynb <https://github.com/CUSF-Simulation/6DOF-Trajectory-Simulation/blob/main/Stats%20Model%20Analysis%20Example.ipynb>`_ : Example of how to use the statistics model and stochastic analysis.  
+- `Aerodynamic Heating Example.ipynb <https://github.com/CUSF-Simulation/6DOF-Trajectory-Simulation/blob/main/Aerodynamic%20Heating%20Example.ipynb>`_ : Example of how to run an aerodynamic heating simulation.  
 
 
 Technical Documentation
 ^^^^^^^^^^^^^^^^^^^^^^^
-Full technical documentation can be found `here <https://github.com/CUSF-Simulation/6DOF-Trajectory-Simulation/docs/technical/technical.pdf>`_
+Full technical documentation is coming soon
 
 
+Content
+=======
 .. toctree::
    :maxdepth: 3
    :caption: Contents
 
-   licences.rst
    help.rst
-   modules.rst
+   trajectory.rst
+   develop.rst
+   licences.rst
 
 
 
