@@ -22,6 +22,7 @@ The repository contains some examples you can run:
 
 
 ## Potential for expansion
+- **Multistage rockets**
 - **GUI:** An incomplete (and outdated) GUI has been made using Tkinter, and is in gui.py.
 - **Fin cant, roll damping, and roll acceleration:** [OpenRocket Technical Documentation](http://openrocket.info/documentation.html)
 - **Slosh modelling:** Some slosh modelling functions have been put together in slosh.py, based on the following source - [The Dynamic Behavior of Liquids in Moving Containers, with Applications to Space Vehicle Technology](https://ntrs.nasa.gov/citations/19670006555).
