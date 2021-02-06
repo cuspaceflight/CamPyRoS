@@ -334,7 +334,6 @@ with  open("motor_out.csv", "w", newline='') as motor_file:
                               vden_data[i], vmass_data[i], lden_data[i], lmass_data[i], fuel_mass_data[i],
                               DENSITY_FUEL, DIA_FUEL, LENGTH_PORT])
 
-    #I think we assume all the vapour is dumped for the last step? - Daniel Gibbons 10/12/2020 
     motor_write.writerow([time_data[-1]+STEP, fuel_mass, pres_cham_data[-1],
                           throat_data[-1], gamma_data[-1],
                           nozzle_efficiency_data[-1], exit_pressure_data[-1],
