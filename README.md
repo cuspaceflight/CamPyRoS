@@ -9,11 +9,11 @@ It's a six degree of freedom rocket simulator! Currently includes:
 ## Getting started
 The requirements.txt contains a list of all dependencies, however using `pip install -r requirements.txt` can be problematic due to some of the modules used. It is therefore recommended that you install dependencies by adding `environment.yml` as an environment in Anaconda.  
 
-*insert info here on how to use environment.yml
+**insert info here on how to use environment.yml**
 
 
 ## Usage
-See the docs (*insert link to the docs here*)  
+See the docs (**insert link to the docs here**)  
 
 The repository contains some examples you can run:  
 - `example.py` : Launch of a simple rocket (the Martlet 4).  
@@ -29,6 +29,9 @@ with a Cartesian Method](https://pdfs.semanticscholar.org/ace3/5a61803390b0e0b70
 - Multiphysics coupling: [PRECICE](https://www.precice.org/)
 - Comparison with check cases: [Six degree-of-freedom (6-DOF) Flight Simulation Check-cases](https://nescacademy.nasa.gov/flightsim/)  
 
+
+## License
+**we need to decide on a license**
 
 ## Main References:
 [1] - [Stochastic Six-Degree-of-Freedom Flight Simulator for Passively Controlled High-Power Rockets](https://ascelibrary.org/doi/10.1061/%28ASCE%29AS.1943-5525.0000051)  
