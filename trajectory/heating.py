@@ -1095,7 +1095,7 @@ class AeroHeatingAnalysis:
 
         fig.tight_layout()
 
-        #Add a slider - modified from https://stackoverflow.com/questions/46325447/animated-interactive-plot-using-matplotlib
+        #Add a slider
         slider_axis = plt.axes([0.25, 0, 0.50, 0.02])
         initial_value = i   #Initial slider value                          
         #Make a slider that goes from 0 to the maximum index available for our data
