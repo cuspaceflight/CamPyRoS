@@ -1,12 +1,11 @@
-Now stores and exports additional data that is needed more a 
-more complex moment of inertia model in the 6DOF simulator
+Now stores and exports additional data that is needed more a more complex moment of inertia model in the 6DOF simulator.
 
 Additional properties added to motor_out.csv:
 - Vapour Density
 - Vapour Mass
 - Liquid Density
 - Liquid Mass
-- Solid Mass
-- Solid Density
+- Solid Fuel Mass
+- Solid Fuel Density
 - Solid Fuel Outer Diameter
 - Solid Fuel Length
