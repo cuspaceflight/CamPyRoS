@@ -7,7 +7,7 @@ It's a six degree of freedom rocket simulator! Currently includes:
 - Variable mass and moments of inertia models  
 
 ## Getting started
-The requirements.txt contains a list of all dependices, however using `pip install -r requirements.txt` can be problematic due to some dependencies. It is therefore recommended that you install dependencies by adding the environment to Anaconda using the `environment.yml` file.  
+The requirements.txt contains a list of all dependencies, however using `pip install -r requirements.txt` can be problematic due to some of the modules used. It is therefore recommended that you install dependencies by adding the environment to Anaconda using the `environment.yml` file.  
 
 *insert info here on how to use environment.yml
 
