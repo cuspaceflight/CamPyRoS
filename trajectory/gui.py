@@ -1,3 +1,7 @@
+'''
+To run the GUI, simply run:
+import trajectory.gui
+'''
 import json
 import ast
 import numpy as np
