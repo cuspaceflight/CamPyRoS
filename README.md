@@ -29,7 +29,6 @@ The repository contains some examples you can run:
 - **CFD coupling:** [PyFoam](https://openfoamwiki.net/index.php/Contrib/PyFoam), [Simulations of 6-DOF Motion
 with a Cartesian Method](https://pdfs.semanticscholar.org/ace3/5a61803390b0e0b70f6ca34492ad20a03e03.pdf)
 - **Multiphysics coupling:** [PRECICE](https://www.precice.org/)
-- **Comparison with check cases:** [Six degree-of-freedom (6-DOF) Flight Simulation Check-cases](https://nescacademy.nasa.gov/flightsim/)  
 
 
 ## License
@@ -47,7 +46,7 @@ with a Cartesian Method](https://pdfs.semanticscholar.org/ace3/5a61803390b0e0b70
 [7] - [Central Limit Theorem and Sample Size](https://www.umass.edu/remp/Papers/Smith&Wells_NERA06.pdf)  
 [8] - [Monte Carlo Simulations: Number of Iterations and Accuracy](https://apps.dtic.mil/dtic/tr/fulltext/u2/a621501.pdf)  
 [9] - [Method for Calculating Aerodynamic Heating on Sounding Rocket Tangent Ogive Noses](https://arc.aiaa.org/doi/abs/10.2514/3.62081)  
-
+[10] - [Six degree-of-freedom (6-DOF) Flight Simulation Check-cases](https://nescacademy.nasa.gov/flightsim/)  
 
 
 
