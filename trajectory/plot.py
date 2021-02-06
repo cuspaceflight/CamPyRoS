@@ -38,50 +38,38 @@ def get_velocity_magnitude(df):
     return (np.sqrt(df["vx_l"]**2+df["vy_l"]**2+df["vz_l"]**2))
 
 #Functional
-def set_axes_equal(ax,dim=3):
-    '''Make axes of 3D plot have equal scale so that spheres appear as spheres,
-    cubes as cubes, etc..  This is one possible solution to Matplotlib's
-    ax.set_aspect('equal') and ax.axis('equal') not working for 3D.
+def set_axes_equal(ax):
+    """
+    Makes the scaling the same on the axes of 3D plot. The in-built functions that come with matplotlib only seem to be able to do this for 2D axes.
 
-    Source: https://stackoverflow.com/questions/13685386/matplotlib-equal-unit-length-with-equal-aspect-ratio-z-axis-is-not-equal-to 
+    Parameters
+    ----------
+    ax : matplotlib.pyplot.axes
+        The 3D axis that you want to have equal axis scaling, e.g. could have been created with ax = matplotlib.pyplot.axes(projection="3d").
 
-    Input
-      ax: a matplotlib axis, e.g., as output from plt.gca().
-    '''
-    if dim==3:
-        x_limits = ax.get_xlim3d()
-        y_limits = ax.get_ylim3d()
-        z_limits = ax.get_zlim3d()
+    """
+    x_limits = ax.get_xlim3d()
+    y_limits = ax.get_ylim3d()
+    z_limits = ax.get_zlim3d()
+    
+    #Get info on the data that has already been plotted on the axes
+    x_range = abs(x_limits[1] - x_limits[0])    #Range of the x axis data.
+    x_middle = (x_limits[1] + x_limits[0])/2    #The midpoint of the x axis data.
+    
+    y_range = abs(y_limits[1] - y_limits[0])
+    y_middle = (y_limits[1] + y_limits[0])/2
+    
+    z_range = abs(z_limits[1] - z_limits[0])
+    z_middle = (z_limits[1] + z_limits[0])/2
+    
+    #Get the maximum range present of all 3 axes. We will use this to determine the size of the plotting area that we want.
+    max_range = max([x_range, y_range, z_range])
+    
+    #Set each axis limit so the range present on each axis is the same, and is equal to the max range of all the data out of the three axes.
+    ax.set_xlim3d([x_middle - 0.5*max_range, x_middle + 0.5*max_range])
+    ax.set_ylim3d([y_middle - 0.5*max_range, y_middle + 0.5*max_range])
+    ax.set_zlim3d([z_middle - 0.5*max_range, z_middle + 0.5*max_range])
 
-        x_range = abs(x_limits[1] - x_limits[0])
-        x_middle = np.mean(x_limits)
-        y_range = abs(y_limits[1] - y_limits[0])
-        y_middle = np.mean(y_limits)
-        z_range = abs(z_limits[1] - z_limits[0])
-        z_middle = np.mean(z_limits)
-
-        # The plot bounding box is a sphere in the sense of the infinity
-        # norm, hence I call half the max range the plot radius.
-        plot_radius = 0.5*max([x_range, y_range, z_range])
-
-        ax.set_xlim3d([x_middle - plot_radius, x_middle + plot_radius])
-        ax.set_ylim3d([y_middle - plot_radius, y_middle + plot_radius])
-        ax.set_zlim3d([z_middle - plot_radius, z_middle + plot_radius])
-    elif dim==2:
-        x_limits = ax.get_xlim()
-        y_limits = ax.get_ylim()
-
-        x_range = abs(x_limits[1] - x_limits[0])
-        x_middle = np.mean(x_limits)
-        y_range = abs(y_limits[1] - y_limits[0])
-        y_middle = np.mean(y_limits)
-
-        # The plot bounding box is a sphere in the sense of the infinity
-        # norm, hence I call half the max range the plot radius.
-        plot_radius = 0.5*max([x_range, y_range])
-
-        ax.set_xlim([x_middle - plot_radius, x_middle + plot_radius])
-        ax.set_ylim([y_middle - plot_radius, y_middle + plot_radius])
 
 def fix_ypr(point):
     return point
