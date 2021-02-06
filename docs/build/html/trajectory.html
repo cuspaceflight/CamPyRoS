@@ -5,7 +5,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>trajectory package &#8212; 6DOF Rocket Trajectory Simulation 0.0.1 documentation</title>
+    <title>&lt;name&gt; package &#8212; 6DOF Rocket Trajectory Simulation 0.0.1 documentation</title>
     
   <link rel="stylesheet" href="_static/css/index.73d71520a4ca3b99cfee5594769eaaae.css">
 
@@ -35,6 +35,7 @@
     <script src="_static/underscore.js"></script>
     <script src="_static/doctools.js"></script>
     <script src="_static/language_data.js"></script>
+    <link rel="shortcut icon" href="_static/favicon.ico"/>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Want to help out?" href="develop.html" />
@@ -65,7 +66,7 @@
         </li>
         
         <li class="nav-item active">
-            <a class="nav-link" href="">trajectory package</a>
+            <a class="nav-link" href=""><name> package</a>
         </li>
         
         <li class="nav-item ">
@@ -138,15 +139,7 @@
     <ul class="nav section-nav flex-column">
     
         <li class="nav-item toc-entry toc-h2">
-            <a href="#known-issues" class="nav-link">Known issues:</a>
-        </li>
-    
-        <li class="nav-item toc-entry toc-h2">
-            <a href="#coordinate-systems" class="nav-link">Coordinate systems:</a>
-        </li>
-    
-        <li class="nav-item toc-entry toc-h2">
-            <a href="#submodules" class="nav-link">Submodules</a>
+            <a href="#module-trajectory.main" class="nav-link">core module</a>
         </li>
     
         <li class="nav-item toc-entry toc-h2">
@@ -158,11 +151,61 @@
         </li>
     
         <li class="nav-item toc-entry toc-h2">
+            <a href="#gui-module" class="nav-link">gui module</a>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h2">
+            <a href="#module-trajectory.heating" class="nav-link">heating module</a><ul class="nav section-nav flex-column">
+                
+        <li class="nav-item toc-entry toc-h3">
+            <a href="#reference-material" class="nav-link">Reference material:</a>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h3">
+            <a href="#general-information" class="nav-link">General Information:</a>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h3">
+            <a href="#assumptions" class="nav-link">Assumptions:</a>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h3">
+            <a href="#known-issues" class="nav-link">Known issues:</a>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h3">
+            <a href="#things-i-wasn-t-sure-of" class="nav-link">Things I wasn’t sure of:</a>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h3">
+            <a href="#nomenclature-that-is-normally-used" class="nav-link">Nomenclature that is normally used:</a>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h3">
+            <a href="#subscripts" class="nav-link">Subscripts:</a>
+        </li>
+    
+            </ul>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h2">
             <a href="#module-trajectory.mass" class="nav-link">mass module</a>
         </li>
     
         <li class="nav-item toc-entry toc-h2">
+            <a href="#module-trajectory.motor" class="nav-link">motor module</a>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h2">
             <a href="#module-trajectory.plot" class="nav-link">plot module</a>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h2">
+            <a href="#module-trajectory.post" class="nav-link">post module</a>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h2">
+            <a href="#module-trajectory.slosh" class="nav-link">slosh module</a>
         </li>
     
         <li class="nav-item toc-entry toc-h2">
@@ -171,6 +214,10 @@
     
         <li class="nav-item toc-entry toc-h2">
             <a href="#module-trajectory.transforms" class="nav-link">transforms module</a>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h2">
+            <a href="#module-trajectory" class="nav-link">Module contents</a>
         </li>
     
     </ul>
@@ -186,33 +233,32 @@
               
               <div>
                 
-  <div class="section" id="module-trajectory.main">
-<span id="trajectory-package"></span><h1>trajectory package<a class="headerlink" href="#module-trajectory.main" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="name-package">
+<h1>&lt;name&gt; package<a class="headerlink" href="#name-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="module-trajectory.main">
+<span id="core-module"></span><h2>core module<a class="headerlink" href="#module-trajectory.main" title="Permalink to this headline">¶</a></h2>
 <p>6DOF Trajectory Simulator
 Contains the classes and functions for the core trajectory simulation. SI units unless stated otherwise.</p>
-<p class="rubric">Example</p>
-<dl class="simple">
-<dt>A small, single stage rocket can be found in examples, to run</dt><dd><p>$ python example/example.py</p>
-</dd>
-</dl>
-<div class="section" id="known-issues">
-<h2>Known issues:<a class="headerlink" href="#known-issues" title="Permalink to this headline">¶</a></h2>
+<p class="rubric">Notes</p>
+<p>Known issues:</p>
 <ul class="simple">
 <li><p>Unsure about the use of “dx” in “scipy.misc.derivative(self.mass_model.mass, time, dx=1)” when calculating mdot</p></li>
 <li><p>Possible inconsistency in the definition of the launch site coordinate system, and whether the origin is at alt=0 or alt=launch_site.alt. I haven’t thoroughly checked for this inconsistency yet.</p></li>
 </ul>
-</div>
-<div class="section" id="coordinate-systems">
-<h2>Coordinate systems:<a class="headerlink" href="#coordinate-systems" title="Permalink to this headline">¶</a></h2>
-<dl class="simple">
-<dt>Body (x_b, y_b, z_b)</dt><dd><ul class="simple">
+<p>Coordinate systems:</p>
+<ul class="simple">
+<li><dl class="simple">
+<dt>Body (x_b, y_b, z_b)</dt><dd><ul>
 <li><p>Origin on rocket</p></li>
 <li><p>Rotates with the rocket.</p></li>
 <li><p>y points east and z north at take off (before rail alignment is accounted for) x up.</p></li>
 <li><p>x is along the “long” axis of the rocket.</p></li>
 </ul>
 </dd>
-<dt>Launch site (x_l, y_l, z_l):</dt><dd><ul class="simple">
+</dl>
+</li>
+<li><dl class="simple">
+<dt>Launch site (x_l, y_l, z_l):</dt><dd><ul>
 <li><p>Origin has the launch site’s longitude and latitude, but is at altitude = 0.</p></li>
 <li><p>Rotates with the Earth.</p></li>
 <li><p>z points up (normal to the surface of the Earth).</p></li>
@@ -220,7 +266,10 @@ Contains the classes and functions for the core trajectory simulation. SI units 
 <li><p>x points South (tangentially to the surface of the Earth).</p></li>
 </ul>
 </dd>
-<dt>Inertial (x_i, y_i, z_i):</dt><dd><ul class="simple">
+</dl>
+</li>
+<li><dl class="simple">
+<dt>Inertial (x_i, y_i, z_i):</dt><dd><ul>
 <li><p>Origin at centre of the Earth.</p></li>
 <li><p>Does not rotate.</p></li>
 <li><p>z points to North from the centre of Earth.</p></li>
@@ -229,33 +278,30 @@ Contains the classes and functions for the core trajectory simulation. SI units 
 </ul>
 </dd>
 </dl>
+</li>
+</ul>
 <dl class="py class">
 <dt id="trajectory.main.LaunchSite">
 <em class="property">class </em><code class="sig-prename descclassname">trajectory.main.</code><code class="sig-name descname">LaunchSite</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">rail_length</span></em>, <em class="sig-param"><span class="n">rail_yaw</span></em>, <em class="sig-param"><span class="n">rail_pitch</span></em>, <em class="sig-param"><span class="n">alt</span></em>, <em class="sig-param"><span class="n">longi</span></em>, <em class="sig-param"><span class="n">lat</span></em>, <em class="sig-param"><span class="n">variable_wind</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">default_wind</span><span class="o">=</span><span class="default_value">array([0, 0, 0])</span></em>, <em class="sig-param"><span class="n">wind_data_loc</span><span class="o">=</span><span class="default_value">'data/wind/gfs'</span></em>, <em class="sig-param"><span class="n">run_date</span><span class="o">=</span><span class="default_value">'20210206'</span></em>, <em class="sig-param"><span class="n">forcast_time</span><span class="o">=</span><span class="default_value">'00'</span></em>, <em class="sig-param"><span class="n">forcast_plus_time</span><span class="o">=</span><span class="default_value">'000'</span></em>, <em class="sig-param"><span class="n">fast_wind</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="headerlink" href="#trajectory.main.LaunchSite" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
-<p>Object holding the launch site information
-:param rail_length: Length of launch rail /m
-:type rail_length: float
-:param rail_yaw: Angle of rotation (using a right hand rule) about the launch site z-axis /degrees. Examples: rail_yaw = 0 points South, rail_yaw = 90 points East.
-:type rail_yaw: float
-:param rail_pitch: Angle between the rail and the launch site z-axis (i.e. angle to the vertical) /degrees. Example: rail_pitch = 0 points up.
-:type rail_pitch: float
-:param alt: Altitude /m
-:type alt: float
-:param longi: Londditude /degrees
-:type longi: float
-:param lat: Latitude /degrees
-:type lat: float
-:param variable: Vary the wind or just use defaut for whole flight, defaults to True
-:type variable: bool, optional
-:param default: Default wind vector [wind_x,wind_y,wind_z]/m/s, defauts to [0,0,0]
-:type default: numpy array, optional
-:param run_date: Date for forcast data in format YYYYMMDD, defaults to current date
-:type run_date: string, optional
-:param forcast_time: Forcast run time, must be 00,06,12 or 18, defaults to 00
-:type forcast_time: string, optional
-:param forcast_plus_time: Hours forcast forward from forcast time, must be three digits between 000 and 123 (?), defaults to 000
-:type forcast_plus_time: string, optional</p>
+<p>Object holding the launch site information</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>rail_length</strong> (<em>float</em>) – Length of launch rail /m</p></li>
+<li><p><strong>rail_yaw</strong> (<em>float</em>) – Angle of rotation (using a right hand rule) about the launch site z-axis /degrees. Examples: rail_yaw = 0 points South, rail_yaw = 90 points East.</p></li>
+<li><p><strong>rail_pitch</strong> (<em>float</em>) – Angle between the rail and the launch site z-axis (i.e. angle to the vertical) /degrees. Example: rail_pitch = 0 points up.</p></li>
+<li><p><strong>alt</strong> (<em>float</em>) – Altitude /m</p></li>
+<li><p><strong>longi</strong> (<em>float</em>) – Londditude /degrees</p></li>
+<li><p><strong>lat</strong> (<em>float</em>) – Latitude /degrees</p></li>
+<li><p><strong>variable</strong> (<em>bool</em><em>, </em><em>optional</em>) – Vary the wind or just use defaut for whole flight, defaults to True</p></li>
+<li><p><strong>default</strong> (<em>numpy array</em><em>, </em><em>optional</em>) – Default wind vector [wind_x,wind_y,wind_z]/m/s, defauts to [0,0,0]</p></li>
+<li><p><strong>run_date</strong> (<em>string</em><em>, </em><em>optional</em>) – Date for forcast data in format YYYYMMDD, defaults to current date</p></li>
+<li><p><strong>forcast_time</strong> (<em>string</em><em>, </em><em>optional</em>) – Forcast run time, must be 00,06,12 or 18, defaults to 00</p></li>
+<li><p><strong>forcast_plus_time</strong> (<em>string</em><em>, </em><em>optional</em>) – Hours forcast forward from forcast time, must be three digits between 000 and 123 (?), defaults to 000</p></li>
+</ul>
+</dd>
+</dl>
 <dl class="py attribute">
 <dt id="trajectory.main.LaunchSite.rail_length">
 <code class="sig-name descname">rail_length</code><a class="headerlink" href="#trajectory.main.LaunchSite.rail_length" title="Permalink to this definition">¶</a></dt>
@@ -339,13 +385,13 @@ Contains the classes and functions for the core trajectory simulation. SI units 
 <dt id="trajectory.main.Parachute">
 <em class="property">class </em><code class="sig-prename descclassname">trajectory.main.</code><code class="sig-name descname">Parachute</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">main_s</span></em>, <em class="sig-param"><span class="n">main_c_d</span></em>, <em class="sig-param"><span class="n">drogue_s</span></em>, <em class="sig-param"><span class="n">drogue_c_d</span></em>, <em class="sig-param"><span class="n">main_alt</span></em>, <em class="sig-param"><span class="n">attach_distance</span></em><span class="sig-paren">)</span><a class="headerlink" href="#trajectory.main.Parachute" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
-<p>Object holding the parachute information
-.. note:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">The</span> <span class="n">parachute</span> <span class="n">model</span> <span class="n">does</span> <span class="ow">not</span> <span class="n">currently</span> <span class="n">simulate</span> <span class="n">the</span> <span class="n">true</span> <span class="n">orientation</span> <span class="n">of</span> <span class="n">the</span> <span class="n">rocket</span> <span class="n">instead</span> <span class="n">it</span> <span class="n">orientates</span>
-<span class="n">it</span> <span class="n">such</span> <span class="n">that</span> <span class="n">it</span> <span class="n">faces</span> <span class="n">back</span> <span class="n">first</span> <span class="n">into</span> <span class="n">the</span> <span class="n">wind</span> <span class="p">(</span><span class="k">as</span> <span class="n">intuition</span> <span class="n">would</span> <span class="n">suggest</span><span class="p">)</span><span class="o">.</span>
-<span class="n">This</span> <span class="ow">is</span> <span class="n">due</span> <span class="n">to</span> <span class="n">problems</span> <span class="n">trying</span> <span class="n">to</span> <span class="n">impliment</span> <span class="n">the</span> <span class="n">chute</span> <span class="n">exerting</span> <span class="n">torque</span> <span class="n">on</span> <span class="n">the</span> <span class="n">body</span><span class="p">,</span> <span class="n">possibly</span> <span class="n">because</span> <span class="n">it</span> <span class="n">has</span> <span class="n">to</span> <span class="n">flip</span>
-<span class="n">the</span> <span class="n">rocket</span> <span class="n">over</span> <span class="n">at</span> <span class="n">apogee</span>
-</pre></div>
+<p>Object holding the parachute information</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The parachute model does not currently simulate the true orientation of the rocket instead it orientates
+it such that it faces back first into the wind (as intuition would suggest).
+This is due to problems trying to impliment the chute exerting torque on the body, possibly because it has to flip
+the rocket over at apogee</p>
 </div>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -448,25 +494,22 @@ Area /m^2</p>
 <dt id="trajectory.main.Rocket">
 <em class="property">class </em><code class="sig-prename descclassname">trajectory.main.</code><code class="sig-name descname">Rocket</code><span class="sig-paren">(</span><em class="sig-param">mass_model</em>, <em class="sig-param">motor</em>, <em class="sig-param">aero</em>, <em class="sig-param">launch_site</em>, <em class="sig-param">h=0.01</em>, <em class="sig-param">variable=True</em>, <em class="sig-param">rtol=1e-07</em>, <em class="sig-param">atol=1e-14</em>, <em class="sig-param">parachute=&lt;trajectory.main.Parachute object&gt;</em>, <em class="sig-param">alt_poll_interval=1</em>, <em class="sig-param">thrust_vector=array([1</em>, <em class="sig-param">0</em>, <em class="sig-param">0])</em>, <em class="sig-param">errors={'density': 1.0</em>, <em class="sig-param">'gravity': 1.0</em>, <em class="sig-param">'pressure': 1.0</em>, <em class="sig-param">'speed_of_sound': 1.0}</em><span class="sig-paren">)</span><a class="headerlink" href="#trajectory.main.Rocket" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
-<p>The rocket and key simulation components
-:param mass_model: Mass model object, must have mass, ixx, iyy, izz, cog class methods which return them at time
-:type mass_model: Mass Model Object
-:param motor: Motor object that stores peformace parameters over time
-:type motor: Motor Object
-:param aero: Most have area, cop, cn and ca class methods which return that at time
-:type aero: AeroData Object
-:param launch_site: Stores launch site parameters
-:type launch_site: Launch site object
-:param h: Timestep for integration (only required when variable is off), defaults ot 0.01 /s
-:type h: float, optional
-:param variable: Adaptive timesteps?, defaults to False
-:type variable: bool, optional
-:param rtol: Relative error tollerance for integration /
-:type rtol: float
-:param atol: Absolute error tollerance for integration /
-:type atol: float
-:param errors: Multiplied factor for the gravity, pressure, density and speed of sound used in the model, defaults to {“gravity”:1.0,”pressure”:1.0,”density”:1.0,”speed_of_sound”:1.0}
-:type errors: dictionary, optional</p>
+<p>The rocket and key simulation components</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>mass_model</strong> (<em>Mass Model Object</em>) – Mass model object, must have mass, ixx, iyy, izz, cog class methods which return them at time</p></li>
+<li><p><strong>motor</strong> (<em>Motor Object</em>) – Motor object that stores peformace parameters over time</p></li>
+<li><p><strong>aero</strong> (<em>AeroData Object</em>) – Most have area, cop, cn and ca class methods which return that at time</p></li>
+<li><p><strong>launch_site</strong> (<em>Launch site object</em>) – Stores launch site parameters</p></li>
+<li><p><strong>h</strong> (<em>float</em><em>, </em><em>optional</em>) – Timestep for integration (only required when variable is off), defaults ot 0.01 /s</p></li>
+<li><p><strong>variable</strong> (<em>bool</em><em>, </em><em>optional</em>) – Adaptive timesteps?, defaults to False</p></li>
+<li><p><strong>rtol</strong> (<em>float</em>) – Relative error tollerance for integration /</p></li>
+<li><p><strong>atol</strong> (<em>float</em>) – Absolute error tollerance for integration /</p></li>
+<li><p><strong>errors</strong> (<em>dictionary</em><em>, </em><em>optional</em>) – Multiplied factor for the gravity, pressure, density and speed of sound used in the model, defaults to {“gravity”:1.0,”pressure”:1.0,”density”:1.0,”speed_of_sound”:1.0}</p></li>
+</ul>
+</dd>
+</dl>
 <dl class="py attribute">
 <dt id="trajectory.main.Rocket.mass_model">
 <code class="sig-name descname">mass_model</code><a class="headerlink" href="#trajectory.main.Rocket.mass_model" title="Permalink to this definition">¶</a></dt>
@@ -657,8 +700,8 @@ Area /m^2</p>
 <dl class="py method">
 <dt id="trajectory.main.Rocket.check_phase">
 <code class="sig-name descname">check_phase</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">debug</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="headerlink" href="#trajectory.main.Rocket.check_phase" title="Permalink to this definition">¶</a></dt>
-<dd><p>Checks phase of flight between steps
-.. rubric:: Notes</p>
+<dd><p>Checks phase of flight between steps</p>
+<p class="rubric">Notes</p>
 <p>-Since this only checks between steps there may be a very short period where the rocket is still orientated as if its still on the rail when it is not
 -May look like the rocket leaves the rail at an altitude greater than the rail length for this reason</p>
 <dl class="field-list simple">
@@ -712,8 +755,8 @@ zbdot[0], zbdot[1], zbdot[2]]</p>
 <dl class="py method">
 <dt id="trajectory.main.Rocket.run">
 <code class="sig-name descname">run</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">max_time</span><span class="o">=</span><span class="default_value">1000</span></em>, <em class="sig-param"><span class="n">debug</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">to_json</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="headerlink" href="#trajectory.main.Rocket.run" title="Permalink to this definition">¶</a></dt>
-<dd><p>Runs the rocket simulation
-.. rubric:: Notes</p>
+<dd><p>Runs the rocket simulation</p>
+<p class="rubric">Notes</p>
 <p>-Uses the scipy DOP853 O(h^8) integrator</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -978,12 +1021,13 @@ it becomes inaccurate</p>
 <dl class="py function">
 <dt id="trajectory.main.from_json">
 <code class="sig-prename descclassname">trajectory.main.</code><code class="sig-name descname">from_json</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">directory</span></em><span class="sig-paren">)</span><a class="headerlink" href="#trajectory.main.from_json" title="Permalink to this definition">¶</a></dt>
-<dd><p>Imports simulation data from a JSON file
-:param directory: The directory of the simulation data .JSON file
-:type directory: string</p>
+<dd><p>Imports simulation data from a JSON file</p>
 <dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p>Record of simulation, contains interial position and velocity, angular velocity in body coordinates, orientation and events (e.g. parachute).
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>directory</strong> (<em>string</em>) – The directory of the simulation data .JSON file</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Record of simulation, contains interial position and velocity, angular velocity in body coordinates, orientation and events (e.g. parachute).
 Most information can be derived from this in post processing.
 “time” : array
 List of times that all the data corresponds to /s
@@ -998,8 +1042,8 @@ List of angular velocity vectors, in body coordinates [x, y, z] /rad/s
 “events” : array:
 List of useful events</p>
 </dd>
-<dt class="field-even">Return type</dt>
-<dd class="field-even"><p>pandas array</p>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>pandas array</p>
 </dd>
 </dl>
 </dd></dl>
@@ -1068,9 +1112,6 @@ List of useful events</p>
 </dl>
 </dd></dl>
 
-</div>
-<div class="section" id="submodules">
-<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
 </div>
 <div class="section" id="module-trajectory.aero">
 <span id="aero-module"></span><h2>aero module<a class="headerlink" href="#module-trajectory.aero" title="Permalink to this headline">¶</a></h2>
@@ -1315,6 +1356,745 @@ C = pitch damping coefficient.</p>
 </div>
 <div class="section" id="module-trajectory.constants">
 <span id="constants-module"></span><h2>constants module<a class="headerlink" href="#module-trajectory.constants" title="Permalink to this headline">¶</a></h2>
+<p>Earth constants</p>
+</div>
+<div class="section" id="gui-module">
+<h2>gui module<a class="headerlink" href="#gui-module" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-trajectory.heating">
+<span id="heating-module"></span><h2>heating module<a class="headerlink" href="#module-trajectory.heating" title="Permalink to this headline">¶</a></h2>
+<p>Implementation of NASA program NQLDW019. All values are stored in SI units unless otherwise stated.</p>
+<div class="section" id="reference-material">
+<h3>Reference material:<a class="headerlink" href="#reference-material" title="Permalink to this headline">¶</a></h3>
+<p>[1] - HEATING ON SOUNDING ROCKET TANGENT OGIVE NOSES (NASA) - <a class="reference external" href="https://arc.aiaa.org/doi/pdf/10.2514/3.62081">https://arc.aiaa.org/doi/pdf/10.2514/3.62081</a>
+[2] - TANGENT OGIVE NOSE AERODYNAMIC HEATING PROGRAM - NQLDW019 (NASA) - <a class="reference external" href="https://ntrs.nasa.gov/citations/19730063810">https://ntrs.nasa.gov/citations/19730063810</a></p>
+<ul class="simple">
+<li><p>There seems to be a typo in Equation (20) in Reference [1] (there’s a missing bracket). The correct version seems to be present in Reference [2].</p></li>
+</ul>
+</div>
+<div class="section" id="general-information">
+<h3>General Information:<a class="headerlink" href="#general-information" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p>Station 1 is the nosecone tip, 11 is at the nosecone base, and 12-15 are beyond the base.</p></li>
+<li><p>If the rocket is subsonic, or the post-oblique-shock flow is subsonic, the simulation skips the steps (NaN will usually be stored for the data for these steps, so it doesn’t show up in graphs).</p></li>
+</ul>
+</div>
+<div class="section" id="assumptions">
+<h3>Assumptions:<a class="headerlink" href="#assumptions" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p>Currently assumes an oblique shock in front of the tangent ogive nosecone - may be better to assume a cone shock.</p></li>
+<li><p>If a variable wall temperature is used, the nosecone is modelled as a very simple lumped mass for temperature rises.</p></li>
+<li><p>Uniform wall temperature throughout the nose cone.</p></li>
+<li><p>Zero angle of attack. (if non-zero angle of attack is important, it can be implemented relatively simply and is explained in <a class="reference external" href="https://ntrs.nasa.gov/citations/19730063810">https://ntrs.nasa.gov/citations/19730063810</a>)</p></li>
+<li><p>Constant Cp and Cv (hence constant gamma)</p></li>
+</ul>
+</div>
+<div class="section" id="known-issues">
+<h3>Known issues:<a class="headerlink" href="#known-issues" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p>The thermo module seems to have trouble finding the viscosity at some point - I think in post normal-shockwave conditions.</p></li>
+<li><p>I have not checked my model for wall temperature rise against any real data or the NASA examples.</p></li>
+</ul>
+</div>
+<div class="section" id="things-i-wasn-t-sure-of">
+<h3>Things I wasn’t sure of:<a class="headerlink" href="#things-i-wasn-t-sure-of" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><dl class="simple">
+<dt>For the lumped mass wall temperature rise model, I improvised a way to deal with the infinite qdot at the nose tip (but am not sure how valid it is)</dt><dd><p>I simply assumed the heat transfer rates at Station 1 (the nose tip) to be the same as those at Station 2</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>Calculating for H*(0) - Equation (18) from <a class="reference external" href="https://arc.aiaa.org/doi/pdf/10.2514/3.62081">https://arc.aiaa.org/doi/pdf/10.2514/3.62081</a></dt><dd><p>I think that the rho(x) and mu(x) in Equation (18) are just rho(0) and mu(0), since they’re evaluated at ‘x=0’. This seemed to give the right values.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>Calculating H*(x) - Equation (17) from <a class="reference external" href="https://arc.aiaa.org/doi/pdf/10.2514/3.62081">https://arc.aiaa.org/doi/pdf/10.2514/3.62081</a></dt><dd><p>I think I did it right but the integration was a bit confusing</p>
+</dd>
+</dl>
+</li>
+<li><p>Some equations only work in Imperial units. I believe I’ve taken care of them all, but if problems arise, that might be worth looking into</p></li>
+</ul>
+</div>
+<div class="section" id="nomenclature-that-is-normally-used">
+<h3>Nomenclature that is normally used:<a class="headerlink" href="#nomenclature-that-is-normally-used" title="Permalink to this headline">¶</a></h3>
+<p>T - Temperature (K)
+rho - Density (kg/m^3)
+P - pressure (Pa)
+q or qdot - Heat transfer rate per unit area (W/m^2)
+Q or Qdot - Heat transfer rate (W)</p>
+<p>R - Gas constant (J/kg/K)
+Cp or cp - Specific heat capacity at constant pressure (J/kg/K)
+gamma - Ratio of specific heats (Cp/Cv)
+Pr - Prandtl number
+mu - Viscosity (Pa s)
+k - Thermal conductivity (W/m/K, I think)</p>
+<p>V - Velocity (m/s)
+M - Mach number
+Re - Reynolds number
+nu - Prandtl-Meyer function evaluated at a given Mach and gamma</p>
+<p>H - As defined in Equations (17) and (18) of Reference [1]
+RN - Hemispherical nosecone radius (m)
+dVdx0 - As defined in Equation (19) or Reference [1], units of (1/s) if I recall correctly</p>
+</div>
+<div class="section" id="subscripts">
+<h3>Subscripts:<a class="headerlink" href="#subscripts" title="Permalink to this headline">¶</a></h3>
+<p>e or x - “Local” value. This usually means it’s taken at the edge of the boundary layer.
+inf - Freestream (i.e. atmospheric) value.
+ref or star - At the ‘reference’ enthalpy (usually marked with a star, e.g. T*, in the NASA documents). I’m not sure but I think this might be a sort of average boundary layer temperature.
+0 - At the stagnation point for a hemispherical nose cone.
+w - At wall temperature and local pressure.
+rec - At ‘recovery enthalpy’, which is the same thing as at the ‘adiabatic wall temperature’ I believe.
+turb - With a turbulent boundary layer
+lam - With a laminar boundary layer.</p>
+<dl class="py class">
+<dt id="trajectory.heating.AeroHeatingAnalysis">
+<em class="property">class </em><code class="sig-prename descclassname">trajectory.heating.</code><code class="sig-name descname">AeroHeatingAnalysis</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">tangent_ogive</span></em>, <em class="sig-param"><span class="n">trajectory_data</span></em>, <em class="sig-param"><span class="n">rocket</span></em>, <em class="sig-param"><span class="n">fixed_wall_temperature</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">starting_temperature</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">nosecone_mass</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">specific_heat_capacity</span><span class="o">=</span><span class="default_value">900</span></em>, <em class="sig-param"><span class="n">turbulent_transition_Rex</span><span class="o">=</span><span class="default_value">7500000.0</span></em><span class="sig-paren">)</span><a class="headerlink" href="#trajectory.heating.AeroHeatingAnalysis" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Object used to run aerodynamic heating analyses</p>
+<dl class="simple">
+<dt>tangent_ogive<span class="classifier">TangentOgive</span></dt><dd><p>TangentOgive object specifying the nosecone geometry</p>
+</dd>
+<dt>trajectory_data<span class="classifier">dict or pandas DataFrame</span></dt><dd><p>Data on the rocket’s trajectory, needs to have “pos_i”, “vel_i” and “time”.</p>
+</dd>
+<dt>rocket<span class="classifier">Rocket</span></dt><dd><p>Rocket object. It’s only needed to get LaunchSite data for coordinate transforms.</p>
+</dd>
+<dt>fixed_wall_temperature<span class="classifier">bool</span></dt><dd><p>If True, the wall temperature is fixed to its starting value. Otherwise a simple model is used to model its temperature change.</p>
+</dd>
+<dt>starting_temperature<span class="classifier">float, optional</span></dt><dd><p>Temperature that the nose cone starts with (K). Defaults to None, in which case the rocket starts with the local atmospheric temperature.</p>
+</dd>
+<dt>nosecone_mass<span class="classifier">float, optional</span></dt><dd><p>Mass of the nosecone (kg) - used to find its heat capacity. Only needed if you’re modelling variable temperatures</p>
+</dd>
+<dt>specific_heat_capacity<span class="classifier">float, optional</span></dt><dd><p>Specific heat capacity of the nosecone (J/kg/K). Defaults to an approximate value for aluminium.</p>
+</dd>
+<dt>turbulent_transition_Rex<span class="classifier">float, optional</span></dt><dd><p>Local Reynolds number at which the boundary layer transition from laminar to turbulent. Defaults to 7.5e6.</p>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt id="trajectory.heating.AeroHeatingAnalysis.i">
+<code class="sig-name descname">i</code><a class="headerlink" href="#trajectory.heating.AeroHeatingAnalysis.i" title="Permalink to this definition">¶</a></dt>
+<dd><p>Current index in the timestep array.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="trajectory.heating.AeroHeatingAnalysis.tangent_ogive">
+<code class="sig-name descname">tangent_ogive</code><a class="headerlink" href="#trajectory.heating.AeroHeatingAnalysis.tangent_ogive" title="Permalink to this definition">¶</a></dt>
+<dd><p>A TangentOgive object containing nosecone geometry data</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p><a class="reference internal" href="#trajectory.heating.TangentOgive" title="trajectory.heating.TangentOgive">TangentOgive</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="trajectory.heating.AeroHeatingAnalysis.trajectory_data">
+<code class="sig-name descname">trajectory_data</code><a class="headerlink" href="#trajectory.heating.AeroHeatingAnalysis.trajectory_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Contains trajectory data.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>dict or pandas DataFrame</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="trajectory.heating.AeroHeatingAnalysis.trajectory_dict">
+<code class="sig-name descname">trajectory_dict</code><a class="headerlink" href="#trajectory.heating.AeroHeatingAnalysis.trajectory_dict" title="Permalink to this definition">¶</a></dt>
+<dd><p>Same data trajectory_data, but converted to a dictionary if it wasn’t already one.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="trajectory.heating.AeroHeatingAnalysis.rocket">
+<code class="sig-name descname">rocket</code><a class="headerlink" href="#trajectory.heating.AeroHeatingAnalysis.rocket" title="Permalink to this definition">¶</a></dt>
+<dd><p>Rocket object used to run the simulation. Its only purpose is to get LaunchSite data for coordinate transforms.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p><a class="reference internal" href="#trajectory.main.Rocket" title="trajectory.main.Rocket">Rocket</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="trajectory.heating.AeroHeatingAnalysis.fixed_wall_temperature">
+<code class="sig-name descname">fixed_wall_temperature</code><a class="headerlink" href="#trajectory.heating.AeroHeatingAnalysis.fixed_wall_temperature" title="Permalink to this definition">¶</a></dt>
+<dd><p>If True, the wall temperature is fixed to its starting value. Otherwise a simple model is used to model its temperature change.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="trajectory.heating.AeroHeatingAnalysis.turbulent_transition_Rex">
+<code class="sig-name descname">turbulent_transition_Rex</code><a class="headerlink" href="#trajectory.heating.AeroHeatingAnalysis.turbulent_transition_Rex" title="Permalink to this definition">¶</a></dt>
+<dd><p>Local Reynolds number at which the boundary layer transition from laminar to turbulent. Defaults to 7.5e6.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>float, optional</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="trajectory.heating.AeroHeatingAnalysis.heat_capacity">
+<code class="sig-name descname">heat_capacity</code><a class="headerlink" href="#trajectory.heating.AeroHeatingAnalysis.heat_capacity" title="Permalink to this definition">¶</a></dt>
+<dd><p>Heat capacity the nosecone (J/K). Is caclulated by doing specific_heat_capacity*nosecone_mass.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="trajectory.heating.AeroHeatingAnalysis.M">
+<code class="sig-name descname">M</code><a class="headerlink" href="#trajectory.heating.AeroHeatingAnalysis.M" title="Permalink to this definition">¶</a></dt>
+<dd><p>Local Mach number at each station and timestep. Has dimensions (15, N) where N is the length of the “time” array in trajectory_dict.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>numpy ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="trajectory.heating.AeroHeatingAnalysis.P">
+<code class="sig-name descname">P</code><a class="headerlink" href="#trajectory.heating.AeroHeatingAnalysis.P" title="Permalink to this definition">¶</a></dt>
+<dd><p>Local static pressure at each station and timestep. Has dimensions (15, N) where N is the length of the “time” array in trajectory_dict.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>numpy ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="trajectory.heating.AeroHeatingAnalysis.Te">
+<code class="sig-name descname">Te</code><a class="headerlink" href="#trajectory.heating.AeroHeatingAnalysis.Te" title="Permalink to this definition">¶</a></dt>
+<dd><p>Temperature at the edge of the boundary layer, at each station and timestep. Has dimensions (15, N) where N is the length of the “time” array in trajectory_dict.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>numpy ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="trajectory.heating.AeroHeatingAnalysis.Tw">
+<code class="sig-name descname">Tw</code><a class="headerlink" href="#trajectory.heating.AeroHeatingAnalysis.Tw" title="Permalink to this definition">¶</a></dt>
+<dd><p>Wall temperature at each timestep. Local static pressure at each station and timestep. Has dimensions (N) where N is the length of the “time” array in trajectory_dict.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>numpy ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="trajectory.heating.AeroHeatingAnalysis.Trec_lam">
+<code class="sig-name descname">Trec_lam</code><a class="headerlink" href="#trajectory.heating.AeroHeatingAnalysis.Trec_lam" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adiabatic wall tempearture (also known as the ‘recovery temperature’) for a laminar boundary layer, at each station and timestep. Has dimensions (15, N) where N is the length of the “time” array in trajectory_dict.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>numpy ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="trajectory.heating.AeroHeatingAnalysis.Trec_turb">
+<code class="sig-name descname">Trec_turb</code><a class="headerlink" href="#trajectory.heating.AeroHeatingAnalysis.Trec_turb" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adiabatic wall tempearture (also known as the ‘recovery temperature’) for a turbulent boundary layer, at each station and timestep. Has dimensions (15, N) where N is the length of the “time” array in trajectory_dict.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>numpy ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="trajectory.heating.AeroHeatingAnalysis.Hstar_function">
+<code class="sig-name descname">Hstar_function</code><a class="headerlink" href="#trajectory.heating.AeroHeatingAnalysis.Hstar_function" title="Permalink to this definition">¶</a></dt>
+<dd><p>Function that needs to be integrated to get H*(x), as defined in the NASA documents. This is not equal to H*(x) itself. This is stored because it’s needed for integration. Has dimensions (15, N) where N is the length of the “time” array in trajectory_dict.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>numpy ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="trajectory.heating.AeroHeatingAnalysis.Rex">
+<code class="sig-name descname">Rex</code><a class="headerlink" href="#trajectory.heating.AeroHeatingAnalysis.Rex" title="Permalink to this definition">¶</a></dt>
+<dd><p>Local Reynolds number at each station and timestep. Has dimensions (15, N) where N is the length of the “time” array in trajectory_dict.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>numpy ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="trajectory.heating.AeroHeatingAnalysis.q_lam">
+<code class="sig-name descname">q_lam</code><a class="headerlink" href="#trajectory.heating.AeroHeatingAnalysis.q_lam" title="Permalink to this definition">¶</a></dt>
+<dd><p>Heat transfer rate (W/m^2) with a laminar boundary layer, at each station and timestep. Has dimensions (15, N) where N is the length of the “time” array in trajectory_dict.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>numpy ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="trajectory.heating.AeroHeatingAnalysis.q_turb">
+<code class="sig-name descname">q_turb</code><a class="headerlink" href="#trajectory.heating.AeroHeatingAnalysis.q_turb" title="Permalink to this definition">¶</a></dt>
+<dd><p>Heat transfer rate (W/m^2) with a turbulent boundary layer, at each station and timestep. Has dimensions (15, N) where N is the length of the “time” array in trajectory_dict.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>numpy ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="trajectory.heating.AeroHeatingAnalysis.q0_hemispherical_nose">
+<code class="sig-name descname">q0_hemispherical_nose</code><a class="headerlink" href="#trajectory.heating.AeroHeatingAnalysis.q0_hemispherical_nose" title="Permalink to this definition">¶</a></dt>
+<dd><p>Heat transfer rate (W/m^2) at the stagnation point at each timestep, if we were using a hemispherical nosecone. Has dimensions (N) where N is the length of the “time” array in trajectory_dict.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>numpy ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="trajectory.heating.AeroHeatingAnalysis.from_json">
+<code class="sig-name descname">from_json</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">directory</span></em><span class="sig-paren">)</span><a class="headerlink" href="#trajectory.heating.AeroHeatingAnalysis.from_json" title="Permalink to this definition">¶</a></dt>
+<dd><p>Imports data from a .JSON file (which normally would have been produced using AeroHeatingAnalysis.to_json) and uses it to fill the data attributes.</p>
+<dl class="simple">
+<dt>directory<span class="classifier">str</span></dt><dd><p>Directory to the .JSON file you want to import aerodynamic heating data from.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="trajectory.heating.AeroHeatingAnalysis.plot_fluid_properties">
+<code class="sig-name descname">plot_fluid_properties</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">i</span><span class="o">=</span><span class="default_value">0</span></em>, <em class="sig-param"><span class="n">y_limit_scaling</span><span class="o">=</span><span class="default_value">1.5</span></em>, <em class="sig-param"><span class="n">automatic_rescaling</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span><a class="headerlink" href="#trajectory.heating.AeroHeatingAnalysis.plot_fluid_properties" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plots fluid properties at along the nosecone (Static pressures, temperatures, Mach numbers). Has an interactive slider that you can use to browse through different indexes of the trajectory_dict[“time”] array.</p>
+<dl class="simple">
+<dt>i<span class="classifier">int</span></dt><dd><p>The trajectory_dict[“time”] index to start the plot at. Defaults to 0.</p>
+</dd>
+<dt>y_limit_scaling<span class="classifier">float</span></dt><dd><p>Used to scale the y-limits on the plots. This is only used if automatic_rescaling = False.</p>
+</dd>
+<dt>automatic_rescaling<span class="classifier">bool</span></dt><dd><p>If True, the axes scales are redrawn every time you move the slider to a new position. If False, the software attempts to find a set of axes limits that are acceptable at all datapoints.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="trajectory.heating.AeroHeatingAnalysis.plot_heat_transfer">
+<code class="sig-name descname">plot_heat_transfer</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">i</span><span class="o">=</span><span class="default_value">0</span></em>, <em class="sig-param"><span class="n">y_limit_scaling</span><span class="o">=</span><span class="default_value">1.5</span></em>, <em class="sig-param"><span class="n">automatic_rescaling</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span><a class="headerlink" href="#trajectory.heating.AeroHeatingAnalysis.plot_heat_transfer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plots heat transfer along the nosecone. Has an interactive slider that you can use to browse through different indexes of the trajectory_dict[“time”] array.</p>
+<dl class="simple">
+<dt>i<span class="classifier">int</span></dt><dd><p>The trajectory_dict[“time”] index to start the plot at. Defaults to 0.</p>
+</dd>
+<dt>y_limit_scaling<span class="classifier">float</span></dt><dd><p>Used to scale the y-limits on the plots. This is only used if automatic_rescaling = False.</p>
+</dd>
+<dt>automatic_rescaling<span class="classifier">bool</span></dt><dd><p>If True, the axes scales are redrawn every time you move the slider to a new position. If False, the software attempts to find a set of axes limits that are acceptable at all datapoints.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="trajectory.heating.AeroHeatingAnalysis.plot_station">
+<code class="sig-name descname">plot_station</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">station_number</span><span class="o">=</span><span class="default_value">10</span></em>, <em class="sig-param"><span class="n">imax</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#trajectory.heating.AeroHeatingAnalysis.plot_station" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plots data at a given station on the nosecone.</p>
+<dl class="simple">
+<dt>station_number<span class="classifier">int</span></dt><dd><p>Station number (1-15) to plot data at.</p>
+</dd>
+<dt>imax<span class="classifier">int</span></dt><dd><p>Maximum index (of the trajectory_dict[“time”] array) to plot to.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="trajectory.heating.AeroHeatingAnalysis.run">
+<code class="sig-name descname">run</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">number_of_steps</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">starting_index</span><span class="o">=</span><span class="default_value">0</span></em>, <em class="sig-param"><span class="n">print_style</span><span class="o">=</span><span class="default_value">'minimal'</span></em><span class="sig-paren">)</span><a class="headerlink" href="#trajectory.heating.AeroHeatingAnalysis.run" title="Permalink to this definition">¶</a></dt>
+<dd><p>Runs the simulation for a set number of steps, starting from starting_index. Updates all of its attributes as it does so.</p>
+<dl class="simple">
+<dt>number_of_steps<span class="classifier">int</span></dt><dd><p>Number of steps you would like to perform. Defaults to None, in which case the programme goes through all available data in trajectory_data.</p>
+</dd>
+<dt>starting_index<span class="classifier">int</span></dt><dd><p>The index in the “time” array that you want to start from. Note that you should always start from 0 if you’re using a variable wall temperature (previous wall temperatures will affect the heat transfer rate, and hence affect future wall temperatures).</p>
+</dd>
+<dt>print_style<span class="classifier">str</span></dt><dd><p>Options for print_style:
+None - Nothing is printed
+“minimal” - Minimalistic printing, printing progress every 10%, and the max. and min. wall temperature if a variable wall temperature is used.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="trajectory.heating.AeroHeatingAnalysis.step">
+<code class="sig-name descname">step</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">print_style</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#trajectory.heating.AeroHeatingAnalysis.step" title="Permalink to this definition">¶</a></dt>
+<dd><p>Performs one step of the aerodynamic analysis, starting from the current value of self.i.</p>
+<dl class="simple">
+<dt>print_style<span class="classifier">str</span></dt><dd><p>Options for print style:
+None - nothing is printed
+“FORTRAN” - same output as the examples in <a class="reference external" href="https://ntrs.nasa.gov/citations/19730063810">https://ntrs.nasa.gov/citations/19730063810</a>, printing in the Imperial units listed
+“metric” - outputs useful data in metric units</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="trajectory.heating.AeroHeatingAnalysis.to_json">
+<code class="sig-name descname">to_json</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">directory</span><span class="o">=</span><span class="default_value">'aero_heating_output.json'</span></em><span class="sig-paren">)</span><a class="headerlink" href="#trajectory.heating.AeroHeatingAnalysis.to_json" title="Permalink to this definition">¶</a></dt>
+<dd><p>Outputs the current data stored in attributes to a .JSON file.</p>
+<dl class="simple">
+<dt>directory<span class="classifier">str</span></dt><dd><p>Directory you want to save to .JSON file to.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt id="trajectory.heating.Pr_air">
+<code class="sig-prename descclassname">trajectory.heating.</code><code class="sig-name descname">Pr_air</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">T</span></em>, <em class="sig-param"><span class="n">P</span></em><span class="sig-paren">)</span><a class="headerlink" href="#trajectory.heating.Pr_air" title="Permalink to this definition">¶</a></dt>
+<dd><p>Prandtl number for air</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="trajectory.heating.R_air">
+<code class="sig-prename descclassname">trajectory.heating.</code><code class="sig-name descname">R_air</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#trajectory.heating.R_air" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gas constant for air (J/kg/K)</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="trajectory.heating.T02T">
+<code class="sig-prename descclassname">trajectory.heating.</code><code class="sig-name descname">T02T</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">T0</span></em>, <em class="sig-param"><span class="n">M</span></em>, <em class="sig-param"><span class="n">gamma</span><span class="o">=</span><span class="default_value">1.4</span></em><span class="sig-paren">)</span><a class="headerlink" href="#trajectory.heating.T02T" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns static temperature from stagnation temperature, Mach number, and ratio of specific heats</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>T0</strong> (<em>float</em>) – Stagnation temperature</p></li>
+<li><p><strong>M</strong> (<em>float</em>) – Mach number</p></li>
+<li><p><strong>gamma</strong> (<em>float</em><em>, </em><em>optional</em>) – Ratio of specific heats (cp / cv). Defaults to 1.4.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Static temperature</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="trajectory.heating.T2T0">
+<code class="sig-prename descclassname">trajectory.heating.</code><code class="sig-name descname">T2T0</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">T</span></em>, <em class="sig-param"><span class="n">M</span></em>, <em class="sig-param"><span class="n">gamma</span><span class="o">=</span><span class="default_value">1.4</span></em><span class="sig-paren">)</span><a class="headerlink" href="#trajectory.heating.T2T0" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns stagnation temperature from static temperature, Mach number, and ratio of specific heats</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>T</strong> (<em>float</em>) – Static temperature</p></li>
+<li><p><strong>M</strong> (<em>float</em>) – Mach number</p></li>
+<li><p><strong>gamma</strong> (<em>float</em><em>, </em><em>optional</em>) – Ratio of specific heats (cp / cv). Defaults to 1.4.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Stagnation temperature</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt id="trajectory.heating.TangentOgive">
+<em class="property">class </em><code class="sig-prename descclassname">trajectory.heating.</code><code class="sig-name descname">TangentOgive</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">xprime</span></em>, <em class="sig-param"><span class="n">yprime</span></em><span class="sig-paren">)</span><a class="headerlink" href="#trajectory.heating.TangentOgive" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Object used to store the geometry of a tangent ogive nose cone.</p>
+<dl class="simple">
+<dt>xprime<span class="classifier">float</span></dt><dd><p>Longitudinal dimension (tip-to-base distance) (m)</p>
+</dd>
+<dt>yprime<span class="classifier">float</span></dt><dd><p>Base radius (m)</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="trajectory.heating.TangentOgive.S">
+<code class="sig-name descname">S</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">i</span></em><span class="sig-paren">)</span><a class="headerlink" href="#trajectory.heating.TangentOgive.S" title="Permalink to this definition">¶</a></dt>
+<dd><p>Distance from</p>
+<dl class="simple">
+<dt>i<span class="classifier">int</span></dt><dd><p>Station number (1-15)</p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>Distance along the nosecone surface (m), from the nosecone tip to station i.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="trajectory.heating.TangentOgive.phi">
+<code class="sig-name descname">phi</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">i</span></em><span class="sig-paren">)</span><a class="headerlink" href="#trajectory.heating.TangentOgive.phi" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="trajectory.heating.TangentOgive.r">
+<code class="sig-name descname">r</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">i</span></em><span class="sig-paren">)</span><a class="headerlink" href="#trajectory.heating.TangentOgive.r" title="Permalink to this definition">¶</a></dt>
+<dd><p>Local nosecone radius (y-dimension) at station</p>
+<dl class="simple">
+<dt>i<span class="classifier">int</span></dt><dd><p>Station number (1-15)</p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>Local nosecone radius (m)</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt id="trajectory.heating.cp_air">
+<code class="sig-prename descclassname">trajectory.heating.</code><code class="sig-name descname">cp_air</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">T</span><span class="o">=</span><span class="default_value">298</span></em>, <em class="sig-param"><span class="n">P</span><span class="o">=</span><span class="default_value">100000.0</span></em><span class="sig-paren">)</span><a class="headerlink" href="#trajectory.heating.cp_air" title="Permalink to this definition">¶</a></dt>
+<dd><p>Specific heat capacity of air at constant pressure (J/kg/K)</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="trajectory.heating.gamma_air">
+<code class="sig-prename descclassname">trajectory.heating.</code><code class="sig-name descname">gamma_air</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">T</span><span class="o">=</span><span class="default_value">298</span></em>, <em class="sig-param"><span class="n">P</span><span class="o">=</span><span class="default_value">1e-05</span></em><span class="sig-paren">)</span><a class="headerlink" href="#trajectory.heating.gamma_air" title="Permalink to this definition">¶</a></dt>
+<dd><p>Ratio of specific heats (Cp/Cv) for air</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="trajectory.heating.k_air">
+<code class="sig-prename descclassname">trajectory.heating.</code><code class="sig-name descname">k_air</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">T</span></em>, <em class="sig-param"><span class="n">P</span></em><span class="sig-paren">)</span><a class="headerlink" href="#trajectory.heating.k_air" title="Permalink to this definition">¶</a></dt>
+<dd><p>Thermal conductivity of air (W/m/K)</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="trajectory.heating.mu_air">
+<code class="sig-prename descclassname">trajectory.heating.</code><code class="sig-name descname">mu_air</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">T</span></em>, <em class="sig-param"><span class="n">P</span></em><span class="sig-paren">)</span><a class="headerlink" href="#trajectory.heating.mu_air" title="Permalink to this definition">¶</a></dt>
+<dd><p>Viscosity of air (Pa s)</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="trajectory.heating.normal_shock">
+<code class="sig-prename descclassname">trajectory.heating.</code><code class="sig-name descname">normal_shock</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">M</span></em>, <em class="sig-param"><span class="n">gamma</span><span class="o">=</span><span class="default_value">1.4</span></em><span class="sig-paren">)</span><a class="headerlink" href="#trajectory.heating.normal_shock" title="Permalink to this definition">¶</a></dt>
+<dd><p>Normal shock wave calculator</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>M</strong> (<em>float</em>) – Mach number</p></li>
+<li><p><strong>gamma</strong> (<em>float</em><em>, </em><em>optional</em>) – Ratio of specific heats (cp / cv). Defaults to 1.4.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Returns array of floats in the following order: [MS, PS/P, TS/T, rhoS/rho]</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>numpy ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="trajectory.heating.nu2mach">
+<code class="sig-prename descclassname">trajectory.heating.</code><code class="sig-name descname">nu2mach</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">nu</span></em>, <em class="sig-param"><span class="n">gamma</span><span class="o">=</span><span class="default_value">1.4</span></em><span class="sig-paren">)</span><a class="headerlink" href="#trajectory.heating.nu2mach" title="Permalink to this definition">¶</a></dt>
+<dd><p>Inverse of the Prandtl-Meyer function
+.. rubric:: Notes</p>
+<p>Calculated using a polynomial approximation, described in <a class="reference external" href="http://www.pdas.com/pm.pdf">http://www.pdas.com/pm.pdf</a></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>nu</strong> (<em>float</em>) – Value of the Prandtl-Meyer function</p></li>
+<li><p><strong>gamma</strong> (<em>float</em><em>, </em><em>optional</em>) – Ratio of specific heats (cp / cv). Defaults to 1.4.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Mach number corresponding to the given value of the Prandtl Meyer function</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="trajectory.heating.oblique_shock">
+<code class="sig-prename descclassname">trajectory.heating.</code><code class="sig-name descname">oblique_shock</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">theta</span></em>, <em class="sig-param"><span class="n">M</span></em>, <em class="sig-param"><span class="n">T</span></em>, <em class="sig-param"><span class="n">p</span></em>, <em class="sig-param"><span class="n">rho</span></em>, <em class="sig-param"><span class="n">gamma</span><span class="o">=</span><span class="default_value">1.4</span></em>, <em class="sig-param"><span class="n">R</span><span class="o">=</span><span class="default_value">287</span></em><span class="sig-paren">)</span><a class="headerlink" href="#trajectory.heating.oblique_shock" title="Permalink to this definition">¶</a></dt>
+<dd><p>Function for generating oblique shock data. Makes use of the gas_dynamics library.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>theta</strong> (<em>float</em>) – Deflection angle (rad)</p></li>
+<li><p><strong>M</strong> (<em>float</em>) – Mach number before shock</p></li>
+<li><p><strong>T</strong> (<em>float</em>) – Temperature before shock (K)</p></li>
+<li><p><strong>p</strong> (<em>float</em>) – Pressure before shock (Pa)</p></li>
+<li><p><strong>rho</strong> (<em>float</em>) – Density before shock (kg/m3)</p></li>
+<li><p><strong>gamma</strong> (<em>float</em><em>, </em><em>optional</em>) – Ratios of specific heats (cp/cv). Defaults to 1.4.</p></li>
+<li><p><strong>R</strong> (<em>int</em><em>, </em><em>optional</em>) – Specific gas constant (J/kg/K). Defaults to 287.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Post-shock Mach number, temperature, pressure, density and shock angle.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>MS, TS, PS, rhoS, beta</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="trajectory.heating.p02p">
+<code class="sig-prename descclassname">trajectory.heating.</code><code class="sig-name descname">p02p</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">P0</span></em>, <em class="sig-param"><span class="n">M</span></em>, <em class="sig-param"><span class="n">gamma</span><span class="o">=</span><span class="default_value">1.4</span></em><span class="sig-paren">)</span><a class="headerlink" href="#trajectory.heating.p02p" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns static pressure from stagnation pressure, Mach number, and ratio of specific heats</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>P0</strong> (<em>float</em>) – Stagnation pressure</p></li>
+<li><p><strong>M</strong> (<em>float</em>) – Mach number</p></li>
+<li><p><strong>gamma</strong> (<em>float</em><em>, </em><em>optional</em>) – Ratio of specific heats (cp / cv). Defaults to 1.4.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Static pressure</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="trajectory.heating.p2p0">
+<code class="sig-prename descclassname">trajectory.heating.</code><code class="sig-name descname">p2p0</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">P</span></em>, <em class="sig-param"><span class="n">M</span></em>, <em class="sig-param"><span class="n">gamma</span><span class="o">=</span><span class="default_value">1.4</span></em><span class="sig-paren">)</span><a class="headerlink" href="#trajectory.heating.p2p0" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns static pressure from stagnation pressure, Mach number, and ratio of specific heats</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>P</strong> (<em>float</em>) – Static pressure</p></li>
+<li><p><strong>M</strong> (<em>float</em>) – Mach number</p></li>
+<li><p><strong>gamma</strong> (<em>float</em><em>, </em><em>optional</em>) – Ratio of specific heats (cp / cv). Defaults to 1.4.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Stagnation pressure</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="trajectory.heating.prandtl_meyer">
+<code class="sig-prename descclassname">trajectory.heating.</code><code class="sig-name descname">prandtl_meyer</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">M</span></em>, <em class="sig-param"><span class="n">gamma</span><span class="o">=</span><span class="default_value">1.4</span></em><span class="sig-paren">)</span><a class="headerlink" href="#trajectory.heating.prandtl_meyer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Prandtl-Meyer function</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>M</strong> (<em>float</em>) – Mach number</p></li>
+<li><p><strong>gamma</strong> (<em>float</em><em>, </em><em>optional</em>) – Ratio of specific heats (cp / cv). Defaults to 1.4.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>nu (Prandtl-Meyer function evaluated at the given Mach and gamma)</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="trajectory.heating.pressure_ratio_to_mach">
+<code class="sig-prename descclassname">trajectory.heating.</code><code class="sig-name descname">pressure_ratio_to_mach</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">p_over_p0</span></em>, <em class="sig-param"><span class="n">gamma</span><span class="o">=</span><span class="default_value">1.4</span></em><span class="sig-paren">)</span><a class="headerlink" href="#trajectory.heating.pressure_ratio_to_mach" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get Mach number from the static to stagnation pressure ratio</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>p_over_p0</strong> (<em>float</em>) – Static pressure divided by stagnation pressure</p></li>
+<li><p><strong>gamma</strong> (<em>float</em><em>, </em><em>optional</em>) – Ratio of specific heats (cp / cv). Defaults to 1.4.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Mach number</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="trajectory.heating.rho02rho">
+<code class="sig-prename descclassname">trajectory.heating.</code><code class="sig-name descname">rho02rho</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">rho0</span></em>, <em class="sig-param"><span class="n">M</span></em>, <em class="sig-param"><span class="n">gamma</span><span class="o">=</span><span class="default_value">1.4</span></em><span class="sig-paren">)</span><a class="headerlink" href="#trajectory.heating.rho02rho" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns static density from stagnation density, Mach number, and ratio of specific heats</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>rho0</strong> (<em>float</em>) – Stagnation density</p></li>
+<li><p><strong>M</strong> (<em>float</em>) – Mach number</p></li>
+<li><p><strong>gamma</strong> (<em>float</em><em>, </em><em>optional</em>) – Ratio of specific heats (cp / cv). Defaults to 1.4.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Static density</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="trajectory.heating.rho2rho0">
+<code class="sig-prename descclassname">trajectory.heating.</code><code class="sig-name descname">rho2rho0</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">rho</span></em>, <em class="sig-param"><span class="n">M</span></em>, <em class="sig-param"><span class="n">gamma</span><span class="o">=</span><span class="default_value">1.4</span></em><span class="sig-paren">)</span><a class="headerlink" href="#trajectory.heating.rho2rho0" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns stagnation density from static density, Mach number, and ratio of specific heats</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>T</strong> (<em>float</em>) – Static density</p></li>
+<li><p><strong>M</strong> (<em>float</em>) – Mach number</p></li>
+<li><p><strong>gamma</strong> (<em>float</em><em>, </em><em>optional</em>) – Ratio of specific heats (cp / cv). Defaults to 1.4.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Stagnation density</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
 </div>
 <div class="section" id="module-trajectory.mass">
 <span id="mass-module"></span><h2>mass module<a class="headerlink" href="#module-trajectory.mass" title="Permalink to this headline">¶</a></h2>
@@ -1550,6 +2330,143 @@ C = pitch damping coefficient.</p>
 </dd></dl>
 
 </div>
+<div class="section" id="module-trajectory.motor">
+<span id="motor-module"></span><h2>motor module<a class="headerlink" href="#module-trajectory.motor" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="trajectory.motor.Motor">
+<em class="property">class </em><code class="sig-prename descclassname">trajectory.motor.</code><code class="sig-name descname">Motor</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">thrust_array</span></em>, <em class="sig-param"><span class="n">time_array</span></em>, <em class="sig-param"><span class="n">exit_area</span></em>, <em class="sig-param"><span class="n">pos</span></em>, <em class="sig-param"><span class="n">ambient_pressure</span><span class="o">=</span><span class="default_value">100000.0</span></em><span class="sig-paren">)</span><a class="headerlink" href="#trajectory.motor.Motor" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Object for holding rocket engine data.</p>
+<p>Assumes constant nozzle exit area.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>thrust_array</strong> (<em>list</em>) – Thrust data (N).</p></li>
+<li><p><strong>time_array</strong> (<em>list</em>) – Times corresponding to thrust_array data points (s).</p></li>
+<li><p><strong>exit_area</strong> (<em>float</em>) – Nozzle exit area (m^2).</p></li>
+<li><p><strong>pos</strong> (<em>float</em>) – Distance between the nose tip and the point at which the thrust acts (m).</p></li>
+<li><p><strong>ambient_pressure</strong> (<em>float</em><em>, </em><em>optional</em>) – Ambient pressure used to obtain the thrust_array data (Pa). Defaults to 1e5.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt id="trajectory.motor.Motor.thrust_array">
+<code class="sig-name descname">thrust_array</code><a class="headerlink" href="#trajectory.motor.Motor.thrust_array" title="Permalink to this definition">¶</a></dt>
+<dd><p>Thrust data (N).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>list</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="trajectory.motor.Motor.time_array">
+<code class="sig-name descname">time_array</code><a class="headerlink" href="#trajectory.motor.Motor.time_array" title="Permalink to this definition">¶</a></dt>
+<dd><p>Times corresponding to thrust_array data points (s).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>list</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="trajectory.motor.Motor.exit_area">
+<code class="sig-name descname">exit_area</code><a class="headerlink" href="#trajectory.motor.Motor.exit_area" title="Permalink to this definition">¶</a></dt>
+<dd><p>Nozzle exit area (m^2).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="trajectory.motor.Motor.pos">
+<code class="sig-name descname">pos</code><a class="headerlink" href="#trajectory.motor.Motor.pos" title="Permalink to this definition">¶</a></dt>
+<dd><p>Distance between the nose tip and the point at which the thrust acts (m).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="trajectory.motor.Motor.ambient_pressure">
+<code class="sig-name descname">ambient_pressure</code><a class="headerlink" href="#trajectory.motor.Motor.ambient_pressure" title="Permalink to this definition">¶</a></dt>
+<dd><p>Ambient pressure used to obtain the thrust_array data (Pa).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>float, optional</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="trajectory.motor.Motor.from_novus">
+<em class="property">static </em><code class="sig-name descname">from_novus</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">csv_directory</span></em>, <em class="sig-param"><span class="n">pos</span></em><span class="sig-paren">)</span><a class="headerlink" href="#trajectory.motor.Motor.from_novus" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate Motor object from a novus_sim_6 output csv file. Modified from Joe Hunt’s NOVUS simulator.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>csv_directory</strong> (<em>string</em>) – Directory of the .CSV file.</p></li>
+<li><p><strong>pos</strong> (<em>float</em>) – Distance between the nose tip and the point at which the thrust acts (m).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>The Motor object.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference internal" href="#trajectory.motor.Motor" title="trajectory.motor.Motor">Motor</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="trajectory.motor.Motor.thrust">
+<code class="sig-name descname">thrust</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">time</span></em><span class="sig-paren">)</span><a class="headerlink" href="#trajectory.motor.Motor.thrust" title="Permalink to this definition">¶</a></dt>
+<dd><p>Function for calculating the thrust at a given time, with an ambient pressure of self.ambient_pressure.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>time</strong> (<em>float</em>) – Time since ignition (s).</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Thrust (N).</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt id="trajectory.motor.load_motor">
+<code class="sig-prename descclassname">trajectory.motor.</code><code class="sig-name descname">load_motor</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">file</span></em><span class="sig-paren">)</span><a class="headerlink" href="#trajectory.motor.load_motor" title="Permalink to this definition">¶</a></dt>
+<dd><p>Legacy requirment for statistical models</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>file</strong> (<em>string</em>) – Location of novus output file</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><dl class="simple">
+<dt>Motor data - “motor_time”,”prop_mass”,</dt><dd><p>”cham_pres”,”throat”,”gamma”, “nozzle_efficiency”,
+“exit_pres”,”area_ratio”,”vmass”,”lden”,”lmass”,
+“fuel_mass”,”density_fuel”,”dia_fuel”,”length_port”</p>
+</dd>
+</dl>
+</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
 <div class="section" id="module-trajectory.plot">
 <span id="plot-module"></span><h2>plot module<a class="headerlink" href="#module-trajectory.plot" title="Permalink to this headline">¶</a></h2>
 <p>6DOF Trajectory Simulator</p>
@@ -1701,6 +2618,67 @@ ax.set_aspect(‘equal’) and ax.axis(‘equal’) not working for 3D.</p>
 <dt id="trajectory.plot.stats_trajectories">
 <code class="sig-prename descclassname">trajectory.plot.</code><code class="sig-name descname">stats_trajectories</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">x</span></em>, <em class="sig-param"><span class="n">y</span></em>, <em class="sig-param"><span class="n">z</span></em>, <em class="sig-param"><span class="n">apogee_mu</span><span class="o">=</span><span class="default_value">array([], dtype=float64)</span></em>, <em class="sig-param"><span class="n">apogee_cov</span><span class="o">=</span><span class="default_value">array([], dtype=float64)</span></em>, <em class="sig-param"><span class="n">sigma</span><span class="o">=</span><span class="default_value">3</span></em>, <em class="sig-param"><span class="n">landing_mu</span><span class="o">=</span><span class="default_value">array([], dtype=float64)</span></em>, <em class="sig-param"><span class="n">landing_cov</span><span class="o">=</span><span class="default_value">array([], dtype=float64)</span></em><span class="sig-paren">)</span><a class="headerlink" href="#trajectory.plot.stats_trajectories" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
+
+</div>
+<div class="section" id="module-trajectory.post">
+<span id="post-module"></span><h2>post module<a class="headerlink" href="#module-trajectory.post" title="Permalink to this headline">¶</a></h2>
+<p>Useful functions for post-processing of the trajectory data, e.g. when imported from a .JSON file.</p>
+<p>The trajectory data is usually stored in a minimalistic format, so only contains:
+- time
+- pos_i
+- vel_i
+- b2imat
+- w_b</p>
+<p>So things like the altitude, yaw, pitch, and roll, etc… need to be obtained from only this data.</p>
+<dl class="py function">
+<dt id="trajectory.post.ypr_i">
+<code class="sig-prename descclassname">trajectory.post.</code><code class="sig-name descname">ypr_i</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">simulation_output</span></em><span class="sig-paren">)</span><a class="headerlink" href="#trajectory.post.ypr_i" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get yaw, pitch and roll data (relative to inertial axes).</p>
+<p>simulation_output : pandas DataFrame</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p><ul class="simple">
+<li><p><strong>yaw</strong> (<em>list</em>)</p></li>
+<li><p><strong>pitch</strong> (<em>list</em>)</p></li>
+<li><p><strong>roll</strong> (<em>list</em>)</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+<div class="section" id="module-trajectory.slosh">
+<span id="slosh-module"></span><h2>slosh module<a class="headerlink" href="#module-trajectory.slosh" title="Permalink to this headline">¶</a></h2>
+<p>Liquid fuel slosh modelling tools</p>
+<p class="rubric">References</p>
+<p>[1] - The Dynamic Behavior of Liquids in Moving Containers, with Applications to Space Vehicle Technology
+Hyperlink - <a class="reference external" href="https://ntrs.nasa.gov/citations/19670006555">https://ntrs.nasa.gov/citations/19670006555</a></p>
+<dl class="py class">
+<dt id="trajectory.slosh.CylindricalFuelTank">
+<em class="property">class </em><code class="sig-prename descclassname">trajectory.slosh.</code><code class="sig-name descname">CylindricalFuelTank</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">h</span></em>, <em class="sig-param"><span class="n">d</span></em>, <em class="sig-param"><span class="n">rho</span></em><span class="sig-paren">)</span><a class="headerlink" href="#trajectory.slosh.CylindricalFuelTank" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="py method">
+<dt id="trajectory.slosh.CylindricalFuelTank.pendulum_analogy">
+<code class="sig-name descname">pendulum_analogy</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#trajectory.slosh.CylindricalFuelTank.pendulum_analogy" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="trajectory.slosh.CylindricalFuelTank.spring_analogy">
+<code class="sig-name descname">spring_analogy</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#trajectory.slosh.CylindricalFuelTank.spring_analogy" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="trajectory.slosh.CylindricalFuelTank.w_pendulum">
+<code class="sig-name descname">w_pendulum</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#trajectory.slosh.CylindricalFuelTank.w_pendulum" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="trajectory.slosh.CylindricalFuelTank.w_spring">
+<code class="sig-name descname">w_spring</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#trajectory.slosh.CylindricalFuelTank.w_spring" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
 
 </div>
 <div class="section" id="module-trajectory.statistical">
@@ -2201,6 +3179,9 @@ defaults to {“gravity”:1.0,”pressure”:1.0,”density”:1.0,”speed_of_
 </dl>
 </dd></dl>
 
+</div>
+<div class="section" id="module-trajectory">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-trajectory" title="Permalink to this headline">¶</a></h2>
 </div>
 </div>
 

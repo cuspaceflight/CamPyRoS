@@ -30,14 +30,14 @@ __copyright__ = """
 
 '''Mass models that have time-dependent properties'''    
 class CylindricalApproximation:
-    '''
+    """
     Solid cylinder approxiation for the rocket.
 
     Notes
     -----
     Assumes:
     - The entire rocket is a solid cylinder. It's volume is constant, but it's density decreases with time according to how the mass decreases as fuel is burnt.
-    '''
+    """
 
     def __init__(self, mass_array, time_array, r, l):    
         self.mass_array = mass_array    #Mass of the rocket (kg)
@@ -61,7 +61,7 @@ class CylindricalApproximation:
         return self.l/2
 
 class LiquidTank:
-    '''
+    """
     Liquid fuel tank.
 
     Notes
@@ -70,7 +70,7 @@ class LiquidTank:
     - Cylindrical fuel tank
     - Inviscid liquid, so the liquid does not contribute to ixx
     - Vapour does not contribute to moments of inertia
-    '''
+    """
 
     def __init__(self, lmass_array, lden_array, time_array, r, pos_bottom, vmass_array = None, vden_array = None):  
         self.lmass_array = lmass_array          #Liquid masses (kg)
@@ -143,7 +143,7 @@ class LiquidTank:
         return cog
 
 class SolidFuel:
-    '''
+    """
     Solid fuel grain.
 
     Notes
@@ -151,7 +151,7 @@ class SolidFuel:
     Assumes:
     - Fuel grain is shaped like an annular cylinder
     - Burning the fuel simply increases the inner radius of the cylinder, uniformly
-    '''
+    """
 
     def __init__(self, mass_array, time_array, den, r_out, l, pos_bottom):  
         self.mass_array = mass_array    #Solid fuel masses (kg)
@@ -187,11 +187,11 @@ class SolidFuel:
         return self.iyy(time)
 
 
-'''Mass models that have constant properties'''
+#Mass models that have constant properties
 class DryMass:
-    '''
+    """
     Class for adding custom dry mass values.
-    '''
+    """
 
     def __init__(self, mass, ixx, iyy, izz, cog):
         self.mass = mass
@@ -201,9 +201,9 @@ class DryMass:
         self.cog = cog
         
 class HollowCylinder:
-    '''
+    """
     Class for getting moment of inertia properties for a solid hollow cylinder that does not vary with time.
-    '''
+    """
 
     def __init__(self, mass, r_out, r_in, l, cog):
         self.r_out = r_out  #Outer radius (m)
@@ -219,20 +219,20 @@ class HollowCylinder:
         self.iyy = self.mass * ((self.a**2)/2 + (self.t**2)/8 + (self.l**2)/12)
         self.izz = self.iyy
 
-'''Universal mass model'''
+#Universal mass model
 class MassModel:
-    '''
+    """
     Notes
     -----
     Assumes:
     - All centres of mass lie on the x-x axis.
-    '''
+    """
 
     def __init__(self):
         self.constants = []
         self.variables = []
 
-    '''Mass-related properties of the rocket'''
+    #Mass-related properties of the rocket
     def mass(self, time):
         mass = 0
 
@@ -295,7 +295,7 @@ class MassModel:
         return izz
 
 
-    '''Functions to add new components'''
+    #Functions to add new components
     def add_drymass(self, mass, ixx, iyy, izz, cog):
         self.constants.append(DryMass(mass, ixx, iyy, izz, cog))
 

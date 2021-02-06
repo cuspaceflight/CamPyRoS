@@ -1,35 +1,30 @@
 """6DOF Trajectory Simulator
 Contains the classes and functions for the core trajectory simulation. SI units unless stated otherwise.
 
-Example
--------
-A small, single stage rocket can be found in examples, to run
-        $ python example/example.py
+Notes
+-----
 
 Known issues:
--------------
+
 - Unsure about the use of "dx" in "scipy.misc.derivative(self.mass_model.mass, time, dx=1)" when calculating mdot
 - Possible inconsistency in the definition of the launch site coordinate system, and whether the origin is at alt=0 or alt=launch_site.alt. I haven't thoroughly checked for this inconsistency yet.
 
 Coordinate systems:
--------------------
 
-Body (x_b, y_b, z_b)
+- Body (x_b, y_b, z_b)
     - Origin on rocket
     - Rotates with the rocket.
 
     - y points east and z north at take off (before rail alignment is accounted for) x up.
     - x is along the "long" axis of the rocket.
-
-Launch site (x_l, y_l, z_l):
+- Launch site (x_l, y_l, z_l):
     - Origin has the launch site's longitude and latitude, but is at altitude = 0.
     - Rotates with the Earth.
 
     - z points up (normal to the surface of the Earth).
     - y points East (tangentially to the surface of the Earth).
-    - x points South (tangentially to the surface of the Earth).
-        
-Inertial (x_i, y_i, z_i):
+    - x points South (tangentially to the surface of the Earth).      
+- Inertial (x_i, y_i, z_i):
     - Origin at centre of the Earth.
     - Does not rotate.
 
@@ -415,12 +410,14 @@ class Wind:
             
 class Parachute:
     """Object holding the parachute information
+
     Note
     ----
     The parachute model does not currently simulate the true orientation of the rocket instead it orientates
     it such that it faces back first into the wind (as intuition would suggest).
     This is due to problems trying to impliment the chute exerting torque on the body, possibly because it has to flip 
     the rocket over at apogee
+
     Parameters
     ----------
     main_s : float
@@ -435,6 +432,7 @@ class Parachute:
         Altitude at which main deploys
     attach_distance : float
         Distance from the nose of the rocket that the parachute is attatched /m
+
     Attributes
     ----------
     main_s : float
@@ -481,6 +479,7 @@ class Parachute:
 
 class LaunchSite:
     """Object holding the launch site information
+
     Parameters
     ----------
     rail_length : float
@@ -505,6 +504,7 @@ class LaunchSite:
         Forcast run time, must be 00,06,12 or 18, defaults to 00
     forcast_plus_time : string, optional
         Hours forcast forward from forcast time, must be three digits between 000 and 123 (?), defaults to 000
+
     Attributes
     ----------
     rail_length : float
@@ -533,6 +533,7 @@ class LaunchSite:
  
 class Rocket:
     """The rocket and key simulation components
+
     Parameters
     ----------
     mass_model : Mass Model Object
@@ -553,6 +554,7 @@ class Rocket:
         Absolute error tollerance for integration /
     errors : dictionary, optional
         Multiplied factor for the gravity, pressure, density and speed of sound used in the model, defaults to {"gravity":1.0,"pressure":1.0,"density":1.0,"speed_of_sound":1.0}
+    
     Attributes
     ----------
     mass_model : Mass Model Object
@@ -826,9 +828,11 @@ class Rocket:
 
     def run(self, max_time=1000, debug=False, to_json = False):
         """Runs the rocket simulation
+
         Notes
         -----
         -Uses the scipy DOP853 O(h^8) integrator
+
         Parameters
         ----------
         max_time : int, optional
@@ -839,6 +843,7 @@ class Rocket:
             Export a .JSON file containing the data to the directory given, "False" means nothing will be exported.
         json_orient : string
             See pandas.DataFrame.to_json documentation - allowed values are: {‘split’, ‘records’, ‘index’, ‘columns’, ‘values’, ‘table’}. Defaults to 'split'.
+        
         Returns
         -------
         pandas array
@@ -940,14 +945,17 @@ class Rocket:
 
     def check_phase(self, debug=False):
         """Checks phase of flight between steps
+
         Notes
         -----
         -Since this only checks between steps there may be a very short period where the rocket is still orientated as if its still on the rail when it is not
         -May look like the rocket leaves the rail at an altitude greater than the rail length for this reason
+        
         Parameters
         ----------
         verbose : bool, optional
             Outputs progress messages if True
+
         Returns
         -------
         list
@@ -993,10 +1001,12 @@ class Rocket:
 
 def from_json(directory):
     """Imports simulation data from a JSON file
+
     Parameters
     ----------
     directory : string
         The directory of the simulation data .JSON file
+        
     Returns
     -------
     pandas array

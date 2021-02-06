@@ -4,6 +4,7 @@ from .plot import *
 from .aero import *
 from .motor import *
 
+
 __copyright__ = """
 
     Copyright 2021 Jago Strong-Wright & Daniel Gibbons

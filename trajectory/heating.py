@@ -1,4 +1,4 @@
-'''
+"""
 Implementation of NASA program NQLDW019. All values are stored in SI units unless otherwise stated. 
 
 Reference material:
@@ -72,7 +72,7 @@ w - At wall temperature and local pressure.
 rec - At 'recovery enthalpy', which is the same thing as at the 'adiabatic wall temperature' I believe.
 turb - With a turbulent boundary layer
 lam - With a laminar boundary layer.
-'''
+"""
 
 
 import numpy as np
@@ -322,33 +322,33 @@ def normal_shock(M, gamma=1.4):
 
 #Properties of air
 def cp_air(T=298, P=1e5):
-    '''Specific heat capacity of air at constant pressure (J/kg/K)'''
+    """Specific heat capacity of air at constant pressure (J/kg/K)"""
     #air = thermo.mixture.Mixture('air', T=T, P=P)    
     #return air.Cp
     return 1005
 
 def R_air():
-    '''Gas constant for air (J/kg/K)'''
+    """Gas constant for air (J/kg/K)"""
     return 287
 
 def gamma_air(T=298, P=1e-5):
-    '''Ratio of specific heats (Cp/Cv) for air'''
+    """Ratio of specific heats (Cp/Cv) for air"""
     return 1.4
 
 def Pr_air(T, P):
-    '''Prandtl number for air'''
+    """Prandtl number for air"""
     air = thermo.mixture.Mixture('air', T=T, P=P)    
     return air.Pr
     #return 0.71
 
 def k_air(T, P):
-    '''Thermal conductivity of air (W/m/K)'''
+    """Thermal conductivity of air (W/m/K)"""
     air = thermo.mixture.Mixture('air', T=T, P=P)  
     return air.k
     #return 	26.24e-3
 
 def mu_air(T, P):
-    '''Viscosity of air (Pa s)'''
+    """Viscosity of air (Pa s)"""
     air = thermo.mixture.Mixture('air', T=T, P=P)
     return air.mu
     #return 1.81e-5
@@ -386,7 +386,7 @@ def oblique_shock(theta, M, T, p, rho, gamma=1.4, R=287):
 
 #Aerodynamic heating analysis
 class TangentOgive:
-    '''
+    """
     Object used to store the geometry of a tangent ogive nose cone.
 
     Inputs
@@ -396,7 +396,7 @@ class TangentOgive:
     yprime : float
         Base radius (m)
 
-    '''
+    """
     def __init__(self, xprime, yprime):
         #https://arc.aiaa.org/doi/pdf/10.2514/3.62081 used for nomenclature
         self.xprime = xprime    #Longitudinal dimension
@@ -417,7 +417,7 @@ class TangentOgive:
         return self.theta - (i-1)*self.dtheta/2
     
     def r(self, i):
-        '''
+        """
         Local nosecone radius (y-dimension) at station
 
         Inputs
@@ -429,7 +429,7 @@ class TangentOgive:
         -------
         float
             Local nosecone radius (m)
-        '''
+        """
         #i = 1 to 15
         assert i>=1 and i<=15, "i refers to stations 1-15, it cannot the less than 1 or more than 15"
         if i<=11:
@@ -438,7 +438,7 @@ class TangentOgive:
             return 2 * self.R * np.sin((10)*self.dtheta/2) * np.sin(self.phi(11))
 
     def S(self, i):
-        '''
+        """
         Distance from 
 
         Inputs
@@ -450,13 +450,13 @@ class TangentOgive:
         --------
         float
             Distance along the nosecone surface (m), from the nosecone tip to station i.
-        '''
+        """
         #i = 1 to 15
         assert i>=1 and i<=15, "i refers to stations 1-15, it cannot the less than 1 or more than 15"
         return self.R * (i-1) * self.dtheta
 
 class AeroHeatingAnalysis:
-    '''
+    """
     Object used to run aerodynamic heating analyses
 
     Inputs
@@ -522,7 +522,7 @@ class AeroHeatingAnalysis:
     q0_hemispherical_nose : numpy ndarray
         Heat transfer rate (W/m^2) at the stagnation point at each timestep, if we were using a hemispherical nosecone. Has dimensions (N) where N is the length of the "time" array in trajectory_dict.
     
-    '''
+    """
     def __init__(self, tangent_ogive, trajectory_data, rocket, 
                  fixed_wall_temperature = True,
                  starting_temperature = None, 
@@ -577,7 +577,7 @@ class AeroHeatingAnalysis:
         self.q0_hemispherical_nose = np.full(len(self.trajectory_dict["time"]), float("NaN"))     #At the stagnation point for a rocket with a hemispherical nose cone - used as a reference point
 
     def step(self, print_style=None):
-        '''
+        """
         Performs one step of the aerodynamic analysis, starting from the current value of self.i.
 
         Inputs:
@@ -587,7 +587,7 @@ class AeroHeatingAnalysis:
             None - nothing is printed
             "FORTRAN" - same output as the examples in https://ntrs.nasa.gov/citations/19730063810, printing in the Imperial units listed
             "metric" - outputs useful data in metric units
-        '''
+        """
 
         #Get altitude:
         alt = pos_i2alt(self.trajectory_dict["pos_i"][self.i], self.trajectory_dict["time"][self.i])
@@ -894,7 +894,7 @@ class AeroHeatingAnalysis:
         self.i = self.i + 1
 
     def run(self, number_of_steps = None, starting_index = 0, print_style="minimal"):
-        '''
+        """
         Runs the simulation for a set number of steps, starting from starting_index. Updates all of its attributes as it does so.
         
         Inputs:
@@ -907,7 +907,7 @@ class AeroHeatingAnalysis:
             Options for print_style:
             None - Nothing is printed
             "minimal" - Minimalistic printing, printing progress every 10%, and the max. and min. wall temperature if a variable wall temperature is used.
-        '''
+        """
         if number_of_steps == None:
             number_of_steps = len(self.trajectory_dict["time"]) - 1 - starting_index
 
@@ -930,14 +930,14 @@ class AeroHeatingAnalysis:
             print("Minimum wall temperature = {:.4f} °C".format(np.nanmin(self.Tw)-273.15))
 
     def to_json(self, directory="aero_heating_output.json"):
-        '''
+        """
         Outputs the current data stored in attributes to a .JSON file.
 
         Inputs
         ------
         directory : str
             Directory you want to save to .JSON file to.
-        '''
+        """
         dict = {"q_lam" : self.q_lam.tolist(), 
                 "q_turb" : self.q_turb.tolist(), 
                 "q0_hemispherical_nose" : self.q0_hemispherical_nose.tolist(), 
@@ -957,14 +957,14 @@ class AeroHeatingAnalysis:
         print("Exported data to {}".format(directory))
 
     def from_json(self, directory):
-        '''
+        """
         Imports data from a .JSON file (which normally would have been produced using AeroHeatingAnalysis.to_json) and uses it to fill the data attributes.
 
         Inputs
         ------
         directory : str
             Directory to the .JSON file you want to import aerodynamic heating data from.
-        '''
+        """
         with open(directory, "r") as read_file:
             dict = json.load(read_file)
         
@@ -982,7 +982,7 @@ class AeroHeatingAnalysis:
         self.Rex = np.array(dict["Rex"])
 
     def plot_station(self, station_number=10, imax=None):
-        '''
+        """
         Plots data at a given station on the nosecone.
 
         Inputs
@@ -991,7 +991,7 @@ class AeroHeatingAnalysis:
             Station number (1-15) to plot data at.
         imax : int
             Maximum index (of the trajectory_dict["time"] array) to plot to.
-        '''
+        """
         assert station_number <= 15 and station_number >= 1, "Station number must be between 1 and 15 (inclusive)"
 
         time = self.trajectory_dict["time"]
@@ -1043,7 +1043,7 @@ class AeroHeatingAnalysis:
         plt.show()
 
     def plot_heat_transfer(self, i=0, y_limit_scaling=1.5, automatic_rescaling=True):
-        '''
+        """
         Plots heat transfer along the nosecone. Has an interactive slider that you can use to browse through different indexes of the trajectory_dict["time"] array.
 
         Inputs
@@ -1054,7 +1054,7 @@ class AeroHeatingAnalysis:
             Used to scale the y-limits on the plots. This is only used if automatic_rescaling = False.
         automatic_rescaling : bool
             If True, the axes scales are redrawn every time you move the slider to a new position. If False, the software attempts to find a set of axes limits that are acceptable at all datapoints.
-        '''
+        """
         fig, axs = plt.subplots(2, 2)
 
         alt = pos_i2alt(self.trajectory_dict["pos_i"][i], self.trajectory_dict["time"][i])
@@ -1160,7 +1160,7 @@ class AeroHeatingAnalysis:
         plt.show()
 
     def plot_fluid_properties(self, i=0, y_limit_scaling=1.5, automatic_rescaling=True):
-        '''
+        """
         Plots fluid properties at along the nosecone (Static pressures, temperatures, Mach numbers). Has an interactive slider that you can use to browse through different indexes of the trajectory_dict["time"] array.
 
         Inputs
@@ -1171,7 +1171,7 @@ class AeroHeatingAnalysis:
             Used to scale the y-limits on the plots. This is only used if automatic_rescaling = False.
         automatic_rescaling : bool
             If True, the axes scales are redrawn every time you move the slider to a new position. If False, the software attempts to find a set of axes limits that are acceptable at all datapoints.
-        '''
+        """
         fig, axs = plt.subplots(2, 2)
 
         alt = pos_i2alt(self.trajectory_dict["pos_i"][i], self.trajectory_dict["time"][i])

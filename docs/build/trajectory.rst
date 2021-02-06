@@ -1,15 +1,10 @@
-<name> package
+trajectory package
 ==================
 
-core module
-----------------------
+Submodules
+----------
 
-.. automodule:: trajectory.main
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-aero module
+trajectory.aero module
 ----------------------
 
 .. automodule:: trajectory.aero
@@ -17,7 +12,7 @@ aero module
    :undoc-members:
    :show-inheritance:
 
-constants module
+trajectory.constants module
 ---------------------------
 
 .. automodule:: trajectory.constants
@@ -25,7 +20,7 @@ constants module
    :undoc-members:
    :show-inheritance:
 
-gui module
+trajectory.gui module
 ---------------------
 
 .. automodule:: trajectory.gui
@@ -33,7 +28,7 @@ gui module
    :undoc-members:
    :show-inheritance:
 
-heating module
+trajectory.heating module
 -------------------------
 
 .. automodule:: trajectory.heating
@@ -41,7 +36,15 @@ heating module
    :undoc-members:
    :show-inheritance:
 
-mass module
+trajectory.main module
+----------------------
+
+.. automodule:: trajectory.main
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+trajectory.mass module
 ----------------------
 
 .. automodule:: trajectory.mass
@@ -49,7 +52,7 @@ mass module
    :undoc-members:
    :show-inheritance:
 
-motor module
+trajectory.motor module
 -----------------------
 
 .. automodule:: trajectory.motor
@@ -57,7 +60,7 @@ motor module
    :undoc-members:
    :show-inheritance:
 
-plot module
+trajectory.plot module
 ----------------------
 
 .. automodule:: trajectory.plot
@@ -65,7 +68,7 @@ plot module
    :undoc-members:
    :show-inheritance:
 
-post module
+trajectory.post module
 ----------------------
 
 .. automodule:: trajectory.post
@@ -73,7 +76,7 @@ post module
    :undoc-members:
    :show-inheritance:
 
-slosh module
+trajectory.slosh module
 -----------------------
 
 .. automodule:: trajectory.slosh
@@ -81,7 +84,7 @@ slosh module
    :undoc-members:
    :show-inheritance:
 
-statistical module
+trajectory.statistical module
 -----------------------------
 
 .. automodule:: trajectory.statistical
@@ -89,7 +92,7 @@ statistical module
    :undoc-members:
    :show-inheritance:
 
-transforms module
+trajectory.transforms module
 ----------------------------
 
 .. automodule:: trajectory.transforms
