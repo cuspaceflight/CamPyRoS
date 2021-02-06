@@ -38,7 +38,7 @@ def get_velocity_magnitude(df):
     return (np.sqrt(df["vx_l"]**2+df["vy_l"]**2+df["vz_l"]**2))
 
 #Functional
-def set_axes_equal(ax):
+def set_axes_equal_3d(ax):
     """
     Makes the scaling the same on the axes of 3D plot. The in-built functions that come with matplotlib only seem to be able to do this for 2D axes.
 
@@ -179,7 +179,7 @@ def plot_launch_trajectory_3d(simulation_output, rocket, show_orientation=False,
         ax.quiver(x_l[idx], y_l[idx], z_l[idx], u[idx], v[idx], w[idx], length=1000, normalize=True, color="red", label="Orientation")
  
     #Make all the axes scales equal
-    set_axes_equal(ax)
+    set_axes_equal_3d(ax)
     
     ax.legend()
     plt.show()     
@@ -639,7 +639,7 @@ def stats_landing(mu,cov,data=pd.DataFrame(),sigma=3):
     if not data.empty:
         ax.scatter(data.x,data.y,marker="o",s=10,color="blue",alpha=0.3)
     ax.legend()
-    set_axes_equal(ax,dim=2)
+    set_axes_equal_3d(ax,dim=2)
     plt.show()
 
 def elipse(u,v,a,b,c):
@@ -695,7 +695,7 @@ def stats_apogee(apogee_mu,apogee_cov,apogee=pd.DataFrame(),sigma=3,landing_mu=n
             ax.scatter(landing.x,landing.y,0,marker="o",s=10,color="blue",alpha=0.3)
 
 
-    set_axes_equal(ax)
+    set_axes_equal_3d(ax)
     ax.legend()
     plt.show()
 
@@ -778,7 +778,7 @@ def stats_trajectories(x,y,z,apogee_mu=np.array([]),apogee_cov=np.array([]),sigm
     ax.set_xlabel('South/m')
     ax.set_ylabel('East/m')
     ax.set_zlabel('Altitude/m') 
-    set_axes_equal(ax)
+    set_axes_equal_3d(ax)
     ax.legend()
 
     plt.show()
@@ -794,5 +794,5 @@ def inertial_position(simulation_output):
         y.append(row[1])
         z.append(row[2])
     ax.plot(x,y,z)
-    set_axes_equal(ax)
+    set_axes_equal_3d(ax)
     plt.show()
