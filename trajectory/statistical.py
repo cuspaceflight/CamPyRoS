@@ -2,14 +2,33 @@ import ray,random,os,copy,json
 import numpy as np
 import pandas as pd
 from .main import *
-from .mass import CylindricalMassModel
 from .transforms import pos_i2l, vel_i2l
 from .aero import *
 from .mass import *
+from .motor import *
 
 from .plot import *
 from datetime import datetime
 from datetime import date
+
+__copyright__ = """
+
+    Copyright 2021 Jago Strong-Wright & Daniel Gibbons
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+"""
 
 def variable_name(**variables):
     return [x for x in variables][0]
@@ -23,42 +42,13 @@ class StatisticalModel:
     Notes
     -----
     Every variable specified has a value and a standard deviation in a list (i.e. [mean,st_dev])
-    Currenrly only cylindrical mass model is supported.
-    Wind and pitch damping will currently not vary
+    Currenrly only supports aero import from rasaero file.
+    Wind will currently not vary
     
     Parameters
     ----------
-    launch_site_vars : dict
-        Dictionary of variables for launch site object. Must contain: rail_length, rail_yaw, rail_pitch, alt, longi, lat
-    mass_model_vars : dict
-        Dictionary of variables for mass model object. Must contain: dry_mass, prop_mass, time_data, length, radius
-    aero_file : string
-        Location of RASAero data file
-    aero_error : dict
-        Standard deviaiton for the aero coefficients in format COP, CN and CA
-    motor_base : MotorObject
-        Unpeterbed motor object
-    h : float, optional
-        Default timestep /s, defaults to 0.05 - this doesn't really do anything
-    variable_time : bool, optional
-        Vary timesteps?, defaults to True
-    alt_poll_interval : , optional
-        Parachute altitude polling interval /s defaults to 1
-    run_date : string, optional
-        Date for forcast data in format YYYYMMDD, defaults to current date
-    forcast_time : string, optional
-        Forcast run time, must be 00,06,12 or 18, defaults to 00
-    forcast_plus_time : string, optional
-        Hours forcast forward from forcast time, must be three digits between 000 and 123 (?), defaults to 000
-    thrust_error : float
-        Standard deviation of thrust magnitude error /% 
-    thrust_alignment : float
-        Standard deviation of thrust alignment vector error 
-    parachute_vars : dict
-        Dictionary of variables for parachute object. Must contain: main_s, main_c_d, drogue_s, drogue_c_d, main_alt, attatch_distance
-    env_vars : dictionary
-        Multiplied factor for the gravity, pressure, density and speed of sound used in the model,
-        defaults to {"gravity":1.0,"pressure":1.0,"density":1.0,"speed_of_sound":1.0}
+    run_file : string
+        json file containing config, see stats_settings.json
 
     Attributes
     ----------
@@ -126,18 +116,12 @@ class StatisticalModel:
                             forcast_plus_time=self.launch_site_vars["run_plus_time"],
                             fast=self.launch_site_vars["fast_wind"])
 
+        print(data["motor_file"])
         self.motor_data=load_motor(data["motor_file"])
+        self.motor_base=Motor.from_novus(data["motor_file"], pos = data["motor_pos"])
 
-        self.motor_base=Motor(self.motor_data["motor_time"], 
-                            self.motor_data["prop_mass"], 
-                            self.motor_data["cham_pres"], 
-                            self.motor_data["throat"], 
-                            self.motor_data["gamma"], 
-                            self.motor_data["nozzle_efficiency"], 
-                            self.motor_data["exit_pres"], 
-                            self.motor_data["area_ratio"])
     @ray.remote
-    def run_itteration(self, id, save_loc):
+    def run_itteration(self, id, save_loc,debug=False):
         """Runs an instance of the rocket with random errors
 
         Note
@@ -152,61 +136,54 @@ class StatisticalModel:
             Folder to store results
         """
         motor=copy.copy(self.motor_base)
-        motor.nozzle_efficiency_data=np.array(motor.nozzle_efficiency_data)*np.random.normal(1,self.thrust_error["magnitude"])
+        thrust_e=np.random.normal(1,self.thrust_error["magnitude"])
+        motor.thrust_array=[t*thrust_e for t in motor.thrust_array]
 
-        wind=copy.copy(self.wind_base)
+        wind=copy.copy(self.wind_base)#Wind variability coming soon
 
         dry_mass = self.mass_vars["dry_mass"][0]*np.random.normal(1,self.mass_vars["dry_mass"][1])
         rocket_length = self.mass_vars["rocket_length"][0]*np.random.normal(1,self.mass_vars["rocket_length"][1])
         rocket_radius = self.mass_vars["rocket_radius"][0]*np.random.normal(1,self.mass_vars["rocket_radius"][1])
         rocket_wall_thickness = self.mass_vars["rocket_wall_thickness"][0]*np.random.normal(1,self.mass_vars["rocket_wall_thickness"][1])
         pos_tank_bottom = self.mass_vars["pos_tank_bottom"][0]*np.random.normal(1,self.mass_vars["pos_tank_bottom"][1])
-        length_port=self.motor_data["length_port"]*np.random.normal(1,self.mass_vars["length_port"])
-        pos_solidfuel_bottom = self.mass_vars["pos_solidfuel_bottom_base"][0]*np.random.normal(1,self.mass_vars["pos_solidfuel_bottom_base"][1])+length_port    # m - Distance between the nose tip and bottom of the solid fuel grain 
+        s_l=self.motor_data["s_l"]*rocket_length/self.mass_vars["rocket_length"][0]#Solid fuel length
+        pos_solidfuel_bottom = self.mass_vars["pos_solidfuel_bottom_base"][0]*np.random.normal(1,self.mass_vars["pos_solidfuel_bottom_base"][1])+s_l    # m - Distance between the nose tip and bottom of the solid fuel grain 
         ref_area = self.aero_vars["ref_area"][0]*np.random.normal(1,self.aero_vars["ref_area"][1])
 
+        ###Aero 
         c_damp_pitch = pitch_damping_coefficient(rocket_length,
                                                 rocket_radius, 
                                                 fin_number = self.aero_vars["fins"], 
                                                 area_per_fin = self.aero_vars["area_per_fin"][0]*np.random.normal(1,self.aero_vars["area_per_fin"][1]))
         c_damp_roll = 0
+        aero_data = AeroData.from_rasaero(self.aero_file,
+                                        ref_area,
+                                        c_damp_pitch,
+                                        c_damp_roll,
+                                        error={
+                                            "CN":np.random.normal(1,self.aero_vars["CN"]),
+                                            "CA":np.random.normal(1,self.aero_vars["CA"]),
+                                            "COP":np.random.normal(1,self.aero_vars["COP"])
+                                        })
 
-        aerodynamic_coefficients = RASAeroData(self.aero_file, 
-                                                ref_area, 
-                                                c_damp_pitch, 
-                                                c_damp_roll, 
-                                                error={
-                                                    "CN":np.random.normal(1,self.aero_vars["CN"]),
-                                                    "CA":np.random.normal(1,self.aero_vars["CA"]),
-                                                    "COP":np.random.normal(1,self.aero_vars["COP"])
-                                                })
-        liquid_fuel = LiquidFuel(np.array(self.motor_data["lden"])*np.random.normal(1,self.mass_vars["lden"]), 
-                                np.array(self.motor_data["lmass"])*np.random.normal(1,self.mass_vars["lmass"]), 
-                                rocket_radius, 
-                                pos_tank_bottom, 
-                                self.motor_data["motor_time"])
-        solid_fuel = SolidFuel(np.array(self.motor_data["fuel_mass"])*np.random.normal(1,self.mass_vars["fuel_mass"]), 
-                                self.motor_data["density_fuel"]*np.random.normal(1,self.mass_vars["fuel_density"]), 
-                                self.motor_data["dia_fuel"]*np.random.normal(1,self.mass_vars["fuel_diameter"])/2, 
-                                length_port, 
-                                pos_solidfuel_bottom, 
-                                self.motor_data["motor_time"])
-        dry_mass_model = HollowCylinder(rocket_radius, 
-                                        rocket_radius - rocket_wall_thickness, 
-                                        rocket_length, 
-                                        dry_mass)
+        ###Mass
+        mass_model = MassModel()
+        mass_model.add_hollowcylinder(dry_mass, rocket_radius, rocket_radius - rocket_wall_thickness, rocket_length, rocket_length/2)
+        mass_model.add_liquidtank(self.motor_data["lmass"]*np.random.normal(1,self.mass_vars["lmass"]),
+                                self.motor_data["lden"]*np.random.normal(1,self.mass_vars["lden"]),
+                                self.motor_data["time"],
+                                rocket_radius,
+                                pos_tank_bottom,
+                                self.motor_data["vmass"]*np.random.normal(1,self.mass_vars["vmass"]),
+                                self.motor_data["vden"]*np.random.normal(1,self.mass_vars["vden"]))
+        mass_model.add_solidfuel(self.motor_data["smass"]*np.random.normal(1,self.mass_vars["smass"]),
+                                self.motor_data["time"],
+                                self.motor_data["sden"]*np.random.normal(1,self.mass_vars["sden"]),
+                                self.motor_data["s_rout"]*rocket_radius/self.mass_vars["rocket_radius"][0],
+                                s_l,
+                                pos_solidfuel_bottom)
 
-        mass_model = HybridMassModel(rocket_length,
-                                    solid_fuel,
-                                    liquid_fuel,
-                                    np.array(self.motor_data["vmass"])*np.random.normal(1,self.mass_vars["vmass"]), 
-                                    dry_mass_model.mass,
-                                    dry_mass_model.ixx(),
-                                    dry_mass_model.iyy(),
-                                    dry_mass_model.izz(), 
-                                    dry_cog = rocket_length/2)
-
-
+        ###Launchsite
         if (self.launch_site_vars["rail_yaw"][0]==0 and self.launch_site_vars["rail_pitch"][0]==0):
             rail_yaw=2*np.pi*np.random.rand()
             rail_pitch=np.random.normal(1,self.launch_site_vars["rail_pitch"][1])
@@ -225,24 +202,25 @@ class StatisticalModel:
                                 forcast_time=self.launch_site_vars["run_time"],
                                 fast_wind=bool(self.launch_site_vars["fast_wind"]))
 
+        ###Parachute
         if np.random.binomial(1,self.parachute_vars["failure_rate"])==0:
             parachute = Parachute(main_s=self.parachute_vars["main_s"][0]*np.random.normal(1,self.parachute_vars["main_s"][1]),
                                 main_c_d=self.parachute_vars["main_c_d"][0]*np.random.normal(1,self.parachute_vars["main_c_d"][1]),
                                 drogue_s=self.parachute_vars["drogue_s"][0]*np.random.normal(1,self.parachute_vars["drogue_s"][1]),
                                 drogue_c_d=self.parachute_vars["drogue_c_d"][0]*np.random.normal(1,self.parachute_vars["drogue_c_d"][1]),
                                 main_alt=self.parachute_vars["main_alt"][0]*np.random.normal(1,self.parachute_vars["main_alt"][1]),
-                                attatch_distance=self.parachute_vars["attatch_distance"][0]*np.random.normal(1,self.parachute_vars["attatch_distance"][1]))
+                                attach_distance=self.parachute_vars["attatch_distance"][0]*np.random.normal(1,self.parachute_vars["attatch_distance"][1]))
         else:
             parachute=Parachute(0.0,0.0,0.0,0.0,0.0,0.0)
 
         env_errors= {k: np.random.normal(1,v) for k,v in self.enviromental.items()}
 
-        thrust_alignment = np.array([np.random.normal(1,self.thrust_error["alignment"]),np.random.normal(0,self.thrust_error["magnitude"]),np.random.normal(0,self.thrust_error["magnitude"])])
+        thrust_alignment = np.array([np.random.normal(1,self.thrust_error["alignment"]),np.random.normal(0,self.thrust_error["alignment"]),np.random.normal(0,self.thrust_error["alignment"])])
         thrust_alignment = thrust_alignment/np.linalg.norm(thrust_alignment)
 
         rocket = Rocket(mass_model, 
                         motor, 
-                        aerodynamic_coefficients, 
+                        aero_data, 
                         launch_site, 
                         h=0.05, 
                         variable=True, 
@@ -251,7 +229,7 @@ class StatisticalModel:
                         errors=env_errors,
                         thrust_vector=thrust_alignment)
         
-        run_output = rocket.run(debug=True)
+        run_output = rocket.run(debug=debug)
         run_save = pd.DataFrame()
         run_save["time"]=run_output["time"]
         x,y,z=[],[],[]
@@ -271,7 +249,6 @@ class StatisticalModel:
         run_save["x"]=x
         run_save["y"]=y
         run_save["z"]=z
-        print(z[-1])
         run_save["v_x"]=v_x
         run_save["v_y"]=v_y
         run_save["v_z"]=v_z#These were'nt saving properly as vectors but really should
@@ -283,7 +260,7 @@ class StatisticalModel:
 
         
 
-    def run_model(self):
+    def run_model(self, test_mode=False, debug=False, num_cpus=False):
         """Runs the stochastic model
 
         Parameters
@@ -300,10 +277,13 @@ class StatisticalModel:
         save_loc="results/%s"%self.name
         if not os.path.exists(save_loc):
             os.makedirs(save_loc)
-
-        ray.init()
+        
+        if num_cpus!=False:
+            ray.init(num_cpus=num_cpus)
+        else:
+            ray.init(local_mode=test_mode)
         for run in range(1,self.itterations+1):
-            self.run_itteration.remote(self,run,save_loc)
+            self.run_itteration.remote(self,run,save_loc,debug=debug)
         input("Press enter when complete otherwise it pretends to have finished")
         return save_loc
 
@@ -386,7 +366,6 @@ def analyse(results_path, itterations, full_results=True, velocity=False):
 
     if full_results==True:
         return landing_mu,landing_cov,apogee_mu,apogee_cov,apogee,landing,x,y,z,t
-        #return x,y,z,t
     else:
         return landing_mu,landing_cov,apogee_mu,apogee_cov
 

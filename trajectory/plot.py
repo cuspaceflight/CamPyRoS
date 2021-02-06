@@ -15,6 +15,25 @@ import pandas as pd
 from scipy.spatial.transform import Rotation
 from ambiance import Atmosphere
 
+__copyright__ = """
+
+    Copyright 2021 Jago Strong-Wright & Daniel Gibbons
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+"""
+
 def get_velocity_magnitude(df):
     return (np.sqrt(df["vx_l"]**2+df["vy_l"]**2+df["vz_l"]**2))
 
@@ -65,11 +84,6 @@ def set_axes_equal(ax,dim=3):
         ax.set_ylim([y_middle - plot_radius, y_middle + plot_radius])
 
 def fix_ypr(point):
-    """if point<0:
-        point = 2*np.pi-abs(point)
-    point = round(point,5)
-    if point==round(2*np.pi,5):
-        point=0"""
     return point
 
 def plot_ypr(simulation_output, rocket):

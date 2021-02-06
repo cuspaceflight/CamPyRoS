@@ -37,7 +37,8 @@
     <script src="_static/language_data.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="prev" title="trajectory" href="modules.html" />
+    <link rel="next" title="Want to help out?" href="develop.html" />
+    <link rel="prev" title="Need help" href="help.html" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="docsearch:language" content="en" />
   </head>
@@ -60,19 +61,23 @@
         
         
         <li class="nav-item ">
+            <a class="nav-link" href="help.html">Need help</a>
+        </li>
+        
+        <li class="nav-item active">
+            <a class="nav-link" href="">trajectory package</a>
+        </li>
+        
+        <li class="nav-item ">
+            <a class="nav-link" href="develop.html">Want to help out?</a>
+        </li>
+        
+        <li class="nav-item ">
             <a class="nav-link" href="licences.html">License</a>
         </li>
         
         <li class="nav-item ">
             <a class="nav-link" href=""></a>
-        </li>
-        
-        <li class="nav-item ">
-            <a class="nav-link" href="help.html">Need help</a>
-        </li>
-        
-        <li class="nav-item active">
-            <a class="nav-link" href="modules.html">trajectory</a>
         </li>
         
         
@@ -107,17 +112,13 @@
         
         
         
-        
-        
-        
-        
           
-            
-                <li class="active">
-                    <a href="">trajectory package</a>
-                </li>
-            
-          
+        
+        
+        
+        
+        
+        
         
         
       </ul>
@@ -135,6 +136,14 @@
 
 <nav id="bd-toc-nav">
     <ul class="nav section-nav flex-column">
+    
+        <li class="nav-item toc-entry toc-h2">
+            <a href="#known-issues" class="nav-link">Known issues:</a>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h2">
+            <a href="#coordinate-systems" class="nav-link">Coordinate systems:</a>
+        </li>
     
         <li class="nav-item toc-entry toc-h2">
             <a href="#submodules" class="nav-link">Submodules</a>
@@ -180,73 +189,49 @@
   <div class="section" id="module-trajectory.main">
 <span id="trajectory-package"></span><h1>trajectory package<a class="headerlink" href="#module-trajectory.main" title="Permalink to this headline">¶</a></h1>
 <p>6DOF Trajectory Simulator
-Contains the classes and functions for the core trajectory simulation
-.. rubric:: Example</p>
+Contains the classes and functions for the core trajectory simulation. SI units unless stated otherwise.</p>
+<p class="rubric">Example</p>
 <dl class="simple">
 <dt>A small, single stage rocket can be found in examples, to run</dt><dd><p>$ python example/example.py</p>
 </dd>
 </dl>
-<p class="rubric">Notes</p>
-<p>SI units unless stated otherwise
-Coordinate systems:
-x_b,y_b,z_b = Body coordinate system (origin on rocket, rotates with the rocket)
-x_i,y_i,z_i = Inertial coordinate system (does not rotate, origin at centre of the Earth)
-x_l, y_l, z_l = Launch site coordinate system (origin has the launch site’s longitude and latitude, but is at altitude = 0). Rotates with the Earth.
-Directions are defined below.
-- Body:</p>
-<blockquote>
-<div><p>y points east and z north at take off (before rail alignment is accounted for) x up.
-x is along the “long” axis of the rocket.</p>
-</div></blockquote>
+<div class="section" id="known-issues">
+<h2>Known issues:<a class="headerlink" href="#known-issues" title="Permalink to this headline">¶</a></h2>
 <ul class="simple">
-<li><dl class="simple">
-<dt>Launch site:</dt><dd><p>z points perpendicular to the earth, y in the east direction and x tangential to the earth pointing south</p>
-</dd>
-</dl>
-</li>
-<li><dl class="simple">
-<dt>Inertial:</dt><dd><p>Origin at centre of the Earth
-z points to north from centre of earth, x aligned with launchsite at start and y orthogonal</p>
-</dd>
-</dl>
-</li>
+<li><p>Unsure about the use of “dx” in “scipy.misc.derivative(self.mass_model.mass, time, dx=1)” when calculating mdot</p></li>
+<li><p>Possible inconsistency in the definition of the launch site coordinate system, and whether the origin is at alt=0 or alt=launch_site.alt. I haven’t thoroughly checked for this inconsistency yet.</p></li>
 </ul>
-<dl class="py attribute">
-<dt id="trajectory.main.r_earth">
-<code class="sig-prename descclassname">trajectory.main.</code><code class="sig-name descname">r_earth</code><a class="headerlink" href="#trajectory.main.r_earth" title="Permalink to this definition">¶</a></dt>
-<dd><p>Radius of Earth/m</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type</dt>
-<dd class="field-odd"><p>float</p>
+</div>
+<div class="section" id="coordinate-systems">
+<h2>Coordinate systems:<a class="headerlink" href="#coordinate-systems" title="Permalink to this headline">¶</a></h2>
+<dl class="simple">
+<dt>Body (x_b, y_b, z_b)</dt><dd><ul class="simple">
+<li><p>Origin on rocket</p></li>
+<li><p>Rotates with the rocket.</p></li>
+<li><p>y points east and z north at take off (before rail alignment is accounted for) x up.</p></li>
+<li><p>x is along the “long” axis of the rocket.</p></li>
+</ul>
+</dd>
+<dt>Launch site (x_l, y_l, z_l):</dt><dd><ul class="simple">
+<li><p>Origin has the launch site’s longitude and latitude, but is at altitude = 0.</p></li>
+<li><p>Rotates with the Earth.</p></li>
+<li><p>z points up (normal to the surface of the Earth).</p></li>
+<li><p>y points East (tangentially to the surface of the Earth).</p></li>
+<li><p>x points South (tangentially to the surface of the Earth).</p></li>
+</ul>
+</dd>
+<dt>Inertial (x_i, y_i, z_i):</dt><dd><ul class="simple">
+<li><p>Origin at centre of the Earth.</p></li>
+<li><p>Does not rotate.</p></li>
+<li><p>z points to North from the centre of Earth.</p></li>
+<li><p>x aligned with launch site at start .</p></li>
+<li><p>y defined from x and z (so it is a right hand coordinate system).</p></li>
+</ul>
 </dd>
 </dl>
-</dd></dl>
-
-<dl class="py attribute">
-<dt id="trajectory.main.e_earth">
-<code class="sig-prename descclassname">trajectory.main.</code><code class="sig-name descname">e_earth</code><a class="headerlink" href="#trajectory.main.e_earth" title="Permalink to this definition">¶</a></dt>
-<dd><p>Eccentricity of the Earth, currently set to zero to simplify calculations (i.e. spherical Earth model is being used)</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type</dt>
-<dd class="field-odd"><p>float</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py attribute">
-<dt id="trajectory.main.ang_vel_earth">
-<code class="sig-prename descclassname">trajectory.main.</code><code class="sig-name descname">ang_vel_earth</code><a class="headerlink" href="#trajectory.main.ang_vel_earth" title="Permalink to this definition">¶</a></dt>
-<dd><p>The angular velocity of the Earth</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type</dt>
-<dd class="field-odd"><p>float</p>
-</dd>
-</dl>
-</dd></dl>
-
 <dl class="py class">
 <dt id="trajectory.main.LaunchSite">
-<em class="property">class </em><code class="sig-prename descclassname">trajectory.main.</code><code class="sig-name descname">LaunchSite</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">rail_length</span></em>, <em class="sig-param"><span class="n">rail_yaw</span></em>, <em class="sig-param"><span class="n">rail_pitch</span></em>, <em class="sig-param"><span class="n">alt</span></em>, <em class="sig-param"><span class="n">longi</span></em>, <em class="sig-param"><span class="n">lat</span></em>, <em class="sig-param"><span class="n">variable_wind</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">default_wind</span><span class="o">=</span><span class="default_value">array([0, 0, 0])</span></em>, <em class="sig-param"><span class="n">wind_data_loc</span><span class="o">=</span><span class="default_value">'data/wind/gfs'</span></em>, <em class="sig-param"><span class="n">run_date</span><span class="o">=</span><span class="default_value">'20201218'</span></em>, <em class="sig-param"><span class="n">forcast_time</span><span class="o">=</span><span class="default_value">'00'</span></em>, <em class="sig-param"><span class="n">forcast_plus_time</span><span class="o">=</span><span class="default_value">'000'</span></em>, <em class="sig-param"><span class="n">fast_wind</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="headerlink" href="#trajectory.main.LaunchSite" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">trajectory.main.</code><code class="sig-name descname">LaunchSite</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">rail_length</span></em>, <em class="sig-param"><span class="n">rail_yaw</span></em>, <em class="sig-param"><span class="n">rail_pitch</span></em>, <em class="sig-param"><span class="n">alt</span></em>, <em class="sig-param"><span class="n">longi</span></em>, <em class="sig-param"><span class="n">lat</span></em>, <em class="sig-param"><span class="n">variable_wind</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">default_wind</span><span class="o">=</span><span class="default_value">array([0, 0, 0])</span></em>, <em class="sig-param"><span class="n">wind_data_loc</span><span class="o">=</span><span class="default_value">'data/wind/gfs'</span></em>, <em class="sig-param"><span class="n">run_date</span><span class="o">=</span><span class="default_value">'20210206'</span></em>, <em class="sig-param"><span class="n">forcast_time</span><span class="o">=</span><span class="default_value">'00'</span></em>, <em class="sig-param"><span class="n">forcast_plus_time</span><span class="o">=</span><span class="default_value">'000'</span></em>, <em class="sig-param"><span class="n">fast_wind</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="headerlink" href="#trajectory.main.LaunchSite" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>Object holding the launch site information
 :param rail_length: Length of launch rail /m
@@ -351,119 +336,8 @@ z points to north from centre of earth, x aligned with launchsite at start and y
 </dd></dl>
 
 <dl class="py class">
-<dt id="trajectory.main.Motor">
-<em class="property">class </em><code class="sig-prename descclassname">trajectory.main.</code><code class="sig-name descname">Motor</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">motor_time_data</span></em>, <em class="sig-param"><span class="n">prop_mass_data</span></em>, <em class="sig-param"><span class="n">cham_pres_data</span></em>, <em class="sig-param"><span class="n">throat_data</span></em>, <em class="sig-param"><span class="n">gamma_data</span></em>, <em class="sig-param"><span class="n">nozzle_efficiency_data</span></em>, <em class="sig-param"><span class="n">exit_pres_data</span></em>, <em class="sig-param"><span class="n">area_ratio_data</span></em><span class="sig-paren">)</span><a class="headerlink" href="#trajectory.main.Motor" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
-<p>Object holding the performance data for the engine
-:param motor_time_data: Time since ignition (with times corresponding to the other input lists) /s
-:type motor_time_data: list
-:param prop_mass_data: Propellant mass /kg
-:type prop_mass_data: list
-:param cham_pres_data: Chamber Pressure /Pa
-:type cham_pres_data: list
-:param throat_data: Throat diameter /m
-:type throat_data: list
-:param gamma_data: Nozzle inlet gamma (ratio of specific heats)
-:type gamma_data: list
-:param nozzle_efficiency_data: Nozzle efficiency
-:type nozzle_efficiency_data: list
-:param exit_pres_data: Exit pressure /Pa
-:type exit_pres_data: list
-:param area_ratio_data: Area ratio
-:type area_ratio_data: list</p>
-<dl class="py attribute">
-<dt id="trajectory.main.Motor.motor_time_data">
-<code class="sig-name descname">motor_time_data</code><a class="headerlink" href="#trajectory.main.Motor.motor_time_data" title="Permalink to this definition">¶</a></dt>
-<dd><p>Time since ignition (with times corresponding to the other input lists) /s</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type</dt>
-<dd class="field-odd"><p>list</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py attribute">
-<dt id="trajectory.main.Motor.prop_mass_data">
-<code class="sig-name descname">prop_mass_data</code><a class="headerlink" href="#trajectory.main.Motor.prop_mass_data" title="Permalink to this definition">¶</a></dt>
-<dd><p>Propellant mass /kg</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type</dt>
-<dd class="field-odd"><p>list</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py attribute">
-<dt id="trajectory.main.Motor.cham_pres_data">
-<code class="sig-name descname">cham_pres_data</code><a class="headerlink" href="#trajectory.main.Motor.cham_pres_data" title="Permalink to this definition">¶</a></dt>
-<dd><p>Chamber Pressure /Pa</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type</dt>
-<dd class="field-odd"><p>list</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py attribute">
-<dt id="trajectory.main.Motor.throat_data">
-<code class="sig-name descname">throat_data</code><a class="headerlink" href="#trajectory.main.Motor.throat_data" title="Permalink to this definition">¶</a></dt>
-<dd><p>Throat diameter /m</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type</dt>
-<dd class="field-odd"><p>list</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py attribute">
-<dt id="trajectory.main.Motor.gamma_data">
-<code class="sig-name descname">gamma_data</code><a class="headerlink" href="#trajectory.main.Motor.gamma_data" title="Permalink to this definition">¶</a></dt>
-<dd><p>Nozzle inlet gamma (ratio of specific heats)</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type</dt>
-<dd class="field-odd"><p>list</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py attribute">
-<dt id="trajectory.main.Motor.nozzle_efficiency_data">
-<code class="sig-name descname">nozzle_efficiency_data</code><a class="headerlink" href="#trajectory.main.Motor.nozzle_efficiency_data" title="Permalink to this definition">¶</a></dt>
-<dd><p>Nozzle efficiency</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type</dt>
-<dd class="field-odd"><p>list</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py attribute">
-<dt id="trajectory.main.Motor.exit_pres_data">
-<code class="sig-name descname">exit_pres_data</code><a class="headerlink" href="#trajectory.main.Motor.exit_pres_data" title="Permalink to this definition">¶</a></dt>
-<dd><p>Exit pressure /Pa</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type</dt>
-<dd class="field-odd"><p>list</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py attribute">
-<dt id="trajectory.main.Motor.area_ratio_data">
-<code class="sig-name descname">area_ratio_data</code><a class="headerlink" href="#trajectory.main.Motor.area_ratio_data" title="Permalink to this definition">¶</a></dt>
-<dd><p>Area ratio</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type</dt>
-<dd class="field-odd"><p>list</p>
-</dd>
-</dl>
-</dd></dl>
-
-</dd></dl>
-
-<dl class="py class">
 <dt id="trajectory.main.Parachute">
-<em class="property">class </em><code class="sig-prename descclassname">trajectory.main.</code><code class="sig-name descname">Parachute</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">main_s</span></em>, <em class="sig-param"><span class="n">main_c_d</span></em>, <em class="sig-param"><span class="n">drogue_s</span></em>, <em class="sig-param"><span class="n">drogue_c_d</span></em>, <em class="sig-param"><span class="n">main_alt</span></em>, <em class="sig-param"><span class="n">attatch_distance</span></em><span class="sig-paren">)</span><a class="headerlink" href="#trajectory.main.Parachute" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">trajectory.main.</code><code class="sig-name descname">Parachute</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">main_s</span></em>, <em class="sig-param"><span class="n">main_c_d</span></em>, <em class="sig-param"><span class="n">drogue_s</span></em>, <em class="sig-param"><span class="n">drogue_c_d</span></em>, <em class="sig-param"><span class="n">main_alt</span></em>, <em class="sig-param"><span class="n">attach_distance</span></em><span class="sig-paren">)</span><a class="headerlink" href="#trajectory.main.Parachute" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>Object holding the parachute information
 .. note:</p>
@@ -481,7 +355,7 @@ z points to north from centre of earth, x aligned with launchsite at start and y
 <li><p><strong>drogue_s</strong> (<em>float</em>) – Area of main chute/m^2</p></li>
 <li><p><strong>drogue_c_d</strong> (<em>float</em>) – Coefficient of drag for main chute/</p></li>
 <li><p><strong>main_alt</strong> (<em>float</em>) – Altitude at which main deploys</p></li>
-<li><p><strong>attatch_distance</strong> (<em>float</em>) – Distance from the nose of the rocket that the parachute is attatched /m</p></li>
+<li><p><strong>attach_distance</strong> (<em>float</em>) – Distance from the nose of the rocket that the parachute is attatched /m</p></li>
 </ul>
 </dd>
 </dl>
@@ -541,8 +415,8 @@ z points to north from centre of earth, x aligned with launchsite at start and y
 </dd></dl>
 
 <dl class="py attribute">
-<dt id="trajectory.main.Parachute.attatch_distance">
-<code class="sig-name descname">attatch_distance</code><a class="headerlink" href="#trajectory.main.Parachute.attatch_distance" title="Permalink to this definition">¶</a></dt>
+<dt id="trajectory.main.Parachute.attach_distance">
+<code class="sig-name descname">attach_distance</code><a class="headerlink" href="#trajectory.main.Parachute.attach_distance" title="Permalink to this definition">¶</a></dt>
 <dd><p>Distance from the nose of the rocket that the parachute is attatched /m</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type</dt>
@@ -580,7 +454,7 @@ Area /m^2</p>
 :param motor: Motor object that stores peformace parameters over time
 :type motor: Motor Object
 :param aero: Most have area, cop, cn and ca class methods which return that at time
-:type aero: Aero Object
+:type aero: AeroData Object
 :param launch_site: Stores launch site parameters
 :type launch_site: Launch site object
 :param h: Timestep for integration (only required when variable is off), defaults ot 0.01 /s
@@ -591,12 +465,8 @@ Area /m^2</p>
 :type rtol: float
 :param atol: Absolute error tollerance for integration /
 :type atol: float
-:param errors: Multiplied factor for the gravity, pressure, density and speed of sound used in the model,</p>
-<blockquote>
-<div><p>defaults to {“gravity”:1.0,”pressure”:1.0,”density”:1.0,”speed_of_sound”:1.0}</p>
-</div></blockquote>
-<dl class="field-list simple">
-</dl>
+:param errors: Multiplied factor for the gravity, pressure, density and speed of sound used in the model, defaults to {“gravity”:1.0,”pressure”:1.0,”density”:1.0,”speed_of_sound”:1.0}
+:type errors: dictionary, optional</p>
 <dl class="py attribute">
 <dt id="trajectory.main.Rocket.mass_model">
 <code class="sig-name descname">mass_model</code><a class="headerlink" href="#trajectory.main.Rocket.mass_model" title="Permalink to this definition">¶</a></dt>
@@ -776,91 +646,10 @@ Area /m^2</p>
 <dl class="py attribute">
 <dt id="trajectory.main.Rocket.env_vars">
 <code class="sig-name descname">env_vars</code><a class="headerlink" href="#trajectory.main.Rocket.env_vars" title="Permalink to this definition">¶</a></dt>
-<dd><p>Stores the coefficiants for the enviromental variables (see above)</p>
+<dd><p>Stores the coefficients for the enviromental variables (see above)</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type</dt>
 <dd class="field-odd"><p>dictionary</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt id="trajectory.main.Rocket.accelerations">
-<code class="sig-name descname">accelerations</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">pos_i</span></em>, <em class="sig-param"><span class="n">vel_i</span></em>, <em class="sig-param"><span class="n">b2i</span></em>, <em class="sig-param"><span class="n">w_b</span></em>, <em class="sig-param"><span class="n">time</span></em><span class="sig-paren">)</span><a class="headerlink" href="#trajectory.main.Rocket.accelerations" title="Permalink to this definition">¶</a></dt>
-<dd><p>Gathers the foces on the rocket and returns translational and rotational accelerations on the rocket
-:param pos_i: Position of the rocket in the inertial coordinate system [x,y,z] /m
-:type pos_i: numpy array
-:param vel_i: Velocity of the rocket in the inertial coordinate system [x,y,z] /m/s
-:type vel_i: numpy array
-:param b2i: Defines the orientation of the body frame to the inertial frame
-:type b2i: scipy rotation object
-:param w_b: Angular velocity of the body in the body frame [x,y,z] /rad/s
-:type w_b: numpy array
-:param time: Time since ignition /s
-:type time: float</p>
-<dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p>Translational accleration in inertial frame, and rotational acceleration using the body coordinate system</p>
-</dd>
-<dt class="field-even">Return type</dt>
-<dd class="field-even"><p>numpy array</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt id="trajectory.main.Rocket.aero_damping_moment">
-<code class="sig-name descname">aero_damping_moment</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">pos_i</span></em>, <em class="sig-param"><span class="n">vel_i</span></em>, <em class="sig-param"><span class="n">b2i</span></em>, <em class="sig-param"><span class="n">w_b</span></em>, <em class="sig-param"><span class="n">time</span></em><span class="sig-paren">)</span><a class="headerlink" href="#trajectory.main.Rocket.aero_damping_moment" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns aerodynamic damping moments (in the body reference frame).</p>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>-Assumes the damping coefficients are constants</p>
-</div>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>pos_i</strong> (<em>numpy array</em>) – Position of the rocket in the inertial coordinate system [x,y,z] /m</p></li>
-<li><p><strong>vel_i</strong> (<em>numpy array</em>) – Velocity of the rocket in the inertial coordinate system [x,y,z] /m/s</p></li>
-<li><p><strong>b2i</strong> (<em>scipy rotation object</em>) – Defines the orientation of the body frame to the inertial frame</p></li>
-<li><p><strong>w_b</strong> (<em>numpy array</em>) – Angular velocity of the body in the body frame [x,y,z] /rad/s</p></li>
-<li><p><strong>time</strong> (<em>float</em>) – Time since ignition /s</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>Aerodynamic damping moments on the rocket in the body frame [x,y,z] /N</p>
-</dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>numpy array</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt id="trajectory.main.Rocket.aero_forces">
-<code class="sig-name descname">aero_forces</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">pos_i</span></em>, <em class="sig-param"><span class="n">vel_i</span></em>, <em class="sig-param"><span class="n">b2i</span></em>, <em class="sig-param"><span class="n">w_b</span></em>, <em class="sig-param"><span class="n">time</span></em><span class="sig-paren">)</span><a class="headerlink" href="#trajectory.main.Rocket.aero_forces" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns aerodynamic forces (in the body reference frame and the distance of the centre of pressure (COP) from the front of the vehicle).</p>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<ul class="simple">
-<li><p>Calculating alpha should use the velocity of the centre of pressure, but we’ve approximated this as the centre of mass (i.e. we assumed zero angular velocity) - see page 6 of <a class="reference external" href="https://ascelibrary.org/doi/pdf/10.1061/%28ASCE%29AS.1943-5525.0000051">https://ascelibrary.org/doi/pdf/10.1061/%28ASCE%29AS.1943-5525.0000051</a></p></li>
-</ul>
-</div>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>pos_i</strong> (<em>numpy array</em>) – Position of the rocket in the inertial coordinate system [x,y,z] /m</p></li>
-<li><p><strong>vel_i</strong> (<em>numpy array</em>) – Velocity of the rocket in the inertial coordinate system [x,y,z] /m/s</p></li>
-<li><p><strong>b2i</strong> (<em>scipy rotation object</em>) – Defines the orientation of the body frame to the inertial frame</p></li>
-<li><p><strong>w_b</strong> (<em>numpy array</em>) – Angular velocity of the body in the body frame [x,y,z] /rad/s</p></li>
-<li><p><strong>time</strong> (<em>float</em>) – Time since ignition /s</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p><ul class="simple">
-<li><p><em>numpy array</em> – Aerodynamic forces on the rocket in the body frame [x,y,z] /N</p></li>
-<li><p><em>float</em> – Distance from the front of the rocket that the forces act through /m</p></li>
-</ul>
-</p>
 </dd>
 </dl>
 </dd></dl>
@@ -888,8 +677,8 @@ Area /m^2</p>
 <dl class="py method">
 <dt id="trajectory.main.Rocket.fdot">
 <code class="sig-name descname">fdot</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">time</span></em>, <em class="sig-param"><span class="n">fn</span></em><span class="sig-paren">)</span><a class="headerlink" href="#trajectory.main.Rocket.fdot" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns the rate of change of the Rocket’s state array, f
-.. rubric:: Notes</p>
+<dd><p>Returns the rate of change of the Rocket’s state array, f</p>
+<p class="rubric">Notes</p>
 <p>-‘fdot’ here is the same as ‘ydot’ in the 2P1 (2nd Year) Engineering Lagrangian dynamics notes RK4 section</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -909,7 +698,7 @@ zb[0],zb[1],zb[2]]</p>
 <dt class="field-even">Returns</dt>
 <dd class="field-even"><p>[vel_i[0], vel_i[1], vel_i[2],
 acc_i[0], acc_i[1], acc_i[2],
-w_bdot[0], w_bdot[1], w_bdot[2],
+wdot_b[0], wdot_b[1], wdot_b[2],
 xbdot[0], xbdot[1], xbdot[2],
 ybdot[0], ybdot[1], ybdot[2],
 zbdot[0], zbdot[1], zbdot[2]]</p>
@@ -919,35 +708,6 @@ zbdot[0], zbdot[1], zbdot[2]]</p>
 </dd>
 </dl>
 </dd></dl>
-
-<dl class="py method">
-<dt id="trajectory.main.Rocket.gravity">
-<code class="sig-name descname">gravity</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">pos_i</span></em>, <em class="sig-param"><span class="n">time</span></em><span class="sig-paren">)</span><a class="headerlink" href="#trajectory.main.Rocket.gravity" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns the gravity force, as a vector in inertial coordinates.
-.. note:: -Uses a spherical Earth gravity model</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>pos_i</strong> (<em>numpy array</em>) – Position of the rocket in the inertial coordinate system [x,y,z] /m</p></li>
-<li><p><strong>vel_i</strong> (<em>numpy array</em>) – Velocity of the rocket in the inertial coordinate system [x,y,z] /m/s</p></li>
-<li><p><strong>b2i</strong> (<em>scipy rotation object</em>) – Defines the orientation of the body frame to the inertial frame</p></li>
-<li><p><strong>w_b</strong> (<em>numpy array</em>) – Angular velocity of the body in the body frame [x,y,z] /rad/s</p></li>
-<li><p><strong>time</strong> (<em>float</em>) – Time since ignition /s</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>Gravitational force on rocket in inertial frame [x,y,z] /N</p>
-</dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>numpy array</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt id="trajectory.main.Rocket.parachute_force">
-<code class="sig-name descname">parachute_force</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">q</span></em>, <em class="sig-param"><span class="n">velocity</span></em>, <em class="sig-param"><span class="n">alt</span></em><span class="sig-paren">)</span><a class="headerlink" href="#trajectory.main.Rocket.parachute_force" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
 
 <dl class="py method">
 <dt id="trajectory.main.Rocket.run">
@@ -965,57 +725,23 @@ zbdot[0], zbdot[1], zbdot[2]]</p>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
-<dd class="field-even"><p><p>Record of simulation, contains interial position and velocity, angular velocity in body coordinates, orientation and events (e.g. parachute).
+<dd class="field-even"><p>Record of simulation, contains interial position and velocity, angular velocity in body coordinates, orientation and events (e.g. parachute).
 Most information can be derived from this in post processing.
-“time” : array</p>
-<blockquote>
-<div><p>List of times that all the data corresponds to /s</p>
-</div></blockquote>
-<dl class="simple">
-<dt>”pos_i”<span class="classifier">array</span></dt><dd><p>List of inertial position vectors [x, y, z] /m</p>
-</dd>
-<dt>”vel_i”<span class="classifier">array</span></dt><dd><p>List of inertial velocity vectors [x, y, z] /m/s</p>
-</dd>
-<dt>”b2imat”<span class="classifier">array:</span></dt><dd><p>List of rotation matrices for going from the body to inertial coordinate system (i.e. a record of rocket orientation)</p>
-</dd>
-<dt>”w_b”<span class="classifier">array:</span></dt><dd><p>List of angular velocity vectors, in body coordinates [x, y, z] /rad/s</p>
-</dd>
-<dt>”events”<span class="classifier">array:</span></dt><dd><p>List of useful events</p>
-</dd>
-</dl>
-</p>
+“time” : array
+List of times that all the data corresponds to /s
+“pos_i” : array
+List of inertial position vectors [x, y, z] /m
+“vel_i” : array
+List of inertial velocity vectors [x, y, z] /m/s
+“b2imat” : array:
+List of rotation matrices for going from the body to inertial coordinate system (i.e. a record of rocket orientation)
+“w_b” : array:
+List of angular velocity vectors, in body coordinates [x, y, z] /rad/s
+“events” : array:
+List of useful events</p>
 </dd>
 <dt class="field-odd">Return type</dt>
 <dd class="field-odd"><p>pandas array</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt id="trajectory.main.Rocket.thrust">
-<code class="sig-name descname">thrust</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">pos_i</span></em>, <em class="sig-param"><span class="n">vel_i</span></em>, <em class="sig-param"><span class="n">b2i</span></em>, <em class="sig-param"><span class="n">w_b</span></em>, <em class="sig-param"><span class="n">time</span></em>, <em class="sig-param"><span class="n">vector</span><span class="o">=</span><span class="default_value">[1, 0, 0]</span></em><span class="sig-paren">)</span><a class="headerlink" href="#trajectory.main.Rocket.thrust" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns thrust and moments generated by the motor, in body frame.
-.. note:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">-</span> <span class="n">Mainly</span> <span class="n">derived</span> <span class="kn">from</span> <span class="nn">Joe</span> <span class="n">Hunt</span><span class="s1">&#39;s NOVUS Simulation</span>
-<span class="o">-</span> <span class="n">Jet</span> <span class="n">damping</span> <span class="n">moment</span> <span class="ow">is</span> <span class="n">calculated</span> <span class="n">assuming</span> <span class="n">the</span> <span class="n">propellant</span> <span class="n">COG</span> <span class="ow">is</span> <span class="n">the</span> <span class="n">same</span> <span class="k">as</span> <span class="n">that</span> <span class="k">for</span> <span class="n">the</span> <span class="n">whole</span> <span class="n">rocket</span><span class="o">.</span> <span class="n">This</span> <span class="n">will</span> <span class="n">usually</span> <span class="n">be</span> <span class="n">less</span> <span class="n">accurate</span> <span class="k">if</span> <span class="n">you</span> <span class="n">have</span> <span class="n">propellants</span> <span class="n">near</span> <span class="n">the</span> <span class="n">top</span> <span class="ow">or</span> <span class="n">bottom</span> <span class="n">of</span> <span class="n">the</span> <span class="n">rocket</span><span class="o">.</span>
-</pre></div>
-</div>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>pos_i</strong> (<em>numpy array</em>) – Position of the rocket in the inertial coordinate system [x,y,z] /m</p></li>
-<li><p><strong>vel_i</strong> (<em>numpy array</em>) – Velocity of the rocket in the inertial coordinate system [x,y,z] /m/s</p></li>
-<li><p><strong>b2i</strong> (<em>scipy rotation object</em>) – Defines the orientation of the body frame to the inertial frame</p></li>
-<li><p><strong>w_b</strong> (<em>numpy array</em>) – Angular velocity of the body in the body frame [x,y,z] /rad/s</p></li>
-<li><p><strong>time</strong> (<em>float</em>) – Time since ignition /s</p></li>
-<li><p><strong>vector</strong> (<em>numpy array</em><em>, </em><em>optional</em>) – Thrust direction in the body coordinate system - models misalignment or thrust vector control. Defaults to [1,0,0]</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>Thrust forces on the rocket in the body frame [x,y,z] /N</p>
-</dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>numpy array</p>
 </dd>
 </dl>
 </dd></dl>
@@ -1024,7 +750,7 @@ Most information can be derived from this in post processing.
 
 <dl class="py class">
 <dt id="trajectory.main.Wind">
-<em class="property">class </em><code class="sig-prename descclassname">trajectory.main.</code><code class="sig-name descname">Wind</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">initial_long</span></em>, <em class="sig-param"><span class="n">initial_lat</span></em>, <em class="sig-param"><span class="n">variable</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">default</span><span class="o">=</span><span class="default_value">array([0, 0, 0])</span></em>, <em class="sig-param"><span class="n">data_loc</span><span class="o">=</span><span class="default_value">'data/wind/gfs'</span></em>, <em class="sig-param"><span class="n">run_date</span><span class="o">=</span><span class="default_value">'20201218'</span></em>, <em class="sig-param"><span class="n">forcast_time</span><span class="o">=</span><span class="default_value">'00'</span></em>, <em class="sig-param"><span class="n">forcast_plus_time</span><span class="o">=</span><span class="default_value">'000'</span></em>, <em class="sig-param"><span class="n">fast</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="headerlink" href="#trajectory.main.Wind" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">trajectory.main.</code><code class="sig-name descname">Wind</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">initial_long</span></em>, <em class="sig-param"><span class="n">initial_lat</span></em>, <em class="sig-param"><span class="n">variable</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">default</span><span class="o">=</span><span class="default_value">array([0, 0, 0])</span></em>, <em class="sig-param"><span class="n">data_loc</span><span class="o">=</span><span class="default_value">'data/wind/gfs'</span></em>, <em class="sig-param"><span class="n">run_date</span><span class="o">=</span><span class="default_value">'20210206'</span></em>, <em class="sig-param"><span class="n">forcast_time</span><span class="o">=</span><span class="default_value">'00'</span></em>, <em class="sig-param"><span class="n">forcast_plus_time</span><span class="o">=</span><span class="default_value">'000'</span></em>, <em class="sig-param"><span class="n">fast</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="headerlink" href="#trajectory.main.Wind" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>Wind object</p>
 <div class="admonition note">
@@ -1180,19 +906,74 @@ Data collected from the NOAA’s 0.25 degree 1 hour GFS forcast (<a class="refer
 <dl class="py method">
 <dt id="trajectory.main.Wind.load_data">
 <code class="sig-name descname">load_data</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">lats</span></em>, <em class="sig-param"><span class="n">longs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#trajectory.main.Wind.load_data" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Loads wind data for particualr lat long to the objects df.</p>
+<p class="rubric">Notes</p>
+<p>Checks if the file corespondin to the requested lat long at the time and date of the object is available.
+If not downloads. Then reads into the dataframe.
+The file has cubes for geopotential height, wind x and wind y by pressure at a square grid of lat longs.
+The wind x and y are itterated throgh the pressures for each lat long and the altitude found for each point
+by finding the geopotential height at the particular pressure which can be converted to altitude.
+Each point is then stored in the df separatly for ease of searching (because the library Iris is complelty inept for this).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>lat</strong> (<em>float:</em>) – Requested latitude /degrees</p></li>
+<li><p><strong>longi</strong> (<em>float:</em>) – Requested longitude /degrees</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><em>pandas DataFrame</em> – The new wind points</p></li>
+<li><p><em>points</em> – list of [lat,long] not available</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py method">
 <dt id="trajectory.main.Wind.load_fast">
 <code class="sig-name descname">load_fast</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">lat</span></em>, <em class="sig-param"><span class="n">long</span></em><span class="sig-paren">)</span><a class="headerlink" href="#trajectory.main.Wind.load_fast" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Returns an interpolation object of wind by altitude for the specified location
+This method is much faster than the normal method but if the rocket has significant downrange
+it becomes inaccurate</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>lat</strong> (<em>float</em>) – latitude</p></li>
+<li><p><strong>long</strong> (<em>float</em>) – longitude</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>interpolation class of wind vector by altitude</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>scipy.interpolate.interpolate.interp1d</p>
+</dd>
+</dl>
+</dd></dl>
 
 </dd></dl>
 
 <dl class="py function">
 <dt id="trajectory.main.closest">
 <code class="sig-prename descclassname">trajectory.main.</code><code class="sig-name descname">closest</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">num</span></em>, <em class="sig-param"><span class="n">incriment</span></em><span class="sig-paren">)</span><a class="headerlink" href="#trajectory.main.closest" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>[summary]</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>num</strong> (<em>[</em><em>type</em><em>]</em>) – [description]</p></li>
+<li><p><strong>incriment</strong> (<em>[</em><em>type</em><em>]</em>) – [description]</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>[description]</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>[type]</p>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py function">
 <dt id="trajectory.main.from_json">
@@ -1202,25 +983,20 @@ Data collected from the NOAA’s 0.25 degree 1 hour GFS forcast (<a class="refer
 :type directory: string</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p><p>Record of simulation, contains interial position and velocity, angular velocity in body coordinates, orientation and events (e.g. parachute).
+<dd class="field-odd"><p>Record of simulation, contains interial position and velocity, angular velocity in body coordinates, orientation and events (e.g. parachute).
 Most information can be derived from this in post processing.
-“time” : array</p>
-<blockquote>
-<div><p>List of times that all the data corresponds to /s</p>
-</div></blockquote>
-<dl class="simple">
-<dt>”pos_i”<span class="classifier">array</span></dt><dd><p>List of inertial position vectors [x, y, z] /m</p>
-</dd>
-<dt>”vel_i”<span class="classifier">array</span></dt><dd><p>List of inertial velocity vectors [x, y, z] /m/s</p>
-</dd>
-<dt>”b2imat”<span class="classifier">array:</span></dt><dd><p>List of rotation matrices for going from the body to inertial coordinate system (i.e. a record of rocket orientation)</p>
-</dd>
-<dt>”w_b”<span class="classifier">array:</span></dt><dd><p>List of angular velocity vectors, in body coordinates [x, y, z] /rad/s</p>
-</dd>
-<dt>”events”<span class="classifier">array:</span></dt><dd><p>List of useful events</p>
-</dd>
-</dl>
-</p>
+“time” : array
+List of times that all the data corresponds to /s
+“pos_i” : array
+List of inertial position vectors [x, y, z] /m
+“vel_i” : array
+List of inertial velocity vectors [x, y, z] /m/s
+“b2imat” : array:
+List of rotation matrices for going from the body to inertial coordinate system (i.e. a record of rocket orientation)
+“w_b” : array:
+List of angular velocity vectors, in body coordinates [x, y, z] /rad/s
+“events” : array:
+List of useful events</p>
 </dd>
 <dt class="field-even">Return type</dt>
 <dd class="field-even"><p>pandas array</p>
@@ -1231,84 +1007,268 @@ Most information can be derived from this in post processing.
 <dl class="py function">
 <dt id="trajectory.main.points">
 <code class="sig-prename descclassname">trajectory.main.</code><code class="sig-name descname">points</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">lats</span></em>, <em class="sig-param"><span class="n">longs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#trajectory.main.points" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>[summary]</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>lats</strong> (<em>[</em><em>type</em><em>]</em>) – [description]</p></li>
+<li><p><strong>longs</strong> (<em>[</em><em>type</em><em>]</em>) – [description]</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>[description]</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>[type]</p>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py function">
 <dt id="trajectory.main.validate_lat_long">
 <code class="sig-prename descclassname">trajectory.main.</code><code class="sig-name descname">validate_lat_long</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">lat</span></em>, <em class="sig-param"><span class="n">long</span></em><span class="sig-paren">)</span><a class="headerlink" href="#trajectory.main.validate_lat_long" title="Permalink to this definition">¶</a></dt>
 <dd><p>Makes latitude and longitude valid for wind</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>lat</strong> (<em>[</em><em>type</em><em>]</em>) – [description]</p></li>
+<li><p><strong>long</strong> (<em>[</em><em>type</em><em>]</em>) – [description]</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>[description]</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>[type]</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py function">
 <dt id="trajectory.main.warning_on_one_line">
 <code class="sig-prename descclassname">trajectory.main.</code><code class="sig-name descname">warning_on_one_line</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">message</span></em>, <em class="sig-param"><span class="n">category</span></em>, <em class="sig-param"><span class="n">filename</span></em>, <em class="sig-param"><span class="n">lineno</span></em>, <em class="sig-param"><span class="n">file</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">line</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#trajectory.main.warning_on_one_line" title="Permalink to this definition">¶</a></dt>
 <dd><p>A one line warning format</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>message</strong> (<em>[</em><em>type</em><em>]</em>) – [description]</p></li>
+<li><p><strong>category</strong> (<em>[</em><em>type</em><em>]</em>) – [description]</p></li>
+<li><p><strong>filename</strong> (<em>[</em><em>type</em><em>]</em>) – [description]</p></li>
+<li><p><strong>lineno</strong> (<em>[</em><em>type</em><em>]</em>) – [description]</p></li>
+<li><p><strong>file</strong> (<em>[</em><em>type</em><em>]</em><em>, </em><em>optional</em>) – [description]. Defaults to None.</p></li>
+<li><p><strong>line</strong> (<em>[</em><em>type</em><em>]</em><em>, </em><em>optional</em>) – [description]. Defaults to None.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>[description]</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>[type]</p>
+</dd>
+</dl>
 </dd></dl>
 
+</div>
 <div class="section" id="submodules">
 <h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
 </div>
 <div class="section" id="module-trajectory.aero">
 <span id="aero-module"></span><h2>aero module<a class="headerlink" href="#module-trajectory.aero" title="Permalink to this headline">¶</a></h2>
 <dl class="py class">
-<dt id="trajectory.aero.RASAeroData">
-<em class="property">class </em><code class="sig-prename descclassname">trajectory.aero.</code><code class="sig-name descname">RASAeroData</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">file_location_string</span></em>, <em class="sig-param"><span class="n">ref_area</span></em>, <em class="sig-param"><span class="n">pitch_damping_coefficient</span><span class="o">=</span><span class="default_value">0</span></em>, <em class="sig-param"><span class="n">roll_damping_coefficient</span><span class="o">=</span><span class="default_value">0</span></em>, <em class="sig-param"><span class="n">error</span><span class="o">=</span><span class="default_value">{'CA': 1.0, 'CN': 1.0, 'COP': 1.0}</span></em><span class="sig-paren">)</span><a class="headerlink" href="#trajectory.aero.RASAeroData" title="Permalink to this definition">¶</a></dt>
+<dt id="trajectory.aero.AeroData">
+<em class="property">class </em><code class="sig-prename descclassname">trajectory.aero.</code><code class="sig-name descname">AeroData</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">CA_grid</span></em>, <em class="sig-param"><span class="n">CN_grid</span></em>, <em class="sig-param"><span class="n">COP_grid</span></em>, <em class="sig-param"><span class="n">Mach_grid</span></em>, <em class="sig-param"><span class="n">alpha_grid</span></em>, <em class="sig-param"><span class="n">ref_area</span></em>, <em class="sig-param"><span class="n">pitch_damping_coefficient</span><span class="o">=</span><span class="default_value">0.0</span></em>, <em class="sig-param"><span class="n">roll_damping_coefficient</span><span class="o">=</span><span class="default_value">0.0</span></em>, <em class="sig-param"><span class="n">error</span><span class="o">=</span><span class="default_value">{'CA': 1.0, 'CN': 1.0, 'COP': 1.0}</span></em><span class="sig-paren">)</span><a class="headerlink" href="#trajectory.aero.AeroData" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
-<p>Object holding aerodynamic data from a RASAero II ‘Aero Plots’ export file</p>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>Relies on an axially symetric body</p>
-</div>
+<p>Object holding aerodynamic data for the rocket.</p>
+<p>Assumes an axially symmetric body. Uses scipy.interpolate.interp2d to interpolate data from arrays.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>file_location_string</strong> (<em>string</em>) – Location of RASAero file</p></li>
-<li><p><strong>area</strong> (<em>float</em>) – Referance area used to normalise coefficients, defaults to 0.0305128422 /m^2</p></li>
-<li><p><strong>pitch_damping_coefficient</strong> (<em>float</em><em>, </em><em>optional</em>) – Pitch damping coefficient, defined by m = C * ρ * ω^2.  Defaults to zero.</p></li>
-<li><p><strong>roll_damping_coefficient</strong> (<em>float</em><em>, </em><em>optional</em>) – Roll damping coefficient, defined by m = C * ρ * ω^2. Defaults to zero.</p></li>
+<li><p><strong>CA_grid</strong> (<em>array</em><em>, </em><em>2D</em>) – Axial force coefficient data.</p></li>
+<li><p><strong>CN_grid</strong> (<em>array</em><em>, </em><em>2D</em>) – Normal force coefficient data.</p></li>
+<li><p><strong>COP_grid</strong> (<em>array</em><em>, </em><em>2D</em>) – Centre of pressure data (m), containing distances between the nose tip and the centre of pressure.</p></li>
+<li><p><strong>Mach_grid</strong> (<em>array</em><em>, </em><em>1D</em><em> or </em><em>2D</em>) – Mach number data.</p></li>
+<li><p><strong>alpha_grid</strong> (<em>array</em><em>, </em><em>1D</em><em> or </em><em>2D</em>) – Angle of attack data (radians).</p></li>
+<li><p><strong>ref_area</strong> (<em>float</em>) – Referance area used to normalise coefficients (m^2).</p></li>
+<li><p><strong>pitch_damping_coefficient</strong> (<em>float</em><em>, </em><em>optional</em>) – Pitch damping coefficient, defined by moment = C * ρ * ω^2.  Defaults to zero.</p></li>
+<li><p><strong>roll_damping_coefficient</strong> (<em>float</em><em>, </em><em>optional</em>) – Roll damping coefficient, defined by moment = C * ρ * ω^2. Defaults to zero.</p></li>
+<li><p><strong>error</strong> (<em>dictionary</em><em>, </em><em>optional</em>) – Used for running stochastic analyses. Defaults to {“CA”:1.0,”CN”:1.0,”COP”:1.0}.</p></li>
 </ul>
 </dd>
 </dl>
 <dl class="py attribute">
-<dt id="trajectory.aero.RASAeroData.area">
-<code class="sig-name descname">area</code><a class="headerlink" href="#trajectory.aero.RASAeroData.area" title="Permalink to this definition">¶</a></dt>
-<dd><p>Referance area used to normalise coefficients, /m^2</p>
+<dt id="trajectory.aero.AeroData.CA_grid">
+<code class="sig-name descname">CA_grid</code><a class="headerlink" href="#trajectory.aero.AeroData.CA_grid" title="Permalink to this definition">¶</a></dt>
+<dd><p>Axial force coefficient data.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type</dt>
-<dd class="field-odd"><p>float, optional</p>
+<dd class="field-odd"><p>array</p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py attribute">
-<dt id="trajectory.aero.RASAeroData.COP">
-<code class="sig-name descname">COP</code><a class="headerlink" href="#trajectory.aero.RASAeroData.COP" title="Permalink to this definition">¶</a></dt>
-<dd><p>Centre of pressure at time after ignition, when called interpolates to desired time /m</p>
+<dt id="trajectory.aero.AeroData.CN_grid">
+<code class="sig-name descname">CN_grid</code><a class="headerlink" href="#trajectory.aero.AeroData.CN_grid" title="Permalink to this definition">¶</a></dt>
+<dd><p>Normal force coefficient data.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type</dt>
-<dd class="field-odd"><p>Scipy Interpolation Function</p>
+<dd class="field-odd"><p>array</p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py attribute">
-<dt id="trajectory.aero.RASAeroData.CA">
-<code class="sig-name descname">CA</code><a class="headerlink" href="#trajectory.aero.RASAeroData.CA" title="Permalink to this definition">¶</a></dt>
-<dd><p>Axial coefficient of drag, when called interpolates to desired time /</p>
+<dt id="trajectory.aero.AeroData.COP_grid">
+<code class="sig-name descname">COP_grid</code><a class="headerlink" href="#trajectory.aero.AeroData.COP_grid" title="Permalink to this definition">¶</a></dt>
+<dd><p>Centre of pressure data, containing distances between the nose tip and the centre of pressure (m).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type</dt>
-<dd class="field-odd"><p>Scipy Interpolation Function</p>
+<dd class="field-odd"><p>array</p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py attribute">
-<dt id="trajectory.aero.RASAeroData.CN">
-<code class="sig-name descname">CN</code><a class="headerlink" href="#trajectory.aero.RASAeroData.CN" title="Permalink to this definition">¶</a></dt>
-<dd><p>Normal coefficient of drag, when called interpolates to desired time /</p>
+<dt id="trajectory.aero.AeroData.Mach_grid">
+<code class="sig-name descname">Mach_grid</code><a class="headerlink" href="#trajectory.aero.AeroData.Mach_grid" title="Permalink to this definition">¶</a></dt>
+<dd><p>Mach number data.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type</dt>
-<dd class="field-odd"><p>Scipy Interpolation Function</p>
+<dd class="field-odd"><p>array</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="trajectory.aero.AeroData.alpha_grid">
+<code class="sig-name descname">alpha_grid</code><a class="headerlink" href="#trajectory.aero.AeroData.alpha_grid" title="Permalink to this definition">¶</a></dt>
+<dd><p>Angle of attack data (rad).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>array</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="trajectory.aero.AeroData.ref_area">
+<code class="sig-name descname">ref_area</code><a class="headerlink" href="#trajectory.aero.AeroData.ref_area" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reference area used to normalise coefficients (m^2).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="trajectory.aero.AeroData.pitch_damping_coefficient">
+<code class="sig-name descname">pitch_damping_coefficient</code><a class="headerlink" href="#trajectory.aero.AeroData.pitch_damping_coefficient" title="Permalink to this definition">¶</a></dt>
+<dd><p>Pitch damping coefficient, defined by moment = C * ρ * ω^2.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="trajectory.aero.AeroData.roll_damping_coefficient">
+<code class="sig-name descname">roll_damping_coefficient</code><a class="headerlink" href="#trajectory.aero.AeroData.roll_damping_coefficient" title="Permalink to this definition">¶</a></dt>
+<dd><p>Roll damping coefficient, defined by moment = C * ρ * ω^2.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="trajectory.aero.AeroData.error">
+<code class="sig-name descname">error</code><a class="headerlink" href="#trajectory.aero.AeroData.error" title="Permalink to this definition">¶</a></dt>
+<dd><p>Used for running stochastic analyses.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>dictionary</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="trajectory.aero.AeroData.CA">
+<code class="sig-name descname">CA</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">Mach</span></em>, <em class="sig-param"><span class="n">alpha</span></em><span class="sig-paren">)</span><a class="headerlink" href="#trajectory.aero.AeroData.CA" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="trajectory.aero.AeroData.CN">
+<code class="sig-name descname">CN</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">Mach</span></em>, <em class="sig-param"><span class="n">alpha</span></em><span class="sig-paren">)</span><a class="headerlink" href="#trajectory.aero.AeroData.CN" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="trajectory.aero.AeroData.COP">
+<code class="sig-name descname">COP</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">Mach</span></em>, <em class="sig-param"><span class="n">alpha</span></em><span class="sig-paren">)</span><a class="headerlink" href="#trajectory.aero.AeroData.COP" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="trajectory.aero.AeroData.from_lists">
+<em class="property">static </em><code class="sig-name descname">from_lists</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">CA_list</span></em>, <em class="sig-param"><span class="n">CN_list</span></em>, <em class="sig-param"><span class="n">COP_list</span></em>, <em class="sig-param"><span class="n">Mach_list</span></em>, <em class="sig-param"><span class="n">alpha_list</span></em>, <em class="sig-param"><span class="n">ref_area</span></em>, <em class="sig-param"><span class="n">pitch_damping_coefficient</span><span class="o">=</span><span class="default_value">0</span></em>, <em class="sig-param"><span class="n">roll_damping_coefficient</span><span class="o">=</span><span class="default_value">0</span></em>, <em class="sig-param"><span class="n">error</span><span class="o">=</span><span class="default_value">{'CA': 1.0, 'CN': 1.0, 'COP': 1.0}</span></em><span class="sig-paren">)</span><a class="headerlink" href="#trajectory.aero.AeroData.from_lists" title="Permalink to this definition">¶</a></dt>
+<dd><p>Takes in 1D lists of data, and converts them into 2D arrays so they can be used for 2D interpolation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>CA_list</strong> (<em>array</em><em>, </em><em>1D</em>) – List of CA data at each Mach and alpha.</p></li>
+<li><p><strong>CN_list</strong> (<em>array</em><em>, </em><em>1D</em>) – List of CN data at each Mach and alpha</p></li>
+<li><p><strong>COP_list</strong> (<em>array</em><em>, </em><em>1D</em>) – List of COP data (m) at each mach and alph.</p></li>
+<li><p><strong>Mach_list</strong> (<em>array</em><em>, </em><em>1D</em>) – List of Mach numbers for each data point.</p></li>
+<li><p><strong>alpha_list</strong> (<em>array</em><em>, </em><em>1D</em>) – List of angles of attack (rad) for each data point.</p></li>
+<li><p><strong>ref_area</strong> (<em>array</em><em>, </em><em>1D</em>) – Reference area used to normalise coefficients (m^2).</p></li>
+<li><p><strong>pitch_damping_coefficient</strong> (<em>int</em><em>, </em><em>optional</em>) – Pitch damping coefficient, defined by moment = C * ρ * ω^2. Defaults to 0.</p></li>
+<li><p><strong>roll_damping_coefficient</strong> (<em>int</em><em>, </em><em>optional</em>) – Roll damping coefficient, defined by moment = C * ρ * ω^2. Defaults to 0.</p></li>
+<li><p><strong>error</strong> (<em>dict</em><em>, </em><em>optional</em>) – Used for running stochastic analyses. Defaults to {“CA”:1.0,”CN”:1.0,”COP”:1.0}.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>AeroData object.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference internal" href="#trajectory.aero.AeroData" title="trajectory.aero.AeroData">AeroData</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="trajectory.aero.AeroData.from_rasaero">
+<em class="property">static </em><code class="sig-name descname">from_rasaero</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">csv_directory</span></em>, <em class="sig-param"><span class="n">ref_area</span></em>, <em class="sig-param"><span class="n">pitch_damping_coefficient</span><span class="o">=</span><span class="default_value">0</span></em>, <em class="sig-param"><span class="n">roll_damping_coefficient</span><span class="o">=</span><span class="default_value">0</span></em>, <em class="sig-param"><span class="n">error</span><span class="o">=</span><span class="default_value">{'CA': 1.0, 'CN': 1.0, 'COP': 1.0}</span></em><span class="sig-paren">)</span><a class="headerlink" href="#trajectory.aero.AeroData.from_rasaero" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert an aerodynamic data .CSV file from RASAero II into an AeroData object.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>csv_directory</strong> (<em>string</em>) – Directory to .CSV file.</p></li>
+<li><p><strong>ref_area</strong> (<em>float</em>) – Referance area used to normalise coefficients (m^2).</p></li>
+<li><p><strong>pitch_damping_coefficient</strong> (<em>float</em><em>, </em><em>optional</em>) – Pitch damping coefficient, defined by moment = C * ρ * ω^2.  Defaults to zero.</p></li>
+<li><p><strong>roll_damping_coefficient</strong> (<em>float</em><em>, </em><em>optional</em>) – Roll damping coefficient, defined by moment = C * ρ * ω^2. Defaults to zero.</p></li>
+<li><p><strong>error</strong> (<em>dictionary</em><em>, </em><em>optional</em>) – Used for running stochastic analyses.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>AeroData object.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference internal" href="#trajectory.aero.AeroData" title="trajectory.aero.AeroData">AeroData</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="trajectory.aero.AeroData.show_plot">
+<code class="sig-name descname">show_plot</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">Mach</span><span class="o">=</span><span class="default_value">array([0.0, 0.0501002, 0.1002004, 0.1503006, 0.2004008, 0.250501, 0.3006012, 0.3507014, 0.4008016, 0.4509018, 0.501002, 0.5511022, 0.6012024, 0.65130261, 0.70140281, 0.75150301, 0.80160321, 0.85170341, 0.90180361, 0.95190381, 1.00200401, 1.05210421, 1.10220441, 1.15230461, 1.20240481, 1.25250501, 1.30260521, 1.35270541, 1.40280561, 1.45290581, 1.50300601, 1.55310621, 1.60320641, 1.65330661, 1.70340681, 1.75350701, 1.80360721, 1.85370741, 1.90380762, 1.95390782, 2.00400802, 2.05410822, 2.10420842, 2.15430862, 2.20440882, 2.25450902, 2.30460922, 2.35470942, 2.40480962, 2.45490982, 2.50501002, 2.55511022, 2.60521042, 2.65531062, 2.70541082, 2.75551102, 2.80561122, 2.85571142, 2.90581162, 2.95591182, 3.00601202, 3.05611222, 3.10621242, 3.15631263, 3.20641283, 3.25651303, 3.30661323, 3.35671343, 3.40681363, 3.45691383, 3.50701403, 3.55711423, 3.60721443, 3.65731463, 3.70741483, 3.75751503, 3.80761523, 3.85771543, 3.90781563, 3.95791583, 4.00801603, 4.05811623, 4.10821643, 4.15831663, 4.20841683, 4.25851703, 4.30861723, 4.35871743, 4.40881764, 4.45891784, 4.50901804, 4.55911824, 4.60921844, 4.65931864, 4.70941884, 4.75951904, 4.80961924, 4.85971944, 4.90981964, 4.95991984, 5.01002004, 5.06012024, 5.11022044, 5.16032064, 5.21042084, 5.26052104, 5.31062124, 5.36072144, 5.41082164, 5.46092184, 5.51102204, 5.56112224, 5.61122244, 5.66132265, 5.71142285, 5.76152305, 5.81162325, 5.86172345, 5.91182365, 5.96192385, 6.01202405, 6.06212425, 6.11222445, 6.16232465, 6.21242485, 6.26252505, 6.31262525, 6.36272545, 6.41282565, 6.46292585, 6.51302605, 6.56312625, 6.61322645, 6.66332665, 6.71342685, 6.76352705, 6.81362725, 6.86372745, 6.91382766, 6.96392786, 7.01402806, 7.06412826, 7.11422846, 7.16432866, 7.21442886, 7.26452906, 7.31462926, 7.36472946, 7.41482966, 7.46492986, 7.51503006, 7.56513026, 7.61523046, 7.66533066, 7.71543086, 7.76553106, 7.81563126, 7.86573146, 7.91583166, 7.96593186, 8.01603206, 8.06613226, 8.11623246, 8.16633267, 8.21643287, 8.26653307, 8.31663327, 8.36673347, 8.41683367, 8.46693387, 8.51703407, 8.56713427, 8.61723447, 8.66733467, 8.71743487, 8.76753507, 8.81763527, 8.86773547, 8.91783567, 8.96793587, 9.01803607, 9.06813627, 9.11823647, 9.16833667, 9.21843687, 9.26853707, 9.31863727, 9.36873747, 9.41883768, 9.46893788, 9.51903808, 9.56913828, 9.61923848, 9.66933868, 9.71943888, 9.76953908, 9.81963928, 9.86973948, 9.91983968, 9.96993988, 10.02004008, 10.07014028, 10.12024048, 10.17034068, 10.22044088, 10.27054108, 10.32064128, 10.37074148, 10.42084168, 10.47094188, 10.52104208, 10.57114228, 10.62124248, 10.67134269, 10.72144289, 10.77154309, 10.82164329, 10.87174349, 10.92184369, 10.97194389, 11.02204409, 11.07214429, 11.12224449, 11.17234469, 11.22244489, 11.27254509, 11.32264529, 11.37274549, 11.42284569, 11.47294589, 11.52304609, 11.57314629, 11.62324649, 11.67334669, 11.72344689, 11.77354709, 11.82364729, 11.87374749, 11.9238477, 11.9739479, 12.0240481, 12.0741483, 12.1242485, 12.1743487, 12.2244489, 12.2745491, 12.3246493, 12.3747495, 12.4248497, 12.4749499, 12.5250501, 12.5751503, 12.6252505, 12.6753507, 12.7254509, 12.7755511, 12.8256513, 12.8757515, 12.9258517, 12.9759519, 13.0260521, 13.0761523, 13.12625251, 13.17635271, 13.22645291, 13.27655311, 13.32665331, 13.37675351, 13.42685371, 13.47695391, 13.52705411, 13.57715431, 13.62725451, 13.67735471, 13.72745491, 13.77755511, 13.82765531, 13.87775551, 13.92785571, 13.97795591, 14.02805611, 14.07815631, 14.12825651, 14.17835671, 14.22845691, 14.27855711, 14.32865731, 14.37875752, 14.42885772, 14.47895792, 14.52905812, 14.57915832, 14.62925852, 14.67935872, 14.72945892, 14.77955912, 14.82965932, 14.87975952, 14.92985972, 14.97995992, 15.03006012, 15.08016032, 15.13026052, 15.18036072, 15.23046092, 15.28056112, 15.33066132, 15.38076152, 15.43086172, 15.48096192, 15.53106212, 15.58116232, 15.63126253, 15.68136273, 15.73146293, 15.78156313, 15.83166333, 15.88176353, 15.93186373, 15.98196393, 16.03206413, 16.08216433, 16.13226453, 16.18236473, 16.23246493, 16.28256513, 16.33266533, 16.38276553, 16.43286573, 16.48296593, 16.53306613, 16.58316633, 16.63326653, 16.68336673, 16.73346693, 16.78356713, 16.83366733, 16.88376754, 16.93386774, 16.98396794, 17.03406814, 17.08416834, 17.13426854, 17.18436874, 17.23446894, 17.28456914, 17.33466934, 17.38476954, 17.43486974, 17.48496994, 17.53507014, 17.58517034, 17.63527054, 17.68537074, 17.73547094, 17.78557114, 17.83567134, 17.88577154, 17.93587174, 17.98597194, 18.03607214, 18.08617234, 18.13627255, 18.18637275, 18.23647295, 18.28657315, 18.33667335, 18.38677355, 18.43687375, 18.48697395, 18.53707415, 18.58717435, 18.63727455, 18.68737475, 18.73747495, 18.78757515, 18.83767535, 18.88777555, 18.93787575, 18.98797595, 19.03807615, 19.08817635, 19.13827655, 19.18837675, 19.23847695, 19.28857715, 19.33867735, 19.38877756, 19.43887776, 19.48897796, 19.53907816, 19.58917836, 19.63927856, 19.68937876, 19.73947896, 19.78957916, 19.83967936, 19.88977956, 19.93987976, 19.98997996, 20.04008016, 20.09018036, 20.14028056, 20.19038076, 20.24048096, 20.29058116, 20.34068136, 20.39078156, 20.44088176, 20.49098196, 20.54108216, 20.59118236, 20.64128257, 20.69138277, 20.74148297, 20.79158317, 20.84168337, 20.89178357, 20.94188377, 20.99198397, 21.04208417, 21.09218437, 21.14228457, 21.19238477, 21.24248497, 21.29258517, 21.34268537, 21.39278557, 21.44288577, 21.49298597, 21.54308617, 21.59318637, 21.64328657, 21.69338677, 21.74348697, 21.79358717, 21.84368737, 21.89378758, 21.94388778, 21.99398798, 22.04408818, 22.09418838, 22.14428858, 22.19438878, 22.24448898, 22.29458918, 22.34468938, 22.39478958, 22.44488978, 22.49498998, 22.54509018, 22.59519038, 22.64529058, 22.69539078, 22.74549098, 22.79559118, 22.84569138, 22.89579158, 22.94589178, 22.99599198, 23.04609218, 23.09619238, 23.14629259, 23.19639279, 23.24649299, 23.29659319, 23.34669339, 23.39679359, 23.44689379, 23.49699399, 23.54709419, 23.59719439, 23.64729459, 23.69739479, 23.74749499, 23.79759519, 23.84769539, 23.89779559, 23.94789579, 23.99799599, 24.04809619, 24.09819639, 24.14829659, 24.19839679, 24.24849699, 24.29859719, 24.34869739, 24.3987976, 24.4488978, 24.498998, 24.5490982, 24.5991984, 24.6492986, 24.6993988, 24.749499, 24.7995992, 24.8496994, 24.8997996, 24.9498998, 25.0])</span></em>, <em class="sig-param"><span class="n">alpha</span><span class="o">=</span><span class="default_value">array([0.0, 0.01745329, 0.03490659, 0.05235988, 0.06981317])</span></em><span class="sig-paren">)</span><a class="headerlink" href="#trajectory.aero.AeroData.show_plot" title="Permalink to this definition">¶</a></dt>
+<dd><p>“Shows plots of the CA, CN and COP functions, so you can visually check if the system has interpreted your data correctly.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>Mach</strong> (<em>array</em>) – Array of Mach numbers to plot over. Defaults to np.linspace(0, 25, 500).</p></li>
+<li><p><strong>alpha</strong> (<em>array</em>) – Array of angles of attack to plot over (rad). Defaults to np.linspace(0, 4, 5)*np.pi/180.</p></li>
+</ul>
 </dd>
 </dl>
 </dd></dl>
@@ -1358,729 +1318,208 @@ C = pitch damping coefficient.</p>
 </div>
 <div class="section" id="module-trajectory.mass">
 <span id="mass-module"></span><h2>mass module<a class="headerlink" href="#module-trajectory.mass" title="Permalink to this headline">¶</a></h2>
-<p>Mass Models</p>
-<p>Stores mass models</p>
 <p class="rubric">Notes</p>
 <ul class="simple">
-<li><p>All “positions” of masses are measured relative to the tip of the rocket’s nose</p></li>
-<li><p>All “times” are measured from the moment of ignition</p></li>
+<li><p>All “positions” are relative to the tip of the rocket’s nose</p></li>
+<li><p>All “times” are from the moment of ignition</p></li>
 </ul>
 <dl class="py class">
-<dt id="trajectory.mass.CustomMass">
-<em class="property">class </em><code class="sig-prename descclassname">trajectory.mass.</code><code class="sig-name descname">CustomMass</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">mass</span></em>, <em class="sig-param"><span class="n">ixx</span></em>, <em class="sig-param"><span class="n">iyy</span></em>, <em class="sig-param"><span class="n">izz</span></em>, <em class="sig-param"><span class="n">cog</span></em><span class="sig-paren">)</span><a class="headerlink" href="#trajectory.mass.CustomMass" title="Permalink to this definition">¶</a></dt>
+<dt id="trajectory.mass.CylindricalApproximation">
+<em class="property">class </em><code class="sig-prename descclassname">trajectory.mass.</code><code class="sig-name descname">CylindricalApproximation</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">mass_array</span></em>, <em class="sig-param"><span class="n">time_array</span></em>, <em class="sig-param"><span class="n">r</span></em>, <em class="sig-param"><span class="n">l</span></em><span class="sig-paren">)</span><a class="headerlink" href="#trajectory.mass.CylindricalApproximation" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
-<p>For storing custom mass data (must be constants)</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>mass</strong> (<em>float</em>) – Mass (kg)</p></li>
-<li><p><strong>ixx</strong> (<em>float</em>) – X-X principal moment of inertia (kg m^2)</p></li>
-<li><p><strong>iyy</strong> (<em>float</em>) – Y-Y principal moment of inertia (kg m^2)</p></li>
-<li><p><strong>izz</strong> (<em>float</em>) – Z-Z principle moment of inertia (kg m^2)</p></li>
-</ul>
-</dd>
-</dl>
-<dl class="py attribute">
-<dt id="trajectory.mass.CustomMass.mass">
-<code class="sig-name descname">mass</code><a class="headerlink" href="#trajectory.mass.CustomMass.mass" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="field-list simple">
-<dt class="field-odd">Type</dt>
-<dd class="field-odd"><p>float</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py attribute">
-<dt id="trajectory.mass.CustomMass.ixx">
-<code class="sig-name descname">ixx</code><a class="headerlink" href="#trajectory.mass.CustomMass.ixx" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="field-list simple">
-<dt class="field-odd">Type</dt>
-<dd class="field-odd"><p>float</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py attribute">
-<dt id="trajectory.mass.CustomMass.iyy">
-<code class="sig-name descname">iyy</code><a class="headerlink" href="#trajectory.mass.CustomMass.iyy" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="field-list simple">
-<dt class="field-odd">Type</dt>
-<dd class="field-odd"><p>float</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py attribute">
-<dt id="trajectory.mass.CustomMass.izz">
-<code class="sig-name descname">izz</code><a class="headerlink" href="#trajectory.mass.CustomMass.izz" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="field-list simple">
-<dt class="field-odd">Type</dt>
-<dd class="field-odd"><p>float</p>
-</dd>
-</dl>
-</dd></dl>
-
+<p>Solid cylinder approxiation for the rocket.</p>
+<p class="rubric">Notes</p>
+<p>Assumes:
+- The entire rocket is a solid cylinder. It’s volume is constant, but it’s density decreases with time according to how the mass decreases as fuel is burnt.</p>
 <dl class="py method">
-<dt id="id0">
-<em class="property">property </em><code class="sig-name descname">ixx</code><a class="headerlink" href="#id0" title="Permalink to this definition">¶</a></dt>
+<dt id="trajectory.mass.CylindricalApproximation.cog">
+<code class="sig-name descname">cog</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">time</span></em><span class="sig-paren">)</span><a class="headerlink" href="#trajectory.mass.CylindricalApproximation.cog" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
-<dt id="id1">
-<em class="property">property </em><code class="sig-name descname">iyy</code><a class="headerlink" href="#id1" title="Permalink to this definition">¶</a></dt>
+<dt id="trajectory.mass.CylindricalApproximation.ixx">
+<code class="sig-name descname">ixx</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">time</span></em><span class="sig-paren">)</span><a class="headerlink" href="#trajectory.mass.CylindricalApproximation.ixx" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
-<dt id="id2">
-<em class="property">property </em><code class="sig-name descname">izz</code><a class="headerlink" href="#id2" title="Permalink to this definition">¶</a></dt>
+<dt id="trajectory.mass.CylindricalApproximation.iyy">
+<code class="sig-name descname">iyy</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">time</span></em><span class="sig-paren">)</span><a class="headerlink" href="#trajectory.mass.CylindricalApproximation.iyy" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
-<dt id="id3">
-<em class="property">property </em><code class="sig-name descname">mass</code><a class="headerlink" href="#id3" title="Permalink to this definition">¶</a></dt>
+<dt id="trajectory.mass.CylindricalApproximation.izz">
+<code class="sig-name descname">izz</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">time</span></em><span class="sig-paren">)</span><a class="headerlink" href="#trajectory.mass.CylindricalApproximation.izz" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="trajectory.mass.CylindricalApproximation.mass">
+<code class="sig-name descname">mass</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">time</span></em><span class="sig-paren">)</span><a class="headerlink" href="#trajectory.mass.CylindricalApproximation.mass" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
 <dl class="py class">
-<dt id="trajectory.mass.CylindricalMassModel">
-<em class="property">class </em><code class="sig-prename descclassname">trajectory.mass.</code><code class="sig-name descname">CylindricalMassModel</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">mass</span></em>, <em class="sig-param"><span class="n">time</span></em>, <em class="sig-param"><span class="n">l</span></em>, <em class="sig-param"><span class="n">r</span></em><span class="sig-paren">)</span><a class="headerlink" href="#trajectory.mass.CylindricalMassModel" title="Permalink to this definition">¶</a></dt>
+<dt id="trajectory.mass.DryMass">
+<em class="property">class </em><code class="sig-prename descclassname">trajectory.mass.</code><code class="sig-name descname">DryMass</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">mass</span></em>, <em class="sig-param"><span class="n">ixx</span></em>, <em class="sig-param"><span class="n">iyy</span></em>, <em class="sig-param"><span class="n">izz</span></em>, <em class="sig-param"><span class="n">cog</span></em><span class="sig-paren">)</span><a class="headerlink" href="#trajectory.mass.DryMass" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
-<p>Simple cylindrical model of the rockets mass and moments of inertia.</p>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>Assumes the rocket is a solid cylinder, constant volume, which has a mass that reduces with time (i.e. the density of the cylinder reducs)</p>
-</div>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>mass</strong> (<em>list</em>) – Masses of the rocket at time after ignition /kg</p></li>
-<li><p><strong>time</strong> (<em>list</em>) – Corresponding time for the mass /s</p></li>
-<li><p><strong>l</strong> (<em>float</em>) – Length of rocket (cylinder) /m</p></li>
-<li><p><strong>r</strong> (<em>float</em>) – Radius of rocket (cylinder) /m</p></li>
-</ul>
-</dd>
-</dl>
-<dl class="py attribute">
-<dt id="trajectory.mass.CylindricalMassModel.mass">
-<code class="sig-name descname">mass</code><a class="headerlink" href="#trajectory.mass.CylindricalMassModel.mass" title="Permalink to this definition">¶</a></dt>
-<dd><p>Masses of the rocket at time after ignition, when called interpolates to desired time /kg</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type</dt>
-<dd class="field-odd"><p>Scipy Interpolation Function</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py attribute">
-<dt id="trajectory.mass.CylindricalMassModel.time">
-<code class="sig-name descname">time</code><a class="headerlink" href="#trajectory.mass.CylindricalMassModel.time" title="Permalink to this definition">¶</a></dt>
-<dd><p>Corresponding time for the mass /s</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type</dt>
-<dd class="field-odd"><p>list</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py attribute">
-<dt id="trajectory.mass.CylindricalMassModel.l">
-<code class="sig-name descname">l</code><a class="headerlink" href="#trajectory.mass.CylindricalMassModel.l" title="Permalink to this definition">¶</a></dt>
-<dd><p>Length of rocket (cylinder) /m</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type</dt>
-<dd class="field-odd"><p>float</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py attribute">
-<dt id="trajectory.mass.CylindricalMassModel.r">
-<code class="sig-name descname">r</code><a class="headerlink" href="#trajectory.mass.CylindricalMassModel.r" title="Permalink to this definition">¶</a></dt>
-<dd><p>Radius of rocket (cylinder) /m</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type</dt>
-<dd class="field-odd"><p>float</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt id="trajectory.mass.CylindricalMassModel.cog">
-<code class="sig-name descname">cog</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">time</span></em><span class="sig-paren">)</span><a class="headerlink" href="#trajectory.mass.CylindricalMassModel.cog" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns the centre of gravity at some time after igition</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>time</strong> (<em>float</em>) – Time since ignition /s</p>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>Centre of gravity /m</p>
-</dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>float</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt id="trajectory.mass.CylindricalMassModel.ixx">
-<code class="sig-name descname">ixx</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">time</span></em><span class="sig-paren">)</span><a class="headerlink" href="#trajectory.mass.CylindricalMassModel.ixx" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns the xx moment of inertia at some time after igition</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>time</strong> (<em>float</em>) – Time since ignition /s</p>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>xx moment of inertia /kgm^2</p>
-</dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>float</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt id="trajectory.mass.CylindricalMassModel.iyy">
-<code class="sig-name descname">iyy</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">time</span></em><span class="sig-paren">)</span><a class="headerlink" href="#trajectory.mass.CylindricalMassModel.iyy" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns the yy moment of inertia at some time after igition</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>time</strong> (<em>float</em>) – Time since ignition /s</p>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>yy moment of inertia /kgm^2</p>
-</dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>float</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt id="trajectory.mass.CylindricalMassModel.izz">
-<code class="sig-name descname">izz</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">time</span></em><span class="sig-paren">)</span><a class="headerlink" href="#trajectory.mass.CylindricalMassModel.izz" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns the zz moment of inertia at some time after igition</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>time</strong> (<em>float</em>) – Time since ignition /s</p>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>zz moment of inertia /kgm^2</p>
-</dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>float</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt id="id4">
-<code class="sig-name descname">mass</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">time</span></em><span class="sig-paren">)</span><a class="headerlink" href="#id4" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns the mass at some time after igition</p>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>Do not include the <cite>self</cite> parameter in the <code class="docutils literal notranslate"><span class="pre">Parameters</span></code> section.</p>
-</div>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>time</strong> (<em>float</em>) – Time since ignition /s</p>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>Mass interpolated at time /lg</p>
-</dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>float</p>
-</dd>
-</dl>
-</dd></dl>
-
+<p>Class for adding custom dry mass values.</p>
 </dd></dl>
 
 <dl class="py class">
 <dt id="trajectory.mass.HollowCylinder">
-<em class="property">class </em><code class="sig-prename descclassname">trajectory.mass.</code><code class="sig-name descname">HollowCylinder</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">r_out</span></em>, <em class="sig-param"><span class="n">r_in</span></em>, <em class="sig-param"><span class="n">l</span></em>, <em class="sig-param"><span class="n">mass</span></em><span class="sig-paren">)</span><a class="headerlink" href="#trajectory.mass.HollowCylinder" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">trajectory.mass.</code><code class="sig-name descname">HollowCylinder</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">mass</span></em>, <em class="sig-param"><span class="n">r_out</span></em>, <em class="sig-param"><span class="n">r_in</span></em>, <em class="sig-param"><span class="n">l</span></em>, <em class="sig-param"><span class="n">cog</span></em><span class="sig-paren">)</span><a class="headerlink" href="#trajectory.mass.HollowCylinder" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
-<p>To help calculate moments of inertia for a hollow (i.e. annular) cylinder</p>
+<p>Class for getting moment of inertia properties for a solid hollow cylinder that does not vary with time.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt id="trajectory.mass.LiquidTank">
+<em class="property">class </em><code class="sig-prename descclassname">trajectory.mass.</code><code class="sig-name descname">LiquidTank</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">lmass_array</span></em>, <em class="sig-param"><span class="n">lden_array</span></em>, <em class="sig-param"><span class="n">time_array</span></em>, <em class="sig-param"><span class="n">r</span></em>, <em class="sig-param"><span class="n">pos_bottom</span></em>, <em class="sig-param"><span class="n">vmass_array</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">vden_array</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#trajectory.mass.LiquidTank" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Liquid fuel tank.</p>
 <p class="rubric">Notes</p>
-<ul class="simple">
-<li><p>Does not store COG data for the cylinder. COG will simply be half way up the length of the cylinder (since it is modelled as uniform)</p></li>
-</ul>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>r_out</strong> (<em>float</em>) – Outer radius (m)</p></li>
-<li><p><strong>r_in</strong> (<em>float</em>) – Inner radius (m)</p></li>
-<li><p><strong>l</strong> (<em>float</em>) – Length (m)</p></li>
-<li><p><strong>mass</strong> (<em>float</em>) – Mass (kg)</p></li>
-</ul>
-</dd>
-</dl>
-<dl class="py attribute">
-<dt id="trajectory.mass.HollowCylinder.r_out">
-<code class="sig-name descname">r_out</code><a class="headerlink" href="#trajectory.mass.HollowCylinder.r_out" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="field-list simple">
-<dt class="field-odd">Type</dt>
-<dd class="field-odd"><p>float</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py attribute">
-<dt id="trajectory.mass.HollowCylinder.r_in">
-<code class="sig-name descname">r_in</code><a class="headerlink" href="#trajectory.mass.HollowCylinder.r_in" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="field-list simple">
-<dt class="field-odd">Type</dt>
-<dd class="field-odd"><p>float</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py attribute">
-<dt id="trajectory.mass.HollowCylinder.l">
-<code class="sig-name descname">l</code><a class="headerlink" href="#trajectory.mass.HollowCylinder.l" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="field-list simple">
-<dt class="field-odd">Type</dt>
-<dd class="field-odd"><p>float</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py attribute">
-<dt id="trajectory.mass.HollowCylinder.mass">
-<code class="sig-name descname">mass</code><a class="headerlink" href="#trajectory.mass.HollowCylinder.mass" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="field-list simple">
-<dt class="field-odd">Type</dt>
-<dd class="field-odd"><p>float</p>
-</dd>
-</dl>
-</dd></dl>
-
+<p>Assumes:
+- Cylindrical fuel tank
+- Inviscid liquid, so the liquid does not contribute to ixx
+- Vapour does not contribute to moments of inertia</p>
 <dl class="py method">
-<dt id="trajectory.mass.HollowCylinder.a">
-<code class="sig-name descname">a</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#trajectory.mass.HollowCylinder.a" title="Permalink to this definition">¶</a></dt>
+<dt id="trajectory.mass.LiquidTank.cog">
+<code class="sig-name descname">cog</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">time</span></em><span class="sig-paren">)</span><a class="headerlink" href="#trajectory.mass.LiquidTank.cog" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
-<dt id="trajectory.mass.HollowCylinder.ixx">
-<code class="sig-name descname">ixx</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#trajectory.mass.HollowCylinder.ixx" title="Permalink to this definition">¶</a></dt>
+<dt id="trajectory.mass.LiquidTank.ixx">
+<code class="sig-name descname">ixx</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">time</span></em><span class="sig-paren">)</span><a class="headerlink" href="#trajectory.mass.LiquidTank.ixx" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
-<dt id="trajectory.mass.HollowCylinder.iyy">
-<code class="sig-name descname">iyy</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#trajectory.mass.HollowCylinder.iyy" title="Permalink to this definition">¶</a></dt>
+<dt id="trajectory.mass.LiquidTank.iyy">
+<code class="sig-name descname">iyy</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">time</span></em><span class="sig-paren">)</span><a class="headerlink" href="#trajectory.mass.LiquidTank.iyy" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
-<dt id="trajectory.mass.HollowCylinder.izz">
-<code class="sig-name descname">izz</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#trajectory.mass.HollowCylinder.izz" title="Permalink to this definition">¶</a></dt>
+<dt id="trajectory.mass.LiquidTank.izz">
+<code class="sig-name descname">izz</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">time</span></em><span class="sig-paren">)</span><a class="headerlink" href="#trajectory.mass.LiquidTank.izz" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
-<dt id="trajectory.mass.HollowCylinder.t">
-<code class="sig-name descname">t</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#trajectory.mass.HollowCylinder.t" title="Permalink to this definition">¶</a></dt>
+<dt id="trajectory.mass.LiquidTank.lden">
+<code class="sig-name descname">lden</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">time</span></em><span class="sig-paren">)</span><a class="headerlink" href="#trajectory.mass.LiquidTank.lden" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="trajectory.mass.LiquidTank.lheight">
+<code class="sig-name descname">lheight</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">time</span></em><span class="sig-paren">)</span><a class="headerlink" href="#trajectory.mass.LiquidTank.lheight" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="trajectory.mass.LiquidTank.lmass">
+<code class="sig-name descname">lmass</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">time</span></em><span class="sig-paren">)</span><a class="headerlink" href="#trajectory.mass.LiquidTank.lmass" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="trajectory.mass.LiquidTank.lvol">
+<code class="sig-name descname">lvol</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">time</span></em><span class="sig-paren">)</span><a class="headerlink" href="#trajectory.mass.LiquidTank.lvol" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="trajectory.mass.LiquidTank.mass">
+<code class="sig-name descname">mass</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">time</span></em><span class="sig-paren">)</span><a class="headerlink" href="#trajectory.mass.LiquidTank.mass" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="trajectory.mass.LiquidTank.vden">
+<code class="sig-name descname">vden</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">time</span></em><span class="sig-paren">)</span><a class="headerlink" href="#trajectory.mass.LiquidTank.vden" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="trajectory.mass.LiquidTank.vheight">
+<code class="sig-name descname">vheight</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">time</span></em><span class="sig-paren">)</span><a class="headerlink" href="#trajectory.mass.LiquidTank.vheight" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="trajectory.mass.LiquidTank.vmass">
+<code class="sig-name descname">vmass</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">time</span></em><span class="sig-paren">)</span><a class="headerlink" href="#trajectory.mass.LiquidTank.vmass" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="trajectory.mass.LiquidTank.vvol">
+<code class="sig-name descname">vvol</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">time</span></em><span class="sig-paren">)</span><a class="headerlink" href="#trajectory.mass.LiquidTank.vvol" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
 <dl class="py class">
-<dt id="trajectory.mass.HybridMassModel">
-<em class="property">class </em><code class="sig-prename descclassname">trajectory.mass.</code><code class="sig-name descname">HybridMassModel</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">rocket_length</span></em>, <em class="sig-param"><span class="n">solid_fuel</span></em>, <em class="sig-param"><span class="n">liquid_fuel</span></em>, <em class="sig-param"><span class="n">vap_mass</span></em>, <em class="sig-param"><span class="n">dry_mass</span></em>, <em class="sig-param"><span class="n">dry_ixx</span></em>, <em class="sig-param"><span class="n">dry_iyy</span></em>, <em class="sig-param"><span class="n">dry_izz</span></em>, <em class="sig-param"><span class="n">dry_cog</span></em><span class="sig-paren">)</span><a class="headerlink" href="#trajectory.mass.HybridMassModel" title="Permalink to this definition">¶</a></dt>
+<dt id="trajectory.mass.MassModel">
+<em class="property">class </em><code class="sig-prename descclassname">trajectory.mass.</code><code class="sig-name descname">MassModel</code><a class="headerlink" href="#trajectory.mass.MassModel" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
-<p>Mass model for a a rocket that uses hybrid fuel</p>
 <p class="rubric">Notes</p>
-<ul class="simple">
-<li><p>Assumes the solid fuel is an annular cylinder, and the liquid fuel is in a cylindrical fuel tank</p></li>
-<li><p>Assumes the fuel tanks and solid fuel are coaxial along the rocket’s long axis</p></li>
-<li><p>The data for the solid fuel, liquid fuel, and vapour mass (v_mass) must all correspond to the same time array</p></li>
-<li><p>Vapour mass data is only used for calculating the total mass. It is ignored for moments of inertia, and for the centre of gravity.</p></li>
-</ul>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>rocket_length</strong> (<em>float</em>) – Length of the rocket (m)</p></li>
-<li><p><strong>solid_fuel</strong> (<a class="reference internal" href="#trajectory.mass.SolidFuel" title="trajectory.mass.SolidFuel"><em>SolidFuel</em></a>) – SolidFuel object containing data on the solid fuel grain</p></li>
-<li><p><strong>liquid_fuel</strong> (<a class="reference internal" href="#trajectory.mass.LiquidFuel" title="trajectory.mass.LiquidFuel"><em>LiquidFuel</em></a>) – LiquidFuel object containing data on the liquid fuel</p></li>
-<li><p><strong>vap_mass</strong> (<em>list</em>) – Vapour masses (kg) corresponding to the time array used for solid_fuel and liquid_fuel</p></li>
-<li><p><strong>dry_mass</strong> (<em>float</em>) – Dry mass of the rocket (kg), without any fuel or oxidiser</p></li>
-<li><p><strong>dry_ixx</strong> (<em>float</em>) – Dry X-X principal moment of inertia (kg m^2)</p></li>
-<li><p><strong>dry_iyy</strong> (<em>float</em>) – Dry Y-Y principal moment of inertia (kg m^2)</p></li>
-<li><p><strong>dry_izz</strong> (<em>float</em>) – Dry Z-Z principal moment of inertia (kg m^2)</p></li>
-<li><p><strong>dry_cog</strong> (<em>float</em>) – Distance between the rocket’s nose tip and the centre of gravity, with no fuel or oxidiser loaded</p></li>
-</ul>
-</dd>
-</dl>
-<dl class="py attribute">
-<dt id="trajectory.mass.HybridMassModel.solid_fuel">
-<code class="sig-name descname">solid_fuel</code><a class="headerlink" href="#trajectory.mass.HybridMassModel.solid_fuel" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="field-list simple">
-<dt class="field-odd">Type</dt>
-<dd class="field-odd"><p><a class="reference internal" href="#trajectory.mass.SolidFuel" title="trajectory.mass.SolidFuel">SolidFuel</a></p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py attribute">
-<dt id="trajectory.mass.HybridMassModel.liquid_fuel">
-<code class="sig-name descname">liquid_fuel</code><a class="headerlink" href="#trajectory.mass.HybridMassModel.liquid_fuel" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="field-list simple">
-<dt class="field-odd">Type</dt>
-<dd class="field-odd"><p><a class="reference internal" href="#trajectory.mass.LiquidFuel" title="trajectory.mass.LiquidFuel">LiquidFuel</a></p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py attribute">
-<dt id="trajectory.mass.HybridMassModel.time">
-<code class="sig-name descname">time</code><a class="headerlink" href="#trajectory.mass.HybridMassModel.time" title="Permalink to this definition">¶</a></dt>
-<dd><p>Obtained from LiquidFuel.time</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type</dt>
-<dd class="field-odd"><p>list</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py attribute">
-<dt id="trajectory.mass.HybridMassModel.vap_mass_interp">
-<code class="sig-name descname">vap_mass_interp</code><a class="headerlink" href="#trajectory.mass.HybridMassModel.vap_mass_interp" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="field-list simple">
-<dt class="field-odd">Type</dt>
-<dd class="field-odd"><p>Scipy Interpolation Function</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py attribute">
-<dt id="trajectory.mass.HybridMassModel.dry_mass">
-<code class="sig-name descname">dry_mass</code><a class="headerlink" href="#trajectory.mass.HybridMassModel.dry_mass" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="field-list simple">
-<dt class="field-odd">Type</dt>
-<dd class="field-odd"><p>float</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py attribute">
-<dt id="trajectory.mass.HybridMassModel.dry_cog">
-<code class="sig-name descname">dry_cog</code><a class="headerlink" href="#trajectory.mass.HybridMassModel.dry_cog" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="field-list simple">
-<dt class="field-odd">Type</dt>
-<dd class="field-odd"><p>float</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py attribute">
-<dt id="trajectory.mass.HybridMassModel.dry_ixx">
-<code class="sig-name descname">dry_ixx</code><a class="headerlink" href="#trajectory.mass.HybridMassModel.dry_ixx" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="field-list simple">
-<dt class="field-odd">Type</dt>
-<dd class="field-odd"><p>float</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py attribute">
-<dt id="trajectory.mass.HybridMassModel.dry_iyy">
-<code class="sig-name descname">dry_iyy</code><a class="headerlink" href="#trajectory.mass.HybridMassModel.dry_iyy" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="field-list simple">
-<dt class="field-odd">Type</dt>
-<dd class="field-odd"><p>float</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py attribute">
-<dt id="trajectory.mass.HybridMassModel.dry_izz">
-<code class="sig-name descname">dry_izz</code><a class="headerlink" href="#trajectory.mass.HybridMassModel.dry_izz" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="field-list simple">
-<dt class="field-odd">Type</dt>
-<dd class="field-odd"><p>float</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py attribute">
-<dt id="trajectory.mass.HybridMassModel.l">
-<code class="sig-name descname">l</code><a class="headerlink" href="#trajectory.mass.HybridMassModel.l" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="field-list simple">
-<dt class="field-odd">Type</dt>
-<dd class="field-odd"><p>float</p>
-</dd>
-</dl>
-</dd></dl>
-
+<p>Assumes:
+- All centres of mass lie on the x-x axis.</p>
 <dl class="py method">
-<dt id="trajectory.mass.HybridMassModel.cog">
-<code class="sig-name descname">cog</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">time</span></em><span class="sig-paren">)</span><a class="headerlink" href="#trajectory.mass.HybridMassModel.cog" title="Permalink to this definition">¶</a></dt>
+<dt id="trajectory.mass.MassModel.add_cylindricalapproximation">
+<code class="sig-name descname">add_cylindricalapproximation</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">mass_array</span></em>, <em class="sig-param"><span class="n">time_array</span></em>, <em class="sig-param"><span class="n">r</span></em>, <em class="sig-param"><span class="n">l</span></em><span class="sig-paren">)</span><a class="headerlink" href="#trajectory.mass.MassModel.add_cylindricalapproximation" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
-<dt id="trajectory.mass.HybridMassModel.ixx">
-<code class="sig-name descname">ixx</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">time</span></em><span class="sig-paren">)</span><a class="headerlink" href="#trajectory.mass.HybridMassModel.ixx" title="Permalink to this definition">¶</a></dt>
+<dt id="trajectory.mass.MassModel.add_drymass">
+<code class="sig-name descname">add_drymass</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">mass</span></em>, <em class="sig-param"><span class="n">ixx</span></em>, <em class="sig-param"><span class="n">iyy</span></em>, <em class="sig-param"><span class="n">izz</span></em>, <em class="sig-param"><span class="n">cog</span></em><span class="sig-paren">)</span><a class="headerlink" href="#trajectory.mass.MassModel.add_drymass" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
-<dt id="trajectory.mass.HybridMassModel.iyy">
-<code class="sig-name descname">iyy</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">time</span></em><span class="sig-paren">)</span><a class="headerlink" href="#trajectory.mass.HybridMassModel.iyy" title="Permalink to this definition">¶</a></dt>
+<dt id="trajectory.mass.MassModel.add_hollowcylinder">
+<code class="sig-name descname">add_hollowcylinder</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">mass</span></em>, <em class="sig-param"><span class="n">r_out</span></em>, <em class="sig-param"><span class="n">r_in</span></em>, <em class="sig-param"><span class="n">l</span></em>, <em class="sig-param"><span class="n">cog</span></em><span class="sig-paren">)</span><a class="headerlink" href="#trajectory.mass.MassModel.add_hollowcylinder" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
-<dt id="trajectory.mass.HybridMassModel.izz">
-<code class="sig-name descname">izz</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">time</span></em><span class="sig-paren">)</span><a class="headerlink" href="#trajectory.mass.HybridMassModel.izz" title="Permalink to this definition">¶</a></dt>
+<dt id="trajectory.mass.MassModel.add_liquidtank">
+<code class="sig-name descname">add_liquidtank</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">lmass_array</span></em>, <em class="sig-param"><span class="n">lden_array</span></em>, <em class="sig-param"><span class="n">time_array</span></em>, <em class="sig-param"><span class="n">r</span></em>, <em class="sig-param"><span class="n">pos_bottom</span></em>, <em class="sig-param"><span class="n">vmass_array</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">vden_array</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#trajectory.mass.MassModel.add_liquidtank" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
-<dt id="trajectory.mass.HybridMassModel.mass">
-<code class="sig-name descname">mass</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">time</span></em><span class="sig-paren">)</span><a class="headerlink" href="#trajectory.mass.HybridMassModel.mass" title="Permalink to this definition">¶</a></dt>
+<dt id="trajectory.mass.MassModel.add_solidfuel">
+<code class="sig-name descname">add_solidfuel</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">mass_array</span></em>, <em class="sig-param"><span class="n">time_array</span></em>, <em class="sig-param"><span class="n">den</span></em>, <em class="sig-param"><span class="n">r_out</span></em>, <em class="sig-param"><span class="n">l</span></em>, <em class="sig-param"><span class="n">pos_bottom</span></em><span class="sig-paren">)</span><a class="headerlink" href="#trajectory.mass.MassModel.add_solidfuel" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
-<dt id="id5">
-<em class="property">property </em><code class="sig-name descname">time</code><a class="headerlink" href="#id5" title="Permalink to this definition">¶</a></dt>
+<dt id="trajectory.mass.MassModel.cog">
+<code class="sig-name descname">cog</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">time</span></em><span class="sig-paren">)</span><a class="headerlink" href="#trajectory.mass.MassModel.cog" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
-<dt id="trajectory.mass.HybridMassModel.vap_mass">
-<code class="sig-name descname">vap_mass</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">time</span></em><span class="sig-paren">)</span><a class="headerlink" href="#trajectory.mass.HybridMassModel.vap_mass" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
-<dl class="py class">
-<dt id="trajectory.mass.LiquidFuel">
-<em class="property">class </em><code class="sig-prename descclassname">trajectory.mass.</code><code class="sig-name descname">LiquidFuel</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">liq_den</span></em>, <em class="sig-param"><span class="n">liq_mass</span></em>, <em class="sig-param"><span class="n">tank_radius</span></em>, <em class="sig-param"><span class="n">pos_tank_bottom</span></em>, <em class="sig-param"><span class="n">time</span></em><span class="sig-paren">)</span><a class="headerlink" href="#trajectory.mass.LiquidFuel" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
-<p>Mass model for the liquid in a cylindrical fuel tank</p>
-<p class="rubric">Notes</p>
-<ul class="simple">
-<li><p>Ignore the mass of the vapour</p></li>
-</ul>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>liq_den</strong> (<em>list</em>) – Array of liquid densities (kg m^-3), corresponding to the time array</p></li>
-<li><p><strong>liq_mass</strong> (<em>list</em>) – Array of liquid mass (kg), corresponding to the time array</p></li>
-<li><p><strong>tank_radius</strong> (<em>float</em>) – Radius of the fuel tank</p></li>
-<li><p><strong>pos_tank_bottom</strong> (<em>float</em>) – Distance between the rocket’s nose tip and the bottom of the fuel tank</p></li>
-<li><p><strong>time</strong> (<em>list</em>) – Array of times that the time-dependent data (liq_den and liq_mass) corresponds to</p></li>
-</ul>
-</dd>
-</dl>
-<dl class="py attribute">
-<dt id="trajectory.mass.LiquidFuel.liq_den">
-<code class="sig-name descname">liq_den</code><a class="headerlink" href="#trajectory.mass.LiquidFuel.liq_den" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="field-list simple">
-<dt class="field-odd">Type</dt>
-<dd class="field-odd"><p>list</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py attribute">
-<dt id="trajectory.mass.LiquidFuel.liq_mass">
-<code class="sig-name descname">liq_mass</code><a class="headerlink" href="#trajectory.mass.LiquidFuel.liq_mass" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="field-list simple">
-<dt class="field-odd">Type</dt>
-<dd class="field-odd"><p>list</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py attribute">
-<dt id="trajectory.mass.LiquidFuel.time">
-<code class="sig-name descname">time</code><a class="headerlink" href="#trajectory.mass.LiquidFuel.time" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="field-list simple">
-<dt class="field-odd">Type</dt>
-<dd class="field-odd"><p>list</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py attribute">
-<dt id="trajectory.mass.LiquidFuel.mass_interp">
-<code class="sig-name descname">mass_interp</code><a class="headerlink" href="#trajectory.mass.LiquidFuel.mass_interp" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="field-list simple">
-<dt class="field-odd">Type</dt>
-<dd class="field-odd"><p>Scipy Interpolation Function</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py attribute">
-<dt id="trajectory.mass.LiquidFuel.den_interp">
-<code class="sig-name descname">den_interp</code><a class="headerlink" href="#trajectory.mass.LiquidFuel.den_interp" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="field-list simple">
-<dt class="field-odd">Type</dt>
-<dd class="field-odd"><p>Scipy Interpolation Function</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py attribute">
-<dt id="trajectory.mass.LiquidFuel.tank_radius">
-<code class="sig-name descname">tank_radius</code><a class="headerlink" href="#trajectory.mass.LiquidFuel.tank_radius" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="field-list simple">
-<dt class="field-odd">Type</dt>
-<dd class="field-odd"><p>float</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py attribute">
-<dt id="trajectory.mass.LiquidFuel.pos_tank_bottom">
-<code class="sig-name descname">pos_tank_bottom</code><a class="headerlink" href="#trajectory.mass.LiquidFuel.pos_tank_bottom" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="field-list simple">
-<dt class="field-odd">Type</dt>
-<dd class="field-odd"><p>float</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt id="trajectory.mass.LiquidFuel.cog">
-<code class="sig-name descname">cog</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">time</span></em><span class="sig-paren">)</span><a class="headerlink" href="#trajectory.mass.LiquidFuel.cog" title="Permalink to this definition">¶</a></dt>
+<dt id="trajectory.mass.MassModel.ixx">
+<code class="sig-name descname">ixx</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">time</span></em><span class="sig-paren">)</span><a class="headerlink" href="#trajectory.mass.MassModel.ixx" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
-<dt id="trajectory.mass.LiquidFuel.den">
-<code class="sig-name descname">den</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">time</span></em><span class="sig-paren">)</span><a class="headerlink" href="#trajectory.mass.LiquidFuel.den" title="Permalink to this definition">¶</a></dt>
+<dt id="trajectory.mass.MassModel.iyy">
+<code class="sig-name descname">iyy</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">time</span></em><span class="sig-paren">)</span><a class="headerlink" href="#trajectory.mass.MassModel.iyy" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
-<dt id="trajectory.mass.LiquidFuel.ixx">
-<code class="sig-name descname">ixx</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">time</span></em><span class="sig-paren">)</span><a class="headerlink" href="#trajectory.mass.LiquidFuel.ixx" title="Permalink to this definition">¶</a></dt>
+<dt id="trajectory.mass.MassModel.izz">
+<code class="sig-name descname">izz</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">time</span></em><span class="sig-paren">)</span><a class="headerlink" href="#trajectory.mass.MassModel.izz" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
-<dt id="trajectory.mass.LiquidFuel.iyy">
-<code class="sig-name descname">iyy</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">time</span></em><span class="sig-paren">)</span><a class="headerlink" href="#trajectory.mass.LiquidFuel.iyy" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt id="trajectory.mass.LiquidFuel.izz">
-<code class="sig-name descname">izz</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">time</span></em><span class="sig-paren">)</span><a class="headerlink" href="#trajectory.mass.LiquidFuel.izz" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt id="trajectory.mass.LiquidFuel.liq_height">
-<code class="sig-name descname">liq_height</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">time</span></em><span class="sig-paren">)</span><a class="headerlink" href="#trajectory.mass.LiquidFuel.liq_height" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt id="trajectory.mass.LiquidFuel.mass">
-<code class="sig-name descname">mass</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">time</span></em><span class="sig-paren">)</span><a class="headerlink" href="#trajectory.mass.LiquidFuel.mass" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt id="trajectory.mass.LiquidFuel.vol">
-<code class="sig-name descname">vol</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">time</span></em><span class="sig-paren">)</span><a class="headerlink" href="#trajectory.mass.LiquidFuel.vol" title="Permalink to this definition">¶</a></dt>
+<dt id="trajectory.mass.MassModel.mass">
+<code class="sig-name descname">mass</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">time</span></em><span class="sig-paren">)</span><a class="headerlink" href="#trajectory.mass.MassModel.mass" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
 <dl class="py class">
 <dt id="trajectory.mass.SolidFuel">
-<em class="property">class </em><code class="sig-prename descclassname">trajectory.mass.</code><code class="sig-name descname">SolidFuel</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">fuel_mass</span></em>, <em class="sig-param"><span class="n">fuel_density</span></em>, <em class="sig-param"><span class="n">r_out</span></em>, <em class="sig-param"><span class="n">length</span></em>, <em class="sig-param"><span class="n">pos_bottom</span></em>, <em class="sig-param"><span class="n">time</span></em><span class="sig-paren">)</span><a class="headerlink" href="#trajectory.mass.SolidFuel" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">trajectory.mass.</code><code class="sig-name descname">SolidFuel</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">mass_array</span></em>, <em class="sig-param"><span class="n">time_array</span></em>, <em class="sig-param"><span class="n">den</span></em>, <em class="sig-param"><span class="n">r_out</span></em>, <em class="sig-param"><span class="n">l</span></em>, <em class="sig-param"><span class="n">pos_bottom</span></em><span class="sig-paren">)</span><a class="headerlink" href="#trajectory.mass.SolidFuel" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
-<p>Mass model for a solid fuel grain</p>
+<p>Solid fuel grain.</p>
 <p class="rubric">Notes</p>
-<p>Assumes that the grain is an annular cylinder, constant outer radius, and an inner radius that increases as fuel is burnt up</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>fuel_mass</strong> (<em>list</em>) – List of the solid fuel mass (kg), corresponding to the time array</p></li>
-<li><p><strong>fuel_density</strong> (<em>float</em>) – Solid fuel density (constant) (kg m^-3)</p></li>
-<li><p><strong>r_out</strong> (<em>float</em>) – Outer radius of the solid fuel cylinder (m)</p></li>
-<li><p><strong>length</strong> (<em>float</em>) – Length of the fuel grain (m)</p></li>
-<li><p><strong>pos_bottom</strong> (<em>float</em>) – Distance between the rocket nose tip and the bottom of the fuel grain (m)</p></li>
-<li><p><strong>time</strong> (<em>list</em>) – List of times (s) that the fuel_mass data corresponds to</p></li>
-</ul>
-</dd>
-</dl>
-<dl class="py attribute">
-<dt id="trajectory.mass.SolidFuel.fuel_mass">
-<code class="sig-name descname">fuel_mass</code><a class="headerlink" href="#trajectory.mass.SolidFuel.fuel_mass" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="field-list simple">
-<dt class="field-odd">Type</dt>
-<dd class="field-odd"><p>list</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py attribute">
-<dt id="trajectory.mass.SolidFuel.time">
-<code class="sig-name descname">time</code><a class="headerlink" href="#trajectory.mass.SolidFuel.time" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="field-list simple">
-<dt class="field-odd">Type</dt>
-<dd class="field-odd"><p>list</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py attribute">
-<dt id="trajectory.mass.SolidFuel.fuel_density">
-<code class="sig-name descname">fuel_density</code><a class="headerlink" href="#trajectory.mass.SolidFuel.fuel_density" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="field-list simple">
-<dt class="field-odd">Type</dt>
-<dd class="field-odd"><p>float</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py attribute">
-<dt id="trajectory.mass.SolidFuel.r_out">
-<code class="sig-name descname">r_out</code><a class="headerlink" href="#trajectory.mass.SolidFuel.r_out" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="field-list simple">
-<dt class="field-odd">Type</dt>
-<dd class="field-odd"><p>float</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py attribute">
-<dt id="trajectory.mass.SolidFuel.length">
-<code class="sig-name descname">length</code><a class="headerlink" href="#trajectory.mass.SolidFuel.length" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="field-list simple">
-<dt class="field-odd">Type</dt>
-<dd class="field-odd"><p>float</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py attribute">
-<dt id="trajectory.mass.SolidFuel.pos_bottom">
-<code class="sig-name descname">pos_bottom</code><a class="headerlink" href="#trajectory.mass.SolidFuel.pos_bottom" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="field-list simple">
-<dt class="field-odd">Type</dt>
-<dd class="field-odd"><p>float</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py attribute">
-<dt id="trajectory.mass.SolidFuel.mass_interp">
-<code class="sig-name descname">mass_interp</code><a class="headerlink" href="#trajectory.mass.SolidFuel.mass_interp" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="field-list simple">
-<dt class="field-odd">Type</dt>
-<dd class="field-odd"><p>Scipy Interpolation Function</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py attribute">
-<dt id="trajectory.mass.SolidFuel.cog">
-<code class="sig-name descname">cog</code><a class="headerlink" href="#trajectory.mass.SolidFuel.cog" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="field-list simple">
-<dt class="field-odd">Type</dt>
-<dd class="field-odd"><p>float</p>
-</dd>
-</dl>
-</dd></dl>
-
+<p>Assumes:
+- Fuel grain is shaped like an annular cylinder
+- Burning the fuel simply increases the inner radius of the cylinder, uniformly</p>
 <dl class="py method">
-<dt id="id6">
-<em class="property">property </em><code class="sig-name descname">cog</code><a class="headerlink" href="#id6" title="Permalink to this definition">¶</a></dt>
+<dt id="trajectory.mass.SolidFuel.cog">
+<code class="sig-name descname">cog</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">time</span></em><span class="sig-paren">)</span><a class="headerlink" href="#trajectory.mass.SolidFuel.cog" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
@@ -2134,16 +1573,7 @@ C = pitch damping coefficient.</p>
 <dl class="py function">
 <dt id="trajectory.plot.fix_ypr">
 <code class="sig-prename descclassname">trajectory.plot.</code><code class="sig-name descname">fix_ypr</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">point</span></em><span class="sig-paren">)</span><a class="headerlink" href="#trajectory.plot.fix_ypr" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="simple">
-<dt>if point&lt;0:</dt><dd><p>point = 2*np.pi-abs(point)</p>
-</dd>
-</dl>
-<p>point = round(point,5)
-if point==round(2*np.pi,5):</p>
-<blockquote>
-<div><p>point=0</p>
-</div></blockquote>
-</dd></dl>
+<dd></dd></dl>
 
 <dl class="py function">
 <dt id="trajectory.plot.get_velocity_magnitude">
@@ -2269,7 +1699,7 @@ ax.set_aspect(‘equal’) and ax.axis(‘equal’) not working for 3D.</p>
 
 <dl class="py function">
 <dt id="trajectory.plot.stats_trajectories">
-<code class="sig-prename descclassname">trajectory.plot.</code><code class="sig-name descname">stats_trajectories</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">x</span></em>, <em class="sig-param"><span class="n">y</span></em>, <em class="sig-param"><span class="n">z</span></em><span class="sig-paren">)</span><a class="headerlink" href="#trajectory.plot.stats_trajectories" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">trajectory.plot.</code><code class="sig-name descname">stats_trajectories</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">x</span></em>, <em class="sig-param"><span class="n">y</span></em>, <em class="sig-param"><span class="n">z</span></em>, <em class="sig-param"><span class="n">apogee_mu</span><span class="o">=</span><span class="default_value">array([], dtype=float64)</span></em>, <em class="sig-param"><span class="n">apogee_cov</span><span class="o">=</span><span class="default_value">array([], dtype=float64)</span></em>, <em class="sig-param"><span class="n">sigma</span><span class="o">=</span><span class="default_value">3</span></em>, <em class="sig-param"><span class="n">landing_mu</span><span class="o">=</span><span class="default_value">array([], dtype=float64)</span></em>, <em class="sig-param"><span class="n">landing_cov</span><span class="o">=</span><span class="default_value">array([], dtype=float64)</span></em><span class="sig-paren">)</span><a class="headerlink" href="#trajectory.plot.stats_trajectories" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </div>
@@ -2277,33 +1707,16 @@ ax.set_aspect(‘equal’) and ax.axis(‘equal’) not working for 3D.</p>
 <span id="statistical-module"></span><h2>statistical module<a class="headerlink" href="#module-trajectory.statistical" title="Permalink to this headline">¶</a></h2>
 <dl class="py class">
 <dt id="trajectory.statistical.StatisticalModel">
-<em class="property">class </em><code class="sig-prename descclassname">trajectory.statistical.</code><code class="sig-name descname">StatisticalModel</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">launch_site_vars</span></em>, <em class="sig-param"><span class="n">mass_model_vars</span></em>, <em class="sig-param"><span class="n">aero_file</span></em>, <em class="sig-param"><span class="n">aero_error</span></em>, <em class="sig-param"><span class="n">motor</span></em>, <em class="sig-param"><span class="n">thrust_error</span></em>, <em class="sig-param"><span class="n">thrust_alignment_error</span></em>, <em class="sig-param"><span class="n">parachute_vars</span></em>, <em class="sig-param"><span class="n">env_vars</span></em>, <em class="sig-param"><span class="n">h</span><span class="o">=</span><span class="default_value">0.05</span></em>, <em class="sig-param"><span class="n">variable</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">alt_poll_interval</span><span class="o">=</span><span class="default_value">1</span></em>, <em class="sig-param"><span class="n">run_date</span><span class="o">=</span><span class="default_value">'20201218'</span></em>, <em class="sig-param"><span class="n">forcast_time</span><span class="o">=</span><span class="default_value">'00'</span></em>, <em class="sig-param"><span class="n">forcast_plus_time</span><span class="o">=</span><span class="default_value">'000'</span></em><span class="sig-paren">)</span><a class="headerlink" href="#trajectory.statistical.StatisticalModel" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">trajectory.statistical.</code><code class="sig-name descname">StatisticalModel</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">run_file</span></em><span class="sig-paren">)</span><a class="headerlink" href="#trajectory.statistical.StatisticalModel" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>Stochastic model for the rocket flight</p>
 <p class="rubric">Notes</p>
 <p>Every variable specified has a value and a standard deviation in a list (i.e. [mean,st_dev])
-Currenrly only cylindrical mass model is supported.
-Wind and pitch damping will currently not vary</p>
+Currenrly only supports aero import from rasaero file.
+Wind will currently not vary</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>launch_site_vars</strong> (<em>dict</em>) – Dictionary of variables for launch site object. Must contain: rail_length, rail_yaw, rail_pitch, alt, longi, lat</p></li>
-<li><p><strong>mass_model_vars</strong> (<em>dict</em>) – Dictionary of variables for mass model object. Must contain: dry_mass, prop_mass, time_data, length, radius</p></li>
-<li><p><strong>aero_file</strong> (<em>string</em>) – Location of RASAero data file</p></li>
-<li><p><strong>aero_error</strong> (<em>dict</em>) – Standard deviaiton for the aero coefficients in format COP, CN and CA</p></li>
-<li><p><strong>motor_base</strong> (<em>MotorObject</em>) – Unpeterbed motor object</p></li>
-<li><p><strong>h</strong> (<em>float</em><em>, </em><em>optional</em>) – Default timestep /s, defaults to 0.05 - this doesn’t really do anything</p></li>
-<li><p><strong>variable_time</strong> (<em>bool</em><em>, </em><em>optional</em>) – Vary timesteps?, defaults to True</p></li>
-<li><p><strong>alt_poll_interval</strong> (<em>, </em><em>optional</em>) – Parachute altitude polling interval /s defaults to 1</p></li>
-<li><p><strong>run_date</strong> (<em>string</em><em>, </em><em>optional</em>) – Date for forcast data in format YYYYMMDD, defaults to current date</p></li>
-<li><p><strong>forcast_time</strong> (<em>string</em><em>, </em><em>optional</em>) – Forcast run time, must be 00,06,12 or 18, defaults to 00</p></li>
-<li><p><strong>forcast_plus_time</strong> (<em>string</em><em>, </em><em>optional</em>) – Hours forcast forward from forcast time, must be three digits between 000 and 123 (?), defaults to 000</p></li>
-<li><p><strong>thrust_error</strong> (<em>float</em>) – Standard deviation of thrust magnitude error /%</p></li>
-<li><p><strong>thrust_alignment</strong> (<em>float</em>) – Standard deviation of thrust alignment vector error</p></li>
-<li><p><strong>parachute_vars</strong> (<em>dict</em>) – Dictionary of variables for parachute object. Must contain: main_s, main_c_d, drogue_s, drogue_c_d, main_alt, attatch_distance</p></li>
-<li><p><strong>env_vars</strong> (<em>dictionary</em>) – Multiplied factor for the gravity, pressure, density and speed of sound used in the model,
-defaults to {“gravity”:1.0,”pressure”:1.0,”density”:1.0,”speed_of_sound”:1.0}</p></li>
-</ul>
+<dd class="field-odd"><p><strong>run_file</strong> (<em>string</em>) – json file containing config, see stats_settings.json</p>
 </dd>
 </dl>
 <dl class="py attribute">
@@ -2501,7 +1914,7 @@ defaults to {“gravity”:1.0,”pressure”:1.0,”density”:1.0,”speed_of_
 
 <dl class="py method">
 <dt id="trajectory.statistical.StatisticalModel.run_model">
-<code class="sig-name descname">run_model</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">itters</span></em>, <em class="sig-param"><span class="n">save_loc</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#trajectory.statistical.StatisticalModel.run_model" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">run_model</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">test_mode</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">debug</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">num_cpus</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="headerlink" href="#trajectory.statistical.StatisticalModel.run_model" title="Permalink to this definition">¶</a></dt>
 <dd><p>Runs the stochastic model</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -2797,7 +2210,8 @@ defaults to {“gravity”:1.0,”pressure”:1.0,”density”:1.0,”speed_of_
               
               <div class='prev-next-bottom'>
                 
-    <a class='left-prev' id="prev-link" href="modules.html" title="previous page">trajectory</a>
+    <a class='left-prev' id="prev-link" href="help.html" title="previous page">Need help</a>
+    <a class='right-next' id="next-link" href="develop.html" title="next page">Want to help out?</a>
 
               </div>
               

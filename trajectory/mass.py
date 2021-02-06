@@ -9,13 +9,33 @@ Notes
 
 import numpy as np
 
+__copyright__ = """
+
+    Copyright 2021 Jago Strong-Wright & Daniel Gibbons
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+"""
+
 '''Mass models that have time-dependent properties'''    
 class CylindricalApproximation:
     '''
     Solid cylinder approxiation for the rocket.
 
-    Assumptions
-    -----------
+    Notes
+    -----
+    Assumes:
     - The entire rocket is a solid cylinder. It's volume is constant, but it's density decreases with time according to how the mass decreases as fuel is burnt.
     '''
 
@@ -44,8 +64,9 @@ class LiquidTank:
     '''
     Liquid fuel tank.
 
-    Assumptions
-    -----------
+    Notes
+    -----
+    Assumes:
     - Cylindrical fuel tank
     - Inviscid liquid, so the liquid does not contribute to ixx
     - Vapour does not contribute to moments of inertia
@@ -125,8 +146,9 @@ class SolidFuel:
     '''
     Solid fuel grain.
 
-    Assumptions
-    ----------
+    Notes
+    -----
+    Assumes:
     - Fuel grain is shaped like an annular cylinder
     - Burning the fuel simply increases the inner radius of the cylinder, uniformly
     '''
@@ -200,8 +222,9 @@ class HollowCylinder:
 '''Universal mass model'''
 class MassModel:
     '''
-    Assumptions
-    ------
+    Notes
+    -----
+    Assumes:
     - All centres of mass lie on the x-x axis.
     '''
 
