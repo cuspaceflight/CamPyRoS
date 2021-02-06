@@ -1101,9 +1101,9 @@ class AeroHeatingAnalysis:
         #Make a slider that goes from 0 to the maximum index available for our data
         slider = matplotlib.widgets.Slider(slider_axis, 'Index', 0, len(self.trajectory_dict["time"])-1, valinit=initial_value)
 
-        def update(val):
+        def update(value):
             #Get the current value of the slider
-            slider_value = slider.val
+            slider_value = slider.value
             index = int(slider_value)
 
             #Get current altitude
