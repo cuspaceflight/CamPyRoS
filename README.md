@@ -27,7 +27,7 @@ The repository contains some examples you can run:
 ## In progress
 - **GUI:** An incomplete (and outdated) GUI has been made using Tkinter, and is in gui.py.
 - **Slosh modelling:** Some slosh modelling functions have been put together in slosh.py, based on the following source - [The Dynamic Behavior of Liquids in Moving Containers, with Applications to Space Vehicle Technology](https://ntrs.nasa.gov/citations/19670006555).
-- **Wind variability:** Statistical analysis of historic wind forecasts and obervations are analysed to create a guassian difference profile to vary the wind in the statistical models
+- **Wind variability:** Statistical analysis of historic wind forecasts and obervations are analysed to create a guassian difference profile to vary the wind in the statistical models (see wind-stats branch for a very poorly documented insight to current progress)
 ## Potential for expansion
 - **Multistage rockets**
 - **Fin cant, roll damping, and roll acceleration:** [OpenRocket Technical Documentation](http://openrocket.info/documentation.html)

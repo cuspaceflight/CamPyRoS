@@ -35,6 +35,7 @@
     <script src="_static/underscore.js"></script>
     <script src="_static/doctools.js"></script>
     <script src="_static/language_data.js"></script>
+    <link rel="shortcut icon" href="_static/favicon.ico"/>
     <link rel="index" title="Index" href="#" />
     <link rel="search" title="Search" href="search.html" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -63,7 +64,7 @@
         </li>
         
         <li class="nav-item ">
-            <a class="nav-link" href="trajectory.html">trajectory package</a>
+            <a class="nav-link" href="trajectory.html"><name> package</a>
         </li>
         
         <li class="nav-item ">
@@ -156,15 +157,19 @@
  | <a href="#G"><strong>G</strong></a>
  | <a href="#H"><strong>H</strong></a>
  | <a href="#I"><strong>I</strong></a>
+ | <a href="#K"><strong>K</strong></a>
  | <a href="#L"><strong>L</strong></a>
  | <a href="#M"><strong>M</strong></a>
+ | <a href="#N"><strong>N</strong></a>
  | <a href="#O"><strong>O</strong></a>
  | <a href="#P"><strong>P</strong></a>
+ | <a href="#Q"><strong>Q</strong></a>
  | <a href="#R"><strong>R</strong></a>
  | <a href="#S"><strong>S</strong></a>
  | <a href="#T"><strong>T</strong></a>
  | <a href="#V"><strong>V</strong></a>
  | <a href="#W"><strong>W</strong></a>
+ | <a href="#Y"><strong>Y</strong></a>
  
 </div>
 <h2 id="A">A</h2>
@@ -188,9 +193,11 @@
 </li>
       <li><a href="trajectory.html#trajectory.statistical.StatisticalModel.aero_file">aero_file (trajectory.statistical.StatisticalModel attribute)</a>
 </li>
+      <li><a href="trajectory.html#trajectory.aero.AeroData">AeroData (class in trajectory.aero)</a>
+</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="trajectory.html#trajectory.aero.AeroData">AeroData (class in trajectory.aero)</a>
+      <li><a href="trajectory.html#trajectory.heating.AeroHeatingAnalysis">AeroHeatingAnalysis (class in trajectory.heating)</a>
 </li>
       <li><a href="trajectory.html#trajectory.aero.AeroData.alpha_grid">alpha_grid (trajectory.aero.AeroData attribute)</a>
 </li>
@@ -201,6 +208,8 @@
 </li>
       </ul></li>
       <li><a href="trajectory.html#trajectory.statistical.StatisticalModel.alt_poll_interval">alt_poll_interval (trajectory.statistical.StatisticalModel attribute)</a>
+</li>
+      <li><a href="trajectory.html#trajectory.motor.Motor.ambient_pressure">ambient_pressure (trajectory.motor.Motor attribute)</a>
 </li>
       <li><a href="trajectory.html#trajectory.statistical.analyse">analyse() (in module trajectory.statistical)</a>
 </li>
@@ -242,10 +251,10 @@
 </li>
       <li><a href="trajectory.html#trajectory.aero.AeroData.CN">CN() (trajectory.aero.AeroData method)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="trajectory.html#trajectory.aero.AeroData.CN_grid">CN_grid (trajectory.aero.AeroData attribute)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="trajectory.html#trajectory.mass.CylindricalApproximation.cog">cog() (trajectory.mass.CylindricalApproximation method)</a>
 
       <ul>
@@ -260,7 +269,11 @@
 </li>
       <li><a href="trajectory.html#trajectory.aero.AeroData.COP_grid">COP_grid (trajectory.aero.AeroData attribute)</a>
 </li>
+      <li><a href="trajectory.html#trajectory.heating.cp_air">cp_air() (in module trajectory.heating)</a>
+</li>
       <li><a href="trajectory.html#trajectory.mass.CylindricalApproximation">CylindricalApproximation (class in trajectory.mass)</a>
+</li>
+      <li><a href="trajectory.html#trajectory.slosh.CylindricalFuelTank">CylindricalFuelTank (class in trajectory.slosh)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -306,6 +319,8 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="trajectory.html#trajectory.aero.AeroData.error">error (trajectory.aero.AeroData attribute)</a>
 </li>
+      <li><a href="trajectory.html#trajectory.motor.Motor.exit_area">exit_area (trajectory.motor.Motor attribute)</a>
+</li>
   </ul></td>
 </tr></table>
 
@@ -315,6 +330,8 @@
       <li><a href="trajectory.html#trajectory.main.Rocket.fdot">fdot() (trajectory.main.Rocket method)</a>
 </li>
       <li><a href="trajectory.html#trajectory.plot.fix_ypr">fix_ypr() (in module trajectory.plot)</a>
+</li>
+      <li><a href="trajectory.html#trajectory.heating.AeroHeatingAnalysis.fixed_wall_temperature">fixed_wall_temperature (trajectory.heating.AeroHeatingAnalysis attribute)</a>
 </li>
       <li><a href="trajectory.html#trajectory.statistical.StatisticalModel.forcast_plus_time">forcast_plus_time (trajectory.statistical.StatisticalModel attribute)</a>
 </li>
@@ -327,8 +344,14 @@
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="trajectory.html#trajectory.main.from_json">from_json() (in module trajectory.main)</a>
+
+      <ul>
+        <li><a href="trajectory.html#trajectory.heating.AeroHeatingAnalysis.from_json">(trajectory.heating.AeroHeatingAnalysis method)</a>
 </li>
+      </ul></li>
       <li><a href="trajectory.html#trajectory.aero.AeroData.from_lists">from_lists() (trajectory.aero.AeroData static method)</a>
+</li>
+      <li><a href="trajectory.html#trajectory.motor.Motor.from_novus">from_novus() (trajectory.motor.Motor static method)</a>
 </li>
       <li><a href="trajectory.html#trajectory.aero.AeroData.from_rasaero">from_rasaero() (trajectory.aero.AeroData static method)</a>
 </li>
@@ -338,6 +361,8 @@
 <h2 id="G">G</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="trajectory.html#trajectory.heating.gamma_air">gamma_air() (in module trajectory.heating)</a>
+</li>
       <li><a href="trajectory.html#trajectory.main.Parachute.get">get() (trajectory.main.Parachute method)</a>
 </li>
   </ul></td>
@@ -360,7 +385,11 @@
       </ul></li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="trajectory.html#trajectory.heating.AeroHeatingAnalysis.heat_capacity">heat_capacity (trajectory.heating.AeroHeatingAnalysis attribute)</a>
+</li>
       <li><a href="trajectory.html#trajectory.mass.HollowCylinder">HollowCylinder (class in trajectory.mass)</a>
+</li>
+      <li><a href="trajectory.html#trajectory.heating.AeroHeatingAnalysis.Hstar_function">Hstar_function (trajectory.heating.AeroHeatingAnalysis attribute)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -368,6 +397,8 @@
 <h2 id="I">I</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="trajectory.html#trajectory.heating.AeroHeatingAnalysis.i">i (trajectory.heating.AeroHeatingAnalysis attribute)</a>
+</li>
       <li><a href="trajectory.html#trajectory.transforms.i2airspeed">i2airspeed() (in module trajectory.transforms)</a>
 </li>
       <li><a href="trajectory.html#trajectory.main.Rocket.i2b">i2b (trajectory.main.Rocket attribute)</a>
@@ -411,6 +442,14 @@
   </ul></td>
 </tr></table>
 
+<h2 id="K">K</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="trajectory.html#trajectory.heating.k_air">k_air() (in module trajectory.heating)</a>
+</li>
+  </ul></td>
+</tr></table>
+
 <h2 id="L">L</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
@@ -426,10 +465,10 @@
 </li>
       <li><a href="trajectory.html#trajectory.mass.LiquidTank.lheight">lheight() (trajectory.mass.LiquidTank method)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="trajectory.html#trajectory.mass.LiquidTank">LiquidTank (class in trajectory.mass)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="trajectory.html#trajectory.transforms.lla2i">lla2i() (in module trajectory.transforms)</a>
 </li>
       <li><a href="trajectory.html#trajectory.mass.LiquidTank.lmass">lmass() (trajectory.mass.LiquidTank method)</a>
@@ -437,6 +476,8 @@
       <li><a href="trajectory.html#trajectory.main.Wind.load_data">load_data() (trajectory.main.Wind method)</a>
 </li>
       <li><a href="trajectory.html#trajectory.main.Wind.load_fast">load_fast() (trajectory.main.Wind method)</a>
+</li>
+      <li><a href="trajectory.html#trajectory.motor.load_motor">load_motor() (in module trajectory.motor)</a>
 </li>
       <li><a href="trajectory.html#trajectory.main.LaunchSite.longi">longi (trajectory.main.LaunchSite attribute)</a>
 </li>
@@ -448,6 +489,8 @@
 <h2 id="M">M</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="trajectory.html#trajectory.heating.AeroHeatingAnalysis.M">M (trajectory.heating.AeroHeatingAnalysis attribute)</a>
+</li>
       <li><a href="trajectory.html#trajectory.aero.AeroData.Mach_grid">Mach_grid (trajectory.aero.AeroData attribute)</a>
 </li>
       <li><a href="trajectory.html#trajectory.main.Parachute.main_alt">main_alt (trajectory.main.Parachute attribute)</a>
@@ -470,38 +513,68 @@
 </li>
       <li><a href="trajectory.html#trajectory.statistical.StatisticalModel.mass_model_vars">mass_model_vars (trajectory.statistical.StatisticalModel attribute)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="trajectory.html#trajectory.mass.MassModel">MassModel (class in trajectory.mass)</a>
 </li>
       <li>
     module
 
       <ul>
+        <li><a href="trajectory.html#module-trajectory">trajectory</a>
+</li>
         <li><a href="trajectory.html#module-trajectory.aero">trajectory.aero</a>
 </li>
         <li><a href="trajectory.html#module-trajectory.constants">trajectory.constants</a>
+</li>
+        <li><a href="trajectory.html#module-trajectory.heating">trajectory.heating</a>
 </li>
         <li><a href="trajectory.html#module-trajectory.main">trajectory.main</a>
 </li>
         <li><a href="trajectory.html#module-trajectory.mass">trajectory.mass</a>
 </li>
+        <li><a href="trajectory.html#module-trajectory.motor">trajectory.motor</a>
+</li>
         <li><a href="trajectory.html#module-trajectory.plot">trajectory.plot</a>
+</li>
+        <li><a href="trajectory.html#module-trajectory.post">trajectory.post</a>
+</li>
+        <li><a href="trajectory.html#module-trajectory.slosh">trajectory.slosh</a>
 </li>
         <li><a href="trajectory.html#module-trajectory.statistical">trajectory.statistical</a>
 </li>
         <li><a href="trajectory.html#module-trajectory.transforms">trajectory.transforms</a>
 </li>
       </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="trajectory.html#trajectory.motor.Motor">Motor (class in trajectory.motor)</a>
+</li>
       <li><a href="trajectory.html#trajectory.main.Rocket.motor">motor (trajectory.main.Rocket attribute)</a>
 </li>
       <li><a href="trajectory.html#trajectory.statistical.StatisticalModel.motor_base">motor_base (trajectory.statistical.StatisticalModel attribute)</a>
+</li>
+      <li><a href="trajectory.html#trajectory.heating.mu_air">mu_air() (in module trajectory.heating)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="N">N</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="trajectory.html#trajectory.heating.normal_shock">normal_shock() (in module trajectory.heating)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="trajectory.html#trajectory.heating.nu2mach">nu2mach() (in module trajectory.heating)</a>
 </li>
   </ul></td>
 </tr></table>
 
 <h2 id="O">O</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="trajectory.html#trajectory.heating.oblique_shock">oblique_shock() (in module trajectory.heating)</a>
+</li>
+  </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="trajectory.html#trajectory.main.Rocket.on_rail">on_rail (trajectory.main.Rocket attribute)</a>
 </li>
@@ -511,9 +584,19 @@
 <h2 id="P">P</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="trajectory.html#trajectory.heating.AeroHeatingAnalysis.P">P (trajectory.heating.AeroHeatingAnalysis attribute)</a>
+</li>
+      <li><a href="trajectory.html#trajectory.heating.p02p">p02p() (in module trajectory.heating)</a>
+</li>
+      <li><a href="trajectory.html#trajectory.heating.p2p0">p2p0() (in module trajectory.heating)</a>
+</li>
       <li><a href="trajectory.html#trajectory.main.Parachute">Parachute (class in trajectory.main)</a>
 </li>
       <li><a href="trajectory.html#trajectory.statistical.StatisticalModel.parachute_vars">parachute_vars (trajectory.statistical.StatisticalModel attribute)</a>
+</li>
+      <li><a href="trajectory.html#trajectory.slosh.CylindricalFuelTank.pendulum_analogy">pendulum_analogy() (trajectory.slosh.CylindricalFuelTank method)</a>
+</li>
+      <li><a href="trajectory.html#trajectory.heating.TangentOgive.phi">phi() (trajectory.heating.TangentOgive method)</a>
 </li>
       <li><a href="trajectory.html#trajectory.aero.AeroData.pitch_damping_coefficient">pitch_damping_coefficient (trajectory.aero.AeroData attribute)</a>
 </li>
@@ -523,12 +606,18 @@
 </li>
       <li><a href="trajectory.html#trajectory.plot.plot_altitude_time">plot_altitude_time() (in module trajectory.plot)</a>
 </li>
-      <li><a href="trajectory.html#trajectory.plot.plot_launch_trajectory_3d">plot_launch_trajectory_3d() (in module trajectory.plot)</a>
+      <li><a href="trajectory.html#trajectory.heating.AeroHeatingAnalysis.plot_fluid_properties">plot_fluid_properties() (trajectory.heating.AeroHeatingAnalysis method)</a>
 </li>
-      <li><a href="trajectory.html#trajectory.plot.plot_mass">plot_mass() (in module trajectory.plot)</a>
+      <li><a href="trajectory.html#trajectory.heating.AeroHeatingAnalysis.plot_heat_transfer">plot_heat_transfer() (trajectory.heating.AeroHeatingAnalysis method)</a>
+</li>
+      <li><a href="trajectory.html#trajectory.plot.plot_launch_trajectory_3d">plot_launch_trajectory_3d() (in module trajectory.plot)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="trajectory.html#trajectory.plot.plot_mass">plot_mass() (in module trajectory.plot)</a>
+</li>
+      <li><a href="trajectory.html#trajectory.heating.AeroHeatingAnalysis.plot_station">plot_station() (trajectory.heating.AeroHeatingAnalysis method)</a>
+</li>
       <li><a href="trajectory.html#trajectory.plot.plot_thrust">plot_thrust() (in module trajectory.plot)</a>
 </li>
       <li><a href="trajectory.html#trajectory.plot.plot_ypr">plot_ypr() (in module trajectory.plot)</a>
@@ -536,6 +625,8 @@
       <li><a href="trajectory.html#trajectory.main.Wind.points">points (trajectory.main.Wind attribute)</a>
 </li>
       <li><a href="trajectory.html#trajectory.main.points">points() (in module trajectory.main)</a>
+</li>
+      <li><a href="trajectory.html#trajectory.motor.Motor.pos">pos (trajectory.motor.Motor attribute)</a>
 </li>
       <li><a href="trajectory.html#trajectory.main.Rocket.pos_i">pos_i (trajectory.main.Rocket attribute)</a>
 </li>
@@ -545,12 +636,36 @@
 </li>
       <li><a href="trajectory.html#trajectory.transforms.pos_l2i">pos_l2i() (in module trajectory.transforms)</a>
 </li>
+      <li><a href="trajectory.html#trajectory.heating.Pr_air">Pr_air() (in module trajectory.heating)</a>
+</li>
+      <li><a href="trajectory.html#trajectory.heating.prandtl_meyer">prandtl_meyer() (in module trajectory.heating)</a>
+</li>
+      <li><a href="trajectory.html#trajectory.heating.pressure_ratio_to_mach">pressure_ratio_to_mach() (in module trajectory.heating)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="Q">Q</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="trajectory.html#trajectory.heating.AeroHeatingAnalysis.q0_hemispherical_nose">q0_hemispherical_nose (trajectory.heating.AeroHeatingAnalysis attribute)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="trajectory.html#trajectory.heating.AeroHeatingAnalysis.q_lam">q_lam (trajectory.heating.AeroHeatingAnalysis attribute)</a>
+</li>
+      <li><a href="trajectory.html#trajectory.heating.AeroHeatingAnalysis.q_turb">q_turb (trajectory.heating.AeroHeatingAnalysis attribute)</a>
+</li>
   </ul></td>
 </tr></table>
 
 <h2 id="R">R</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="trajectory.html#trajectory.heating.TangentOgive.r">r() (trajectory.heating.TangentOgive method)</a>
+</li>
+      <li><a href="trajectory.html#trajectory.heating.R_air">R_air() (in module trajectory.heating)</a>
+</li>
       <li><a href="trajectory.html#trajectory.mass.SolidFuel.r_in">r_in() (trajectory.mass.SolidFuel method)</a>
 </li>
       <li><a href="trajectory.html#trajectory.main.LaunchSite.rail_length">rail_length (trajectory.main.LaunchSite attribute)</a>
@@ -561,16 +676,28 @@
 </li>
       <li><a href="trajectory.html#trajectory.aero.AeroData.ref_area">ref_area (trajectory.aero.AeroData attribute)</a>
 </li>
-      <li><a href="trajectory.html#trajectory.main.Rocket">Rocket (class in trajectory.main)</a>
+      <li><a href="trajectory.html#trajectory.heating.AeroHeatingAnalysis.Rex">Rex (trajectory.heating.AeroHeatingAnalysis attribute)</a>
+</li>
+      <li><a href="trajectory.html#trajectory.heating.rho02rho">rho02rho() (in module trajectory.heating)</a>
+</li>
+      <li><a href="trajectory.html#trajectory.heating.rho2rho0">rho2rho0() (in module trajectory.heating)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="trajectory.html#trajectory.main.Rocket">Rocket (class in trajectory.main)</a>
+</li>
+      <li><a href="trajectory.html#trajectory.heating.AeroHeatingAnalysis.rocket">rocket (trajectory.heating.AeroHeatingAnalysis attribute)</a>
+</li>
       <li><a href="trajectory.html#trajectory.aero.AeroData.roll_damping_coefficient">roll_damping_coefficient (trajectory.aero.AeroData attribute)</a>
 </li>
       <li><a href="trajectory.html#trajectory.main.Rocket.rtol">rtol (trajectory.main.Rocket attribute)</a>
 </li>
-      <li><a href="trajectory.html#trajectory.main.Rocket.run">run() (trajectory.main.Rocket method)</a>
+      <li><a href="trajectory.html#trajectory.heating.AeroHeatingAnalysis.run">run() (trajectory.heating.AeroHeatingAnalysis method)</a>
+
+      <ul>
+        <li><a href="trajectory.html#trajectory.main.Rocket.run">(trajectory.main.Rocket method)</a>
 </li>
+      </ul></li>
       <li><a href="trajectory.html#trajectory.statistical.StatisticalModel.run_date">run_date (trajectory.statistical.StatisticalModel attribute)</a>
 </li>
       <li><a href="trajectory.html#trajectory.statistical.StatisticalModel.run_itteration">run_itteration (trajectory.statistical.StatisticalModel attribute)</a>
@@ -585,16 +712,20 @@
 <h2 id="S">S</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="trajectory.html#trajectory.heating.TangentOgive.S">S() (trajectory.heating.TangentOgive method)</a>
+</li>
       <li><a href="trajectory.html#trajectory.plot.set_axes_equal">set_axes_equal() (in module trajectory.plot)</a>
 </li>
       <li><a href="trajectory.html#trajectory.aero.AeroData.show_plot">show_plot() (trajectory.aero.AeroData method)</a>
 </li>
       <li><a href="trajectory.html#trajectory.mass.SolidFuel">SolidFuel (class in trajectory.mass)</a>
 </li>
-      <li><a href="trajectory.html#trajectory.statistical.StatisticalModel">StatisticalModel (class in trajectory.statistical)</a>
+      <li><a href="trajectory.html#trajectory.slosh.CylindricalFuelTank.spring_analogy">spring_analogy() (trajectory.slosh.CylindricalFuelTank method)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="trajectory.html#trajectory.statistical.StatisticalModel">StatisticalModel (class in trajectory.statistical)</a>
+</li>
       <li><a href="trajectory.html#trajectory.plot.stats_alt">stats_alt() (in module trajectory.plot)</a>
 </li>
       <li><a href="trajectory.html#trajectory.plot.stats_apogee">stats_apogee() (in module trajectory.plot)</a>
@@ -603,16 +734,43 @@
 </li>
       <li><a href="trajectory.html#trajectory.plot.stats_trajectories">stats_trajectories() (in module trajectory.plot)</a>
 </li>
+      <li><a href="trajectory.html#trajectory.heating.AeroHeatingAnalysis.step">step() (trajectory.heating.AeroHeatingAnalysis method)</a>
+</li>
   </ul></td>
 </tr></table>
 
 <h2 id="T">T</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="trajectory.html#trajectory.heating.T02T">T02T() (in module trajectory.heating)</a>
+</li>
+      <li><a href="trajectory.html#trajectory.heating.T2T0">T2T0() (in module trajectory.heating)</a>
+</li>
+      <li><a href="trajectory.html#trajectory.heating.AeroHeatingAnalysis.tangent_ogive">tangent_ogive (trajectory.heating.AeroHeatingAnalysis attribute)</a>
+</li>
+      <li><a href="trajectory.html#trajectory.heating.TangentOgive">TangentOgive (class in trajectory.heating)</a>
+</li>
+      <li><a href="trajectory.html#trajectory.heating.AeroHeatingAnalysis.Te">Te (trajectory.heating.AeroHeatingAnalysis attribute)</a>
+</li>
+      <li><a href="trajectory.html#trajectory.motor.Motor.thrust">thrust() (trajectory.motor.Motor method)</a>
+</li>
       <li><a href="trajectory.html#trajectory.statistical.StatisticalModel.thrust_alignment">thrust_alignment (trajectory.statistical.StatisticalModel attribute)</a>
+</li>
+      <li><a href="trajectory.html#trajectory.motor.Motor.thrust_array">thrust_array (trajectory.motor.Motor attribute)</a>
 </li>
       <li><a href="trajectory.html#trajectory.statistical.StatisticalModel.thrust_error">thrust_error (trajectory.statistical.StatisticalModel attribute)</a>
 </li>
+      <li><a href="trajectory.html#trajectory.motor.Motor.time_array">time_array (trajectory.motor.Motor attribute)</a>
+</li>
+      <li><a href="trajectory.html#trajectory.heating.AeroHeatingAnalysis.to_json">to_json() (trajectory.heating.AeroHeatingAnalysis method)</a>
+</li>
+      <li>
+    trajectory
+
+      <ul>
+        <li><a href="trajectory.html#module-trajectory">module</a>
+</li>
+      </ul></li>
       <li>
     trajectory.aero
 
@@ -625,6 +783,13 @@
 
       <ul>
         <li><a href="trajectory.html#module-trajectory.constants">module</a>
+</li>
+      </ul></li>
+      <li>
+    trajectory.heating
+
+      <ul>
+        <li><a href="trajectory.html#module-trajectory.heating">module</a>
 </li>
       </ul></li>
       <li>
@@ -644,10 +809,31 @@
 </li>
       </ul></li>
       <li>
+    trajectory.motor
+
+      <ul>
+        <li><a href="trajectory.html#module-trajectory.motor">module</a>
+</li>
+      </ul></li>
+      <li>
     trajectory.plot
 
       <ul>
         <li><a href="trajectory.html#module-trajectory.plot">module</a>
+</li>
+      </ul></li>
+      <li>
+    trajectory.post
+
+      <ul>
+        <li><a href="trajectory.html#module-trajectory.post">module</a>
+</li>
+      </ul></li>
+      <li>
+    trajectory.slosh
+
+      <ul>
+        <li><a href="trajectory.html#module-trajectory.slosh">module</a>
 </li>
       </ul></li>
       <li>
@@ -664,6 +850,18 @@
         <li><a href="trajectory.html#module-trajectory.transforms">module</a>
 </li>
       </ul></li>
+      <li><a href="trajectory.html#trajectory.heating.AeroHeatingAnalysis.trajectory_data">trajectory_data (trajectory.heating.AeroHeatingAnalysis attribute)</a>
+</li>
+      <li><a href="trajectory.html#trajectory.heating.AeroHeatingAnalysis.trajectory_dict">trajectory_dict (trajectory.heating.AeroHeatingAnalysis attribute)</a>
+</li>
+      <li><a href="trajectory.html#trajectory.heating.AeroHeatingAnalysis.Trec_lam">Trec_lam (trajectory.heating.AeroHeatingAnalysis attribute)</a>
+</li>
+      <li><a href="trajectory.html#trajectory.heating.AeroHeatingAnalysis.Trec_turb">Trec_turb (trajectory.heating.AeroHeatingAnalysis attribute)</a>
+</li>
+      <li><a href="trajectory.html#trajectory.heating.AeroHeatingAnalysis.turbulent_transition_Rex">turbulent_transition_Rex (trajectory.heating.AeroHeatingAnalysis attribute)</a>
+</li>
+      <li><a href="trajectory.html#trajectory.heating.AeroHeatingAnalysis.Tw">Tw (trajectory.heating.AeroHeatingAnalysis attribute)</a>
+</li>
       <li><a href="trajectory.html#trajectory.statistical.StatisticalModel.type_name">type_name (trajectory.statistical.StatisticalModel attribute)</a>
 </li>
   </ul></td>
@@ -708,15 +906,27 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="trajectory.html#trajectory.main.Rocket.w_b">w_b (trajectory.main.Rocket attribute)</a>
 </li>
-      <li><a href="trajectory.html#trajectory.main.warning_on_one_line">warning_on_one_line() (in module trajectory.main)</a>
+      <li><a href="trajectory.html#trajectory.slosh.CylindricalFuelTank.w_pendulum">w_pendulum() (trajectory.slosh.CylindricalFuelTank method)</a>
+</li>
+      <li><a href="trajectory.html#trajectory.slosh.CylindricalFuelTank.w_spring">w_spring() (trajectory.slosh.CylindricalFuelTank method)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="trajectory.html#trajectory.main.warning_on_one_line">warning_on_one_line() (in module trajectory.main)</a>
+</li>
       <li><a href="trajectory.html#trajectory.main.Wind">Wind (class in trajectory.main)</a>
 </li>
       <li><a href="trajectory.html#trajectory.main.LaunchSite.wind">wind (trajectory.main.LaunchSite attribute)</a>
 </li>
       <li><a href="trajectory.html#trajectory.statistical.StatisticalModel.wind_base">wind_base (trajectory.statistical.StatisticalModel attribute)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="Y">Y</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="trajectory.html#trajectory.post.ypr_i">ypr_i() (in module trajectory.post)</a>
 </li>
   </ul></td>
 </tr></table>

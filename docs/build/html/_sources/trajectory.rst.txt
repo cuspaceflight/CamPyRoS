@@ -1,13 +1,13 @@
-trajectory package
+<name> package
 ==================
+
+core module
+----------------------
 
 .. automodule:: trajectory.main
    :members:
    :undoc-members:
    :show-inheritance:
-
-Submodules
-----------
 
 aero module
 ----------------------
@@ -25,6 +25,22 @@ constants module
    :undoc-members:
    :show-inheritance:
 
+gui module
+---------------------
+
+.. automodule:: trajectory.gui
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+heating module
+-------------------------
+
+.. automodule:: trajectory.heating
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 mass module
 ----------------------
 
@@ -33,10 +49,34 @@ mass module
    :undoc-members:
    :show-inheritance:
 
+motor module
+-----------------------
+
+.. automodule:: trajectory.motor
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 plot module
 ----------------------
 
 .. automodule:: trajectory.plot
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+post module
+----------------------
+
+.. automodule:: trajectory.post
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+slosh module
+-----------------------
+
+.. automodule:: trajectory.slosh
    :members:
    :undoc-members:
    :show-inheritance:
@@ -57,4 +97,10 @@ transforms module
    :undoc-members:
    :show-inheritance:
 
+Module contents
+---------------
 
+.. automodule:: trajectory
+   :members:
+   :undoc-members:
+   :show-inheritance:
