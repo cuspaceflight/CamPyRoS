@@ -86,7 +86,7 @@ from .transforms import pos_l2i, pos_i2l, vel_l2i, vel_i2l, direction_l2i, direc
 
 __copyright__ = """
 
-    Copyright 2021 Jago Strong-Wright
+    Copyright 2021 Daniel Gibbons
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
