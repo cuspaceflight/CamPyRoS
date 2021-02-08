@@ -17,12 +17,12 @@ sys.path.insert(0, os.path.split(os.path.abspath(".."))[0])
 
 # -- Project information -----------------------------------------------------
 
-project = '6DOF Rocket Trajectory Simulation'
+project = 'CamPyRoS'
 copyright = '2020, Jago Strong-Wright and Daniel Gibbons'
 author = 'Jago Strong-Wright and Daniel Gibbons'
 
 # The full version, including alpha/beta/rc tags
-release = '0.0.1'
+release = '1.0.0'
 
 
 # -- General configuration ---------------------------------------------------
@@ -53,4 +53,4 @@ html_static_path = ['_static']
 # so a file named "default.css" will overwrite the builtin "default.css".
 
 
-pdf_documents = [('index', u'rst2pdf', u'Trajectory Simulation Package', u'Jago Strong-Wright & Daniel Gibbons'),]
+pdf_documents = [('index', u'rst2pdf', u'CamPyRoS', u'Jago Strong-Wright & Daniel Gibbons'),]

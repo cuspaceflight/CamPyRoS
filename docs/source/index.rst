@@ -1,10 +1,10 @@
-CUSF 6DOF Rocket Trajectory Simulation documentation
-====================================================
-*Insert name* is a python package which provides fully featured rocket trajectory simulation including features like:
-
+CamPyRoS documentation
+======================
+CamPyRoS (Cambridge Python Rocketry Simulator) is a Python package which provides fully featured rocket trajectory simulation including features like:
 - 6 degrees of freedom (3 translational, 3 rotational)
-- Monte carlo stochastic analysis
+- Monte Carlo stochastic analysis
 - Aerodynamic heating model
+- Use of live wind data
 - Variable mass and moments of inertia models  
 
 Getting Started

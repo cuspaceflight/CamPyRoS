@@ -50,6 +50,7 @@ from metpy.units import units
 import scipy.interpolate, scipy.misc
 import scipy.integrate as integrate
 from scipy.spatial.transform import Rotation
+import numexpr as ne
 
 from datetime import date
 from ambiance import Atmosphere

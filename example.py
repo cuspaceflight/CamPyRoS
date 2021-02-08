@@ -1,4 +1,4 @@
-import trajectory
+import CamPyRoS as pyro
 import csv
 import time
 import numpy as np
@@ -28,24 +28,24 @@ REF_AREA = 0.0305128422             #Reference area for aerodynamic coefficients
 
 '''Set up aerodynamic properties'''
 #Get approximate values for the rotational damping coefficients
-C_DAMP_PITCH = trajectory.pitch_damping_coefficient(ROCKET_L, ROCKET_R, fin_number = 4, area_per_fin = 0.07369928)
+C_DAMP_PITCH = pyro.pitch_damping_coefficient(ROCKET_L, ROCKET_R, fin_number = 4, area_per_fin = 0.07369928)
 C_DAMP_ROLL = 0
 
 #Import drag coefficients from RASAero II
-aero_data = trajectory.AeroData.from_rasaero("data/Martlet4RASAeroII.CSV", REF_AREA, C_DAMP_PITCH, C_DAMP_ROLL)
+aero_data = pyro.AeroData.from_rasaero("data/Martlet4RASAeroII.CSV", REF_AREA, C_DAMP_PITCH, C_DAMP_ROLL)
 #aero_data.show_plot()   #Show plots of how the program interpreted the data, so you can visually check if it's correct
 
 '''Set up the mass model'''
-mass_model = trajectory.MassModel()
+mass_model = pyro.MassModel()
 mass_model.add_hollowcylinder(DRY_MASS, ROCKET_R, ROCKET_R - ROCKET_T, ROCKET_L, ROCKET_L/2)
 mass_model.add_liquidtank(lmass_array, lden_array, time_array, ROCKET_R, POS_TANK_BOTTOM, vmass_array, vden_array)
 mass_model.add_solidfuel(smass_array, time_array, S_DEN, S_ROUT, S_L, POS_SOLIDFUEL_BOTTOM)
 
 '''Create the other objects needed to initialise the Rocket object'''
-pulsar = trajectory.Motor.from_novus('novus_sim_6.1/motor_out.csv', pos = ROCKET_L)
+pulsar = pyro.Motor.from_novus('novus_sim_6.1/motor_out.csv', pos = ROCKET_L)
 
 '''
-launch_site = trajectory.LaunchSite(rail_length=10, 
+launch_site = pyro.LaunchSite(rail_length=10, 
                                     rail_yaw=0, 
                                     rail_pitch=0, 
                                     alt=1, 
@@ -56,16 +56,16 @@ launch_site = trajectory.LaunchSite(rail_length=10,
                                     run_date="20201216",
                                     fast_wind=False)
 '''
-launch_site = trajectory.LaunchSite(rail_length=5, 
+launch_site = pyro.LaunchSite(rail_length=5, 
                                     rail_yaw=0, 
                                     rail_pitch=0, 
-                                    alt=1, 
-                                    longi=0, 
-                                    lat=0, 
-                                    variable_wind=False,
-                                    default_wind=np.array([5,0,0]))#Use this version if you don't want to use the real wind (e.g. to test something else)
+                                    alt=10, 
+                                    longi=0.1, 
+                                    lat=52.1, 
+                                    variable_wind=True,
+                                    fast_wind=True)#Use this version if you don't want to use the real wind (e.g. to test something else)
 
-parachute = trajectory.Parachute(main_s=13.9,
+parachute = pyro.Parachute(main_s=13.9,
                                  main_c_d=0.78,
                                  drogue_s=1.13,
                                  drogue_c_d=0.78,
@@ -73,7 +73,7 @@ parachute = trajectory.Parachute(main_s=13.9,
                                  attach_distance=0)
 
 """Create the Rocket object"""
-martlet4 = trajectory.Rocket(mass_model, 
+martlet4 = pyro.Rocket(mass_model, 
                             pulsar, 
                             aero_data, 
                             launch_site, 
@@ -84,14 +84,14 @@ martlet4 = trajectory.Rocket(mass_model,
 
 '''Run the simulation'''
 t=time.time()
-simulation_output = martlet4.run(debug=True,to_json="data/trajectory.json")
+simulation_output = martlet4.run(debug=True,to_json="data/pyro.json")
 print(f"Simulation run time: {time.time()-t:.2f} s")
 
 '''Example of how you can import data from a .csv file'''
-imported_data = trajectory.from_json("data/trajectory.json")
+imported_data = pyro.from_json("data/trajectory.json")
 
 '''Plot the results'''
-trajectory.plot_launch_trajectory_3d(imported_data, martlet4, show_orientation=False) #Could have also used simulation_output instead of imported_data
-trajectory.plot_altitude_time(imported_data, martlet4)
-trajectory.plot_ypr(imported_data, martlet4)
-#trajectory.animate_orientation(imported_data)
+pyro.plot_launch_trajectory_3d(imported_data, martlet4, show_orientation=False) #Could have also used simulation_output instead of imported_data
+pyro.plot_altitude_time(imported_data, martlet4)
+pyro.plot_ypr(imported_data, martlet4)
+#pyro.animate_orientation(imported_data)
