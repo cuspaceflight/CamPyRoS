@@ -1,7 +1,7 @@
 import numpy as np
 from scipy.spatial.transform import Rotation
 
-from trajectory.constants import r_earth, ang_vel_earth, f
+from .constants import r_earth, ang_vel_earth, f
 
 __copyright__ = """
 

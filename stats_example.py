@@ -1,4 +1,4 @@
-import trajectory.statistical as stats 
+import CamPyRoS.statistical as stats 
 
 model = stats.StatisticalModel("stats_settings.json")
 

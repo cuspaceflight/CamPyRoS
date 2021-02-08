@@ -8,6 +8,7 @@ CamPyRoS (Cambridge Python Rocketry Simulator) is a Python package which provide
 - Variable mass and moments of inertia models
 
 ## Getting started
+Download the repo and unzip into your preferred location, if you want to use this like a normal library (i.e. not just from within this directory you will need to move the CamPyRoS folder to your system path). Then install the dependencies as below:
 ### Anaconda (recommended)
 Some dependencies are not properly configured to use pip so it is recommended to create a conda enviroment with the `enviroment.yml` file.
 
@@ -16,7 +17,6 @@ To do this:
 `conda ativate <name>`
 ### Pip (problamatic)
 `pip install -r requirements.txt`
-
 
 ## Usage
 See the docs (**insert link to the docs here**)

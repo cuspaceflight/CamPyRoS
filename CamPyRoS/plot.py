@@ -9,8 +9,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
 from mpl_toolkits.mplot3d import Axes3D
-import trajectory
-from trajectory.transforms import pos_l2i, pos_i2l, vel_l2i, vel_i2l, direction_l2i, direction_i2l, pos_i2alt, i2airspeed,i2lla
+from .transforms import pos_l2i, pos_i2l, vel_l2i, vel_i2l, direction_l2i, direction_i2l, pos_i2alt, i2airspeed,i2lla
 import pandas as pd
 from scipy.spatial.transform import Rotation
 from ambiance import Atmosphere
@@ -83,7 +82,7 @@ def plot_ypr(simulation_output, rocket):
     roll=[]
     z_l=[]
     for index, row in simulation_output.iterrows():#this is ugly but proper way not working
-        ypr=trajectory.Rotation.from_matrix(row["b2imat"]).as_euler("zyx")
+        ypr=Rotation.from_matrix(row["b2imat"]).as_euler("zyx")
     altitude=[]
     time = output_dict["time"]
 
@@ -92,7 +91,7 @@ def plot_ypr(simulation_output, rocket):
         yaw.append(ypr[0])
         pitch.append(ypr[1])
         roll.append(ypr[2])
-        z_l.append(trajectory.pos_i2l(np.array(row["pos_i"]),rocket.launch_site,row["time"])[2])
+        z_l.append(pos_i2l(np.array(row["pos_i"]),rocket.launch_site,row["time"])[2])
     fig, axs = plt.subplots(2, 2)
 
     axs[0, 0].plot(simulation_output["time"], [fix_ypr(n) for n in yaw])
