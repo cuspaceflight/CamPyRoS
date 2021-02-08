@@ -7,6 +7,8 @@ CamPyRoS (Cambridge Python Rocketry Simulator) is a Python package which provide
 - Use of live wind data
 - Variable mass and moments of inertia models  
 
+For a fuller documatation see the docs [here](https://cusf-simulation.github.io/CamPyRoS-Docs/)
+
 ## Getting started
 Download the repo and unzip into your preferred location, if you want to use this like a normal library (i.e. not just from within this directory you will need to move the CamPyRoS folder to your system path). Then install the dependencies as below:
 ### Anaconda (recommended)
@@ -19,7 +21,6 @@ To do this:
 `pip install -r requirements.txt`
 
 ## Usage
-See the docs (**insert link to the docs here**)  
 
 The repository contains some examples you can run:  
 - `example.ipynb` or `example.py` : Launch of a simple rocket (the Martlet 4).  
