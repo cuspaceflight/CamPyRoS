@@ -1,6 +1,6 @@
-# 6 DOF Rocket Simulation - Cambridge University Spaceflight
+# PyRoS - A 6DOF Rocket Trajectory Simulator
 
-*Insert name* is a Python package which provides fully featured rocket trajectory simulation including features like:
+PyRoS (Python Rocketry Simulator) is a Python package which provides fully featured rocket trajectory simulation including features like:
 - 6 degrees of freedom (3 translational, 3 rotational)
 - Monte Carlo stochastic analysis
 - Aerodynamic heating model
