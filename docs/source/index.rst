@@ -34,7 +34,7 @@ Content
    :caption: Contents
 
    help.rst
-   trajectory.rst
+   CamPyRoS.rst
    develop.rst
    licences.rst
 

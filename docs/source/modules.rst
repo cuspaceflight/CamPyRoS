@@ -1,7 +1,7 @@
-trajectory
-==========
+CamPyRoS
+========
 
 .. toctree::
    :maxdepth: 4
 
-   trajectory
+   CamPyRoS
