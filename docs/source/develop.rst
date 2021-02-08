@@ -1,6 +1,6 @@
 Want to help out?
 =================
-We don't have any formal contribution guidlines, code styles or practices yet but any help would be greatly appreciated. If you see a problem that you don't know how to fix please make an `issue <https://github.com/CUSF-Simulation/6DOF-Trajectory-Simulation/issues>`_ or if you fix one please make a pull request and well see what you can do. If you have any questions please email too.
+We don't have any formal contribution guidlines, code styles or practices yet but any help would be greatly appreciated. If you see a problem that you don't know how to fix please make an `issue <https://github.com/CUSF-Simulation/CamPyRoS/issues>`_ or if you fix one please make a pull request and well see what you can do. If you have any questions please email too.
 
 
 Style pointers
