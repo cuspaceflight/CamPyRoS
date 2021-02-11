@@ -1,4 +1,5 @@
 # CamPyRoS - A 6DOF Rocket Trajectory Simulator
+[![DOI](https://zenodo.org/badge/308847422.svg)](https://zenodo.org/badge/latestdoi/308847422)
 
 CamPyRoS (Cambridge Python Rocketry Simulator) is a Python package which provides fully featured rocket trajectory simulation including features like:
 - 6 degrees of freedom (3 translational, 3 rotational)
@@ -56,6 +57,7 @@ with a Cartesian Method](https://pdfs.semanticscholar.org/ace3/5a61803390b0e0b70
 [8] - [Monte Carlo Simulations: Number of Iterations and Accuracy](https://apps.dtic.mil/dtic/tr/fulltext/u2/a621501.pdf)
 [9] - [Method for Calculating Aerodynamic Heating on Sounding Rocket Tangent Ogive Noses](https://arc.aiaa.org/doi/abs/10.2514/3.62081)
 [10] - [Six degree-of-freedom (6-DOF) Flight Simulation Check-cases](https://nescacademy.nasa.gov/flightsim/)
+
 
 
 
