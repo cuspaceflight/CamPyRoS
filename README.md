@@ -42,6 +42,8 @@ The repository contains some examples you can run:
 with a Cartesian Method](https://pdfs.semanticscholar.org/ace3/5a61803390b0e0b70f6ca34492ad20a03e03.pdf)
 - **Multiphysics coupling:** [PRECICE](https://www.precice.org/)
 
+## Cite as
+Daniel Gibbons, & Jago Strong-Wright. (2021, February 11). cuspaceflight/CamPyRoS: First release! (Version V1.0). Zenodo. http://doi.org/10.5281/zenodo.4535672
 
 ## Main References
 [1] - [Stochastic Six-Degree-of-Freedom Flight Simulator for Passively Controlled High-Power Rockets](https://ascelibrary.org/doi/10.1061/%28ASCE%29AS.1943-5525.0000051)
@@ -57,7 +59,6 @@ with a Cartesian Method](https://pdfs.semanticscholar.org/ace3/5a61803390b0e0b70
 [8] - [Monte Carlo Simulations: Number of Iterations and Accuracy](https://apps.dtic.mil/dtic/tr/fulltext/u2/a621501.pdf)
 [9] - [Method for Calculating Aerodynamic Heating on Sounding Rocket Tangent Ogive Noses](https://arc.aiaa.org/doi/abs/10.2514/3.62081)
 [10] - [Six degree-of-freedom (6-DOF) Flight Simulation Check-cases](https://nescacademy.nasa.gov/flightsim/)
-
 
 
 
