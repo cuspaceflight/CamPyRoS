@@ -1,4 +1,4 @@
-import trajectory
+import CamPyRoS as trajectory
 import csv
 import time
 import numpy as np

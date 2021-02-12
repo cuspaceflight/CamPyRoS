@@ -638,7 +638,6 @@ def stats_landing(mu,cov,data=pd.DataFrame(),sigma=3):
     if not data.empty:
         ax.scatter(data.x,data.y,marker="o",s=10,color="blue",alpha=0.3)
     ax.legend()
-    set_axes_equal_3d(ax,dim=2)
     plt.show()
 
 def elipse(u,v,a,b,c):

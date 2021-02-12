@@ -592,6 +592,11 @@ class AeroHeatingAnalysis:
         #Get altitude:
         alt = pos_i2alt(self.trajectory_dict["pos_i"][self.i], self.trajectory_dict["time"][self.i])
 
+        if alt<-5004:#hacky way to fix out of bound altitudes for ambience
+            alt=5004
+        elif alt>81020:
+            alt=81020
+
         #Get ambient conditions:
         Pinf = Atmosphere(alt).pressure[0]
         Tinf = Atmosphere(alt).temperature[0]
