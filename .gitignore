@@ -29,3 +29,5 @@ output.json
 *.lock
 *.dirlock
 *.arl
+docs/techincal/Abstract/abstract.tex
+*.na
