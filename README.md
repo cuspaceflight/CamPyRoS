@@ -22,7 +22,7 @@ To do this:
 ### Pip (excludes 'ray' and 'iris' modules)
 `pip install git+https://github.com/cuspaceflight/CamPyRoS.git`  
 
-Alternative, you can download the repository onto your local disk, navigate to it, and run:
+Alternatively, you can download the repository onto your local disk, navigate to it, and run:  
 `pip install .`
 
 ## Usage
