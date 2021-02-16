@@ -1,4 +1,4 @@
-import CamPyRoS as pyro
+import campyros as pyro
 import csv
 import time
 import numpy as np
