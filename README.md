@@ -11,19 +11,29 @@ CamPyRoS (Cambridge Python Rocketry Simulator) is a Python package which provide
 For a fuller documatation see the docs [here](https://cuspaceflight.github.io/CamPyRoS-Docs/)
 
 ## Getting started
-Download the repo and unzip into your preferred location, if you want to use this like a normal library (i.e. not just from within this directory you will need to move the CamPyRoS folder to your system path). Then install the dependencies as below:
-### Anaconda (recommended)
-Some dependencies are not properly configured to use pip so it is recommended to create a conda enviroment with the `enviroment.yml` file.
+Currently not all dependancies are supported by the same install methods so the easiest install doesn't contain the full functionality. To install the core library:
 
-To do this:
-`conda env create -f enviroment.yml -n <name>`
-`conda ativate <name>`
-
-### Pip (excludes 'ray' and 'iris' modules)
 `pip install git+https://github.com/cuspaceflight/CamPyRoS.git`  
 
-Alternatively, you can download the repository onto your local disk, navigate to it, and run:  
-`pip install .`
+The "wind" and "statistics" modules will not run. Statistics has a dependancy not fully supported by windows, to install it:
+
+`pip install ray` on most platforms, for Windows problems see [here](https://docs.ray.io/en/master/installation.html).
+
+Wind depends on a library called iris which can only be installed with conda:
+
+`conda install iris, iris_grib`
+
+This may then demand you install another library when you try to run it:
+
+`pip install eccodes-python`
+
+Alternativly you can download this repository and move it to either your system path or somewhere you will exclusivly use it from then:
+
+`conda env create -f enviroment.yml -n <name>`
+
+`conda activate <name>`
+
+From within the downloaded folder.
 
 ## Usage
 
