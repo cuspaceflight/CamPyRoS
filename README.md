@@ -18,8 +18,12 @@ Some dependencies are not properly configured to use pip so it is recommended to
 To do this:
 `conda env create -f enviroment.yml -n <name>`
 `conda ativate <name>`
-### Pip (problamatic)
-`pip install -r requirements.txt`
+
+### Pip (excludes 'ray' and 'iris' modules)
+`pip install git+https://github.com/cuspaceflight/CamPyRoS.git`  
+
+Alternative, you can download the repository onto your local disk, navigate to it, and run:
+`pip install .`
 
 ## Usage
 
