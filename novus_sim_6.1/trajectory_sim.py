@@ -30,29 +30,36 @@ import matplotlib.pyplot as plt
 # Input parameters
 ###############################################################################
 
-MASS_DRY = 60                     #rocket dry mass (kg)
-DIAMETER = 0.197                  #rocket body DIAMETER (m)
-LAUNCH_ALT = 615                    #launch altitude (msl)
-ANGLE_RAIL = 89                   #launch rail angle, degrees
-LENGTH_RAIL = 11                  #launch rail length (m)
+MASS_DRY = 60  # rocket dry mass (kg)
+DIAMETER = 0.197  # rocket body DIAMETER (m)
+LAUNCH_ALT = 615  # launch altitude (msl)
+ANGLE_RAIL = 89  # launch rail angle, degrees
+LENGTH_RAIL = 11  # launch rail length (m)
 
-vvel = 0                          #initial rocket vertical velocity (m s^-1)
-hvel = 0                          #initial rocket horizontal velocity (m s^-1)
-ground = 0                          #initial down-range distance (m)
+vvel = 0  # initial rocket vertical velocity (m s^-1)
+hvel = 0  # initial rocket horizontal velocity (m s^-1)
+ground = 0  # initial down-range distance (m)
 
 ###############################################################################
 # Initialize simulation
 ###############################################################################
 
-STEP = 0.01                        #time step (s)
+STEP = 0.01  # time step (s)
 
 # open motor performance file (output of motor_sim.py)
-with open('motor_out.csv') as csvfile:
+with open("motor_out.csv") as csvfile:
     motor_out = csv.reader(csvfile)
 
-    (motor_time_data, prop_mass_data, cham_pres_data,
-     throat_data, gamma_data, nozzle_efficiency_data,
-     exit_pres_data, area_ratio_data) = [], [], [], [], [], [], [], []
+    (
+        motor_time_data,
+        prop_mass_data,
+        cham_pres_data,
+        throat_data,
+        gamma_data,
+        nozzle_efficiency_data,
+        exit_pres_data,
+        area_ratio_data,
+    ) = ([], [], [], [], [], [], [], [])
 
     next(motor_out)
     for row in motor_out:
@@ -66,7 +73,7 @@ with open('motor_out.csv') as csvfile:
         area_ratio_data.append(float(row[7]))
 
 # open standard atmosphere data
-with open('atmosphere_data.csv') as csvfile:
+with open("atmosphere_data.csv") as csvfile:
     standard_atmo_data = csv.reader(csvfile)
     adat, ddat, sdat, padat = [], [], [], []
     next(standard_atmo_data)
@@ -77,7 +84,7 @@ with open('atmosphere_data.csv') as csvfile:
         padat.append(float(row[3]))
 
 # import drag coeffcient as a function of Mach data
-with open('drag_coefficient_data.csv') as csvfile:
+with open("drag_coefficient_data.csv") as csvfile:
     drag_coefficient_data = csv.reader(csvfile)
     machdat = []
     cddat = []
@@ -87,8 +94,13 @@ with open('drag_coefficient_data.csv') as csvfile:
         cddat.append(float(row[1]))
 
 # compute state of vehicle
-apogee = False; GRAV_ACCEL = 9.81; alt = LAUNCH_ALT; stable = True; rail_left = False; time = 0
-vel = np.sqrt((vvel**2)+(hvel**2))
+apogee = False
+GRAV_ACCEL = 9.81
+alt = LAUNCH_ALT
+stable = True
+rail_left = False
+time = 0
+vel = np.sqrt((vvel ** 2) + (hvel ** 2))
 pitch = np.radians(ANGLE_RAIL)
 if alt < 80000:
     density = np.interp(alt, adat, ddat)
@@ -96,11 +108,21 @@ if alt < 80000:
     pres_static = np.interp(alt, adat, padat)
 else:
     density, vsound = 0, float("inf")
-mach = vel/vsound
+mach = vel / vsound
 
 # create empty lists to fill with output data
-(time_data, alt_data, vel_data, acc_data, drag_data, thrust_data, mass_data,
- mach_data, ground_data, pitch_data) = [], [], [], [], [], [], [], [], [], []
+(
+    time_data,
+    alt_data,
+    vel_data,
+    acc_data,
+    drag_data,
+    thrust_data,
+    mass_data,
+    mach_data,
+    ground_data,
+    pitch_data,
+) = ([], [], [], [], [], [], [], [], [], [])
 
 
 ###############################################################################
@@ -130,44 +152,55 @@ while True:
         nozzle_area_ratio = np.interp(time, motor_time_data, area_ratio_data)
 
         # motor performance calculations
-        area_throat = ((dia_throat/2)**2)*np.pi
-        thrust = (area_throat*pres_cham*(((2*gamma**2/(gamma-1))
-                                         *((2/(gamma+1))**((gamma+1)/(gamma-1)))
-                                         *(1-(pres_exit/pres_cham)**((gamma-1)/gamma)))**0.5)
-                 +(pres_exit-pres_static)*area_throat*nozzle_area_ratio)
+        area_throat = ((dia_throat / 2) ** 2) * np.pi
+        thrust = (
+            area_throat
+            * pres_cham
+            * (
+                (
+                    (2 * gamma ** 2 / (gamma - 1))
+                    * ((2 / (gamma + 1)) ** ((gamma + 1) / (gamma - 1)))
+                    * (1 - (pres_exit / pres_cham) ** ((gamma - 1) / gamma))
+                )
+                ** 0.5
+            )
+            + (pres_exit - pres_static) * area_throat * nozzle_area_ratio
+        )
 
         thrust *= nozzle_efficiency
     else:
         thrust = 0
 
-    #update acceleration and integrate
+    # update acceleration and integrate
     mass_prop = np.interp(time, motor_time_data, prop_mass_data)
     mass = mass_prop + MASS_DRY
-    drag = 0.5*cd*density*(vel**2)*(((DIAMETER/2)**2)*np.pi)
-    vacc = ((thrust*np.sin(pitch))/mass)-((drag*np.sin(pitch))/mass)-GRAV_ACCEL
-    hacc = ((thrust*np.cos(pitch))/mass)-((drag*np.cos(pitch))/mass)
-    vvel += vacc*STEP
-    hvel += hacc*STEP
-    vel = np.sqrt((vvel**2)+(hvel**2))
-    acc = np.sqrt((vacc**2)+(hacc**2))
+    drag = 0.5 * cd * density * (vel ** 2) * (((DIAMETER / 2) ** 2) * np.pi)
+    vacc = (
+        ((thrust * np.sin(pitch)) / mass) - ((drag * np.sin(pitch)) / mass) - GRAV_ACCEL
+    )
+    hacc = ((thrust * np.cos(pitch)) / mass) - ((drag * np.cos(pitch)) / mass)
+    vvel += vacc * STEP
+    hvel += hacc * STEP
+    vel = np.sqrt((vvel ** 2) + (hvel ** 2))
+    acc = np.sqrt((vacc ** 2) + (hacc ** 2))
 
-    if alt-LAUNCH_ALT < np.sin(pitch)*LENGTH_RAIL and apogee == False:
+    if alt - LAUNCH_ALT < np.sin(pitch) * LENGTH_RAIL and apogee == False:
         pitch = np.radians(ANGLE_RAIL)
     else:
         pitch = np.arctan2(vvel, hvel)
         if rail_left == False:
-            print('rail cleared at', vel, 'm/s', 'T/W:', thrust/(mass*GRAV_ACCEL))
+            print("rail cleared at", vel, "m/s", "T/W:", thrust / (mass * GRAV_ACCEL))
             rail_left = True
 
-    mach = vel/vsound
-    alt += vvel*STEP
-    ground += hvel*STEP
+    mach = vel / vsound
+    alt += vvel * STEP
+    ground += hvel * STEP
 
     # check for ground impact
     if alt < 0:
         break
 
-    #update trajectory plot _data
+    # update trajectory plot _data
     time_data.append(time)
     thrust_data.append(thrust)
     drag_data.append(-drag)
@@ -184,47 +217,54 @@ while True:
 # Print and plot results
 ###############################################################################
 
-print('\nResults:\napogee:', (max(alt_data)-LAUNCH_ALT)/1000, 'km\nmax Mach:',
-      max(mach_data))
+print(
+    "\nResults:\napogee:",
+    (max(alt_data) - LAUNCH_ALT) / 1000,
+    "km\nmax Mach:",
+    max(mach_data),
+)
 
-print('Gross lift off mass:', mass_data[0], 'kg')
+print("Gross lift off mass:", mass_data[0], "kg")
 
 plt.figure(figsize=(9, 9))
 
 plt.subplot(321)
-plt.plot(ground_data, [a-LAUNCH_ALT for a in alt_data])
-plt.xlabel('Downrange (m)')
-plt.ylabel('Altitude (m)')
-plt.ylim(0, max([a-LAUNCH_ALT for a in alt_data])*1.1)
-plt.xlim(-1000, (max(ground_data)*1.1))
+plt.plot(ground_data, [a - LAUNCH_ALT for a in alt_data])
+plt.xlabel("Downrange (m)")
+plt.ylabel("Altitude (m)")
+plt.ylim(0, max([a - LAUNCH_ALT for a in alt_data]) * 1.1)
+plt.xlim(-1000, (max(ground_data) * 1.1))
 plt.tight_layout()
-plt.gca().set_aspect('equal', adjustable='box')
+plt.gca().set_aspect("equal", adjustable="box")
 
 plt.subplot(322)
 plt.plot(time_data, vel_data)
-plt.xlabel('Time (s)')
-plt.ylabel('Speed (ms-1)')
-plt.ylim(min(vel_data)*1.3, max(vel_data)*1.3)
-plt.axhline(y=0, color='k', linestyle='-')
+plt.xlabel("Time (s)")
+plt.ylabel("Speed (ms-1)")
+plt.ylim(min(vel_data) * 1.3, max(vel_data) * 1.3)
+plt.axhline(y=0, color="k", linestyle="-")
 plt.tight_layout()
 
 plt.subplot(323)
 plt.plot(time_data, pitch_data)
-plt.xlabel('Time (s)')
-plt.ylabel('Pitch (degrees)')
-plt.ylim(min(pitch_data)*1.2, max(pitch_data)*1.2)
-plt.axhline(y=0, color='k', linestyle='-')
+plt.xlabel("Time (s)")
+plt.ylabel("Pitch (degrees)")
+plt.ylim(min(pitch_data) * 1.2, max(pitch_data) * 1.2)
+plt.axhline(y=0, color="k", linestyle="-")
 plt.tight_layout()
 
 plt.subplot(324)
-plt.plot(time_data, thrust_data, 'r', label='thrust force')
-plt.plot(time_data, drag_data, 'b', label='Drag force')
-plt.plot(time_data, [-GRAV_ACCEL*m for m in mass_data], 'g', label='Weight force')
-plt.xlabel('Time (s)')
-plt.ylabel('Force (N)')
-plt.ylim(min(min(drag_data), min(thrust_data), min([-GRAV_ACCEL*m for m in mass_data]))*1.2,
-         max(max(drag_data), max(thrust_data))*1.2)
-plt.axhline(y=0, color='k', linestyle='-')
+plt.plot(time_data, thrust_data, "r", label="thrust force")
+plt.plot(time_data, drag_data, "b", label="Drag force")
+plt.plot(time_data, [-GRAV_ACCEL * m for m in mass_data], "g", label="Weight force")
+plt.xlabel("Time (s)")
+plt.ylabel("Force (N)")
+plt.ylim(
+    min(min(drag_data), min(thrust_data), min([-GRAV_ACCEL * m for m in mass_data]))
+    * 1.2,
+    max(max(drag_data), max(thrust_data)) * 1.2,
+)
+plt.axhline(y=0, color="k", linestyle="-")
 plt.legend()
 plt.tight_layout()
 
