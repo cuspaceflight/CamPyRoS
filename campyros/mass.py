@@ -11,7 +11,7 @@ import numpy as np
 
 __copyright__ = """
 
-    Copyright 2021 Jago Strong-Wright & Daniel Gibbons
+    Copyright 2021 Daniel Gibbons
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
