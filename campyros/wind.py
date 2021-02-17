@@ -11,17 +11,18 @@ Known issues:
 makes essentially no difference and we don't have error estimates yet anyway
 
 """
-
+import warnings
 try:
     import iris
 except:
-    print(
-        """You do not have the dependancy scitools-iris, it was excluded from the pip install due to upstream problems with pip.
-    You should be able to install it with conda by:
+    warnings.warn(
+        """You do not have the dependancy scitools-iris.
+    **** YOU WILL NOT BE ABLE TO USE ANY WIND FUNCTIONALITY EXCEPT STATIS WIND ****
+    It was excluded from the pip install due to upstream problems with pip.
+    You should be able to insall it with conda by:
     `conda install iris, iris-grib` but this may not work
     Please see https://scitools-iris.readthedocs.io/en/stable/installing.html#installing-iris if you really want to install it some other way"""
     )
-    raise
 import scipy
 import scipy.interpolate
 import warnings
