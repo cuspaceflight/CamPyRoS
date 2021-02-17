@@ -1,4 +1,27 @@
-import iris
+"""
+Contains the capability to load and use wind forcast data, watch this space.
+
+Notes
+-----
+
+Known issues:
+
+- Downloading is somewhat finnicky, if in doubt, delete the content of your data/wind/gfs folder
+- "normal" mode may not work because of changes since it was last used and is very slow even if it does, for now please use "fast_wind=True" since it 
+makes essentially no difference and we don't have error estimates yet anyway
+
+"""
+
+try:
+    import iris
+except:
+    print(
+        """You do not have the dependancy scitools-iris, it was excluded from the pip install due to upstream problems with pip.
+    You should be able to install it with conda by:
+    `conda install iris, iris-grib` but this may not work
+    Please see https://scitools-iris.readthedocs.io/en/stable/installing.html#installing-iris if you really want to install it some other way"""
+    )
+    raise
 import scipy
 import scipy.interpolate
 import warnings
@@ -8,8 +31,45 @@ import requests
 import numexpr as ne
 import metpy.calc
 from metpy.units import units
+import pandas as pd
 
-from .main import validate_lat_long, warning_on_one_line, closest, points
+from datetime import date
+
+__copyright__ = """
+
+    Copyright 2021 Jago Strong-Wright
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+"""
+
+
+def warning_on_one_line(message, category, filename, lineno, file=None, line=None):
+    """A one line warning format
+
+    Args:
+        message ([type]): [description]
+        category ([type]): [description]
+        filename ([type]): [description]
+        lineno ([type]): [description]
+        file ([type], optional): [description]. Defaults to None.
+        line ([type], optional): [description]. Defaults to None.
+
+    Returns:
+        [type]: [description]
+    """
+    return "%s:%s: %s:%s\n" % (filename, lineno, category.__name__, message)
 
 
 warnings.formatwarning = warning_on_one_line
@@ -263,8 +323,8 @@ class Wind:
             < 1000
         ):
             raise RuntimeError(
-                "The weather data you requested was not found, this is usually because it was for an invalid date/time. lat=%s,long=%s was requested"
-                % (lat_bottom, long_left)
+                "The weather data you requested was not found, this is usually because it was for an invalid date/time. lat=%s,long=%s was requested at %s"
+                % (lat_bottom, long_left, self.date)
             )
         data = iris.load(
             "%s/%s_%s_%s_%s_%s.grb2"
@@ -445,3 +505,61 @@ class Wind:
             return self.winds(alt)
         else:
             return self.default
+
+
+def validate_lat_long(lat, long):
+    """Makes latitude and longitude valid for wind
+
+    Args:
+        lat ([type]): [description]
+        long ([type]): [description]
+
+    Returns:
+        [type]: [description]
+    """
+    if abs(lat) > 90:
+        lat = np.sign(lat) * (180 - abs(lat))
+        long += 180
+    if long == -0.0:
+        long = -0.0
+    if long < 0:
+        long += 360
+    long = np.mod(long, 360)
+    if lat == -0.0:
+        lat = 0.0
+    return round(lat, 4), round(long, 4)
+
+
+def closest(num, incriment):
+    """[summary]
+
+    Args:
+        num ([type]): [description]
+        incriment ([type]): [description]
+
+    Returns:
+        [type]: [description]
+    """
+    a = round(num / incriment) * incriment
+    if a > num:
+        b = a - 0.25
+    else:
+        b = a + 0.25
+    return [a, b]
+
+
+def points(lats, longs):
+    """[summary]
+
+    Args:
+        lats ([type]): [description]
+        longs ([type]): [description]
+
+    Returns:
+        [type]: [description]
+    """
+    points = []
+    for n in [0, 1]:
+        for m in [0, 1]:
+            points.append([lats[n], longs[m]])
+    return points

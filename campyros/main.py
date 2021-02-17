@@ -1,4 +1,4 @@
-"""6DOF Trajectory Simulator
+"""
 Contains the classes and functions for the core trajectory simulation. SI units unless stated otherwise.
 
 Notes
@@ -67,6 +67,8 @@ from .transforms import (
     pos_i2alt,
 )
 
+from .wind import Wind
+
 __copyright__ = """
 
     Copyright 2021 Jago Strong-Wright & Daniel Gibbons
@@ -108,64 +110,6 @@ def warning_on_one_line(message, category, filename, lineno, file=None, line=Non
 
 
 warnings.formatwarning = warning_on_one_line
-
-
-def validate_lat_long(lat, long):
-    """Makes latitude and longitude valid for wind
-
-    Args:
-        lat ([type]): [description]
-        long ([type]): [description]
-
-    Returns:
-        [type]: [description]
-    """
-    if abs(lat) > 90:
-        lat = np.sign(lat) * (180 - abs(lat))
-        long += 180
-    if long == -0.0:
-        long = -0.0
-    if long < 0:
-        long += 360
-    long = np.mod(long, 360)
-    if lat == -0.0:
-        lat = 0.0
-    return round(lat, 4), round(long, 4)
-
-
-def closest(num, incriment):
-    """[summary]
-
-    Args:
-        num ([type]): [description]
-        incriment ([type]): [description]
-
-    Returns:
-        [type]: [description]
-    """
-    a = round(num / incriment) * incriment
-    if a > num:
-        b = a - 0.25
-    else:
-        b = a + 0.25
-    return [a, b]
-
-
-def points(lats, longs):
-    """[summary]
-
-    Args:
-        lats ([type]): [description]
-        longs ([type]): [description]
-
-    Returns:
-        [type]: [description]
-    """
-    points = []
-    for n in [0, 1]:
-        for m in [0, 1]:
-            points.append([lats[n], longs[m]])
-    return points
 
 
 class Parachute:
