@@ -250,7 +250,7 @@ class Rocket:
         w_b (array): Angular velocity in body coordiates [x_b, y_b, z_b] (rad/s).
         b2i (scipy.spatial.transform.Rotation): Body-to-inertial coordinate rotation matrix.
         i2b (scipy.spatial.transform.Rotation): Inertial-to-body coordinate rotation matrix.
-        alt (float): Altitude above sea level (m).
+        alt (float): Rocket altitude (m).
         on_rail (bool): True if the rocket is still on the rail, False if the rocket is off the rail.
         burn_out (bool): False if engine is still firing, True if the engine has finished firing.
         alt_record(???) : ???.
