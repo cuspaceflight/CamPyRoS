@@ -23,6 +23,8 @@ Wind depends on a library called iris which can only be installed with conda:
 
 `conda install iris, iris_grib`
 
+> Note: after some more testing this won't work for anyone on Windows, I am in the process fo sorting this out (the problem is a codec dependancy which there is no way for us to fix) by writing an library to read the other GFS distrobution method, see [gfspy](https://github.com/jagoosw/gfspy). You can still run and contribute without using the wind module. If you really want to use the wind module please [email](jagoosw@protonmail.com) or message me and we can try and sort out access to something remote you can use to run it. 
+
 This may then demand you install another library when you try to run it:
 
 `pip install eccodes-python`
@@ -60,19 +62,26 @@ with a Cartesian Method](https://pdfs.semanticscholar.org/ace3/5a61803390b0e0b70
 Daniel Gibbons, & Jago Strong-Wright. (2021, February 11). cuspaceflight/CamPyRoS: First release! (Version V1.0). Zenodo. http://doi.org/10.5281/zenodo.4535672
 
 ## Main References
+
 [1] - [Stochastic Six-Degree-of-Freedom Flight Simulator for Passively Controlled High-Power Rockets](https://ascelibrary.org/doi/10.1061/%28ASCE%29AS.1943-5525.0000051)
-[2] - [STOCHASTIC FLIGHT SIMULATION APPLIED TO A SOUNDING ROCKET](https://sci-hub.do/10.2514/6.iac-04-a.1.07)
-[3] - [Tangent ogive nose aerodynamic heating program: NQLD019](https://ntrs.nasa.gov/citations/19730063810)
+
+[2] - [Tangent ogive nose aerodynamic heating program: NQLD019](https://ntrs.nasa.gov/citations/19730063810)
 
 
 ## Additional References
-[4] - [NASA Basic Considerations for Rocket Trajectory Simulation](https://apps.dtic.mil/sti/pdfs/AD0642855.pdf)
-[5] - [SIX DEGREE OF FREEDOM DIGITAL SIMULATION MODEL FOR UNGUIDED FIN-STABILIZED ROCKETS](https://apps.dtic.mil/dtic/tr/fulltext/u2/452106.pdf)
-[6] - [Trajectory Prediction for a Typical Fin Stabilized Artillery Rocket](https://journals.ekb.eg/article_23742_f19c1da1a61e78c1f5bb7ce58a7b30dd.pdf)
-[7] - [Central Limit Theorem and Sample Size](https://www.umass.edu/remp/Papers/Smith&Wells_NERA06.pdf)
-[8] - [Monte Carlo Simulations: Number of Iterations and Accuracy](https://apps.dtic.mil/dtic/tr/fulltext/u2/a621501.pdf)
-[9] - [Method for Calculating Aerodynamic Heating on Sounding Rocket Tangent Ogive Noses](https://arc.aiaa.org/doi/abs/10.2514/3.62081)
-[10] - [Six degree-of-freedom (6-DOF) Flight Simulation Check-cases](https://nescacademy.nasa.gov/flightsim/)
+[3] - [NASA Basic Considerations for Rocket Trajectory Simulation](https://apps.dtic.mil/sti/pdfs/AD0642855.pdf)
+
+[4] - [SIX DEGREE OF FREEDOM DIGITAL SIMULATION MODEL FOR UNGUIDED FIN-STABILIZED ROCKETS](https://apps.dtic.mil/dtic/tr/fulltext/u2/452106.pdf)
+
+[5] - [Trajectory Prediction for a Typical Fin Stabilized Artillery Rocket](https://journals.ekb.eg/article_23742_f19c1da1a61e78c1f5bb7ce58a7b30dd.pdf)
+
+[6] - [Central Limit Theorem and Sample Size](https://www.umass.edu/remp/Papers/Smith&Wells_NERA06.pdf)
+
+[7] - [Monte Carlo Simulations: Number of Iterations and Accuracy](https://apps.dtic.mil/dtic/tr/fulltext/u2/a621501.pdf)
+
+[8] - [Method for Calculating Aerodynamic Heating on Sounding Rocket Tangent Ogive Noses](https://arc.aiaa.org/doi/abs/10.2514/3.62081)
+
+[9] - [Six degree-of-freedom (6-DOF) Flight Simulation Check-cases](https://nescacademy.nasa.gov/flightsim/)
 
 
 
