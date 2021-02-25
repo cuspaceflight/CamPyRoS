@@ -113,7 +113,7 @@ warnings.formatwarning = warning_on_one_line
 
 
 class Parachute:
-    def __init__(self,main_s,main_c_d,drogue_s,drogue_c_d,main_alt,attach_distance=0.0):
+    def __init__(self,main_s,drogue_s,M_Cd_data, Dro_Cd_data, main_alt,attach_distance=0.0):
         """ 
         Object holding the parachute information
 
@@ -126,30 +126,34 @@ class Parachute:
 
         Args:
             main_s (float): Area of main chute (m^2)
-            main_c_d (float): Drag coefficient for the main parachute (m^2)
             drogue_s (float): Area of the main parachute (m^2)
-            drogue_c_d (float): Drag coefficient for the drogue chute
             main_alt (float): Altitude at which the main parachute deploys (m)
+            parachute_Cd: pandas.dataframe object, read from Parachute_data.CSV
             attach_distance (float, optional): Distance between the rocket nose tip and the parachute attachment point (m). Defaults to 0.0.
-
+            M_Cd_data (tuple): tuple of 2 np arrays, of mach number and Main Cd
+            Dro_Cd_data (tuple): tuple of 2 np arrays, of mach number and Drogue Cd
         Attributes:
             main_s (float): Area of main chute (m^2)
-            main_c_d (float): Drag coefficient for the main parachute (m^2)
             drogue_s (float): Area of the main parachute (m^2)
-            drogue_c_d (float): Drag coefficient for the drogue chute
             main_alt (float): Altitude at which the main parachute deploys (m)
             attach_distance (float, optional): Distance between the rocket nose tip and the parachute attachment point (m). Defaults to 0.0.
+            M_Cd_data (tuple): tuple of 2 np arrays, of mach number and Main Cd
+            Dro_Cd_data (tuple): tuple of 2 np arrays, of mach number and Drogue Cd
+            Dro_Cd(Mach) (interp1d object): give Drogue Cd based on Mach
+            M_Cd(Mach) (interp1d object): give Main Cd based on Mach
         """
         self.main_s=main_s
-        self.main_c_d=main_c_d
         self.drogue_s=drogue_s
-        self.drogue_c_d=drogue_c_d
-
         self.main_alt = main_alt
         self.attach_distance = attach_distance
+        self.M_Cd_data = M_Cd_data
+        self.Dro_Cd_data = Dro_Cd_data
+        # get Drogue and Main Cd data, note bound error
+        self.M_Cd = scipy.interpolate.interp1d(M_Cd_data[0], M_Cd_data[1],copy = True, bounds_error = False, fill_value=(0,M_Cd_data[0][-1]))
+        self.Dro_Cd = scipy.interpolate.interp1d(Dro_Cd_data[0], Dro_Cd_data[1], copy = True, bounds_error = False, fill_value=(0,Dro_Cd_data[0][-1]))
 
-    def get(self,alt):
-        """Returns the drag coefficient and area of the parachute, given the current altitude. 
+    def get(self,alt,Mach):
+        """Returns the drag coefficient and area of the parachute, given the current altitude and Mach Number. 
         I.e., it checks if the main or drogue parachute is open, and returns the relevant values. 
 
         Args:
@@ -158,11 +162,13 @@ class Parachute:
         Returns:
             float, float: Drag coefficient, parachute area (m^2)
         """
+        if Mach < 0 or Mach > self.M_Cd_data[0][-1]:
+            print("Mach Number is {}, out of range!".format(Mach))
         if alt<self.main_alt:
-            c_d=self.main_c_d
+            c_d=self.M_Cd(Mach)
             s=self.main_s
         else:
-            c_d = self.drogue_c_d
+            c_d = self.Dro_Cd(Mach)
             s = self.drogue_s
         return c_d, s
 
@@ -257,7 +263,7 @@ class Rocket:
         alt_poll_watch_interval (???) : ???
         alt_poll_watch (???): ???
     """
-    def __init__(self, mass_model, motor, aero, launch_site, h=0.01, variable=True, rtol=1e-7, atol=1e-14, parachute=Parachute(0,0,0,0,0,0),alt_poll_interval=1,thrust_vector=np.array([1,0,0]),errors={"gravity":1.0,"pressure":1.0,"density":1.0,"speed_of_sound":1.0}):
+    def __init__(self, mass_model, motor, aero, launch_site, h=0.01, variable=True, rtol=1e-7, atol=1e-14, parachute=(0,0,(0,0),(0,0),0,0),alt_poll_interval=1,thrust_vector=np.array([1,0,0]),errors={"gravity":1.0,"pressure":1.0,"density":1.0,"speed_of_sound":1.0}):
         self.launch_site = launch_site
         self.motor = motor
         self.thrust_vector = np.array(thrust_vector)
@@ -399,18 +405,17 @@ class Rocket:
         v_relative_wind_b = b2i.inv().apply(v_relative_wind_i)
         air_speed = np.linalg.norm(v_relative_wind_b)
         q = 0.5 * ambient_density * air_speed ** 2  # Dynamic pressure
+        mach = air_speed / speed_of_sound
 
-        if self.parachute_deployed == True and self.parachute.main_c_d != 0:
+        if self.parachute_deployed == True:
             # Parachute forces
-            CD, ref_area = self.parachute.get(alt)
+            CD, ref_area = self.parachute.get(alt,mach)
             F_parachute_i = -0.5 * q * ref_area * CD * v_relative_wind_i / air_speed
-
             # Append to list of forces
             F_i = F_i + F_parachute_i
 
         else:
             # Aerodynamic forces and moments from the rocket body
-            mach = air_speed / speed_of_sound
             alpha = np.arccos(np.dot(v_relative_wind_b / air_speed, [1, 0, 0]))
             cop = self.aero.COP(mach, abs(alpha))
             r_cop_cog_b = (cop - cog) * np.array([-1, 0, 0])

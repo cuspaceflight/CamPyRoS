@@ -6,7 +6,6 @@ import pandas as pd
 
 """Import motor data to use for the mass model"""
 motor_csv = pd.read_csv("novus_sim_6.1/motor_out.csv")
-
 time_array = motor_csv["Time"]
 smass_array = motor_csv["Solid Fuel Mass (kg)"]
 S_DEN = motor_csv["Solid Fuel Density (kg/m^3)"][0]
@@ -83,16 +82,20 @@ launch_site = pyro.LaunchSite(
     alt=10,
     longi=0.1,
     lat=52.1,
-    variable_wind=True,
+    variable_wind=False,
     fast_wind=True,
     run_date="20210216",
 )  # Use this version if you don't want to use the real wind (e.g. to test something else)
 
+Parachute_Data = pd.read_csv('data/Sample_Parachute_Cd.CSV')
+Mach_array = Parachute_Data['Mach_Number'].to_numpy()
+Main_Cd_array = Parachute_Data['Main_Cd'].to_numpy()
+Dro_Cd_array = Parachute_Data['Drogue_Cd'].to_numpy()
 parachute = pyro.Parachute(
     main_s=13.9,
-    main_c_d=0.78,
     drogue_s=1.13,
-    drogue_c_d=0.78,
+    M_Cd_data=(Mach_array,Main_Cd_array),
+    Dro_Cd_data=(Mach_array,Dro_Cd_array),
     main_alt=1000,
     attach_distance=0,
 )
