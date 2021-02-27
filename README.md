@@ -44,6 +44,9 @@ The repository contains some examples you can run:
 - `Stats Model Example.ipynb` : Example of how to use the statistics model and stochastic analysis.
 - `Aerodynamic Heating Example.ipynb` : Example of how to run an aerodynamic heating simulation.
 
+## Helping out
+If you would like to contribute please have a look at the [guidelines](CONTRIBUTING.md)
+
 
 ## In progress
 - **GUI:** An incomplete (and outdated) GUI has been made using Tkinter, and is in gui.py.
