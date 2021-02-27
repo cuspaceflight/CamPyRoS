@@ -94,8 +94,8 @@ Dro_Cd_array = Parachute_Data['Drogue_Cd'].to_numpy()
 parachute = pyro.Parachute(
     main_s=13.9,
     drogue_s=1.13,
-    M_Cd_data=(Mach_array,Main_Cd_array),
-    Dro_Cd_data=(Mach_array,Dro_Cd_array),
+    main_cd_data=0.78,
+    dro_cd_data=0.78,
     main_alt=1000,
     attach_distance=0,
 )

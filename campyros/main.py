@@ -46,7 +46,8 @@ import numpy as np
 import pandas as pd
 from metpy.units import units
 
-import scipy.interpolate, scipy.misc
+import scipy.interpolate as interpolate
+import scipy.misc
 import scipy.integrate as integrate
 from scipy.spatial.transform import Rotation
 import numexpr as ne
@@ -113,7 +114,7 @@ warnings.formatwarning = warning_on_one_line
 
 
 class Parachute:
-    def __init__(self,main_s,drogue_s,M_Cd_data, Dro_Cd_data, main_alt,attach_distance=0.0):
+    def __init__(self,main_s,drogue_s,main_cd_data, dro_cd_data, main_alt,attach_distance=0.0):
         """ 
         Object holding the parachute information
 
@@ -130,27 +131,38 @@ class Parachute:
             main_alt (float): Altitude at which the main parachute deploys (m)
             parachute_Cd: pandas.dataframe object, read from Parachute_data.CSV
             attach_distance (float, optional): Distance between the rocket nose tip and the parachute attachment point (m). Defaults to 0.0.
-            M_Cd_data (tuple): tuple of 2 np arrays, of mach number and Main Cd
-            Dro_Cd_data (tuple): tuple of 2 np arrays, of mach number and Drogue Cd
+            main_cd_data (tuple): tuple of 2 np arrays, of mach number and Main Cd
+            dro_cd_data (tuple): tuple of 2 np arrays, of mach number and Drogue Cd
         Attributes:
             main_s (float): Area of main chute (m^2)
             drogue_s (float): Area of the main parachute (m^2)
             main_alt (float): Altitude at which the main parachute deploys (m)
             attach_distance (float, optional): Distance between the rocket nose tip and the parachute attachment point (m). Defaults to 0.0.
-            M_Cd_data (tuple): tuple of 2 np arrays, of mach number and Main Cd
-            Dro_Cd_data (tuple): tuple of 2 np arrays, of mach number and Drogue Cd
-            Dro_Cd(Mach) (interp1d object): give Drogue Cd based on Mach
-            M_Cd(Mach) (interp1d object): give Main Cd based on Mach
+            main_cd_data (tuple): tuple of 2 np arrays, of mach number and Main Cd
+            dro_cd_data (tuple): tuple of 2 np arrays, of mach number and Drogue Cd
+            dro_cd(Mach) (interp1d object): give Drogue Cd based on Mach
+            main_cd(Mach) (interp1d object): give Main Cd based on Mach
         """
         self.main_s=main_s
         self.drogue_s=drogue_s
         self.main_alt = main_alt
         self.attach_distance = attach_distance
-        self.M_Cd_data = M_Cd_data
-        self.Dro_Cd_data = Dro_Cd_data
-        # get Drogue and Main Cd data, note bound error
-        self.M_Cd = scipy.interpolate.interp1d(M_Cd_data[0], M_Cd_data[1],copy = True, bounds_error = False, fill_value=(0,M_Cd_data[0][-1]))
-        self.Dro_Cd = scipy.interpolate.interp1d(Dro_Cd_data[0], Dro_Cd_data[1], copy = True, bounds_error = False, fill_value=(0,Dro_Cd_data[0][-1]))
+        self.main_cd_data = main_cd_data
+        self.dro_cd_data = dro_cd_data
+
+        # get Drogue and Main Cd data, note bound error. Support tuple/list of np array(s)
+        if isinstance(main_cd_data, float):
+            self.variable_main_cd = False
+            self.main_cd = main_cd_data
+        elif len(main_cd_data) == 2:  # list, tuple, np.array
+            self.variable_main_cd = True
+            self.main_cd = interpolate.interp1d(main_cd_data[0], main_cd_data[1],copy = True, bounds_error = False, fill_value=(0,main_cd_data[0][-1]))
+        if isinstance(dro_cd_data, float):
+            self.variable_dro_cd = False
+            self.dro_cd = dro_cd_data
+        elif len(dro_cd_data) == 2:  # list, tuple, np.array
+            self.variable_dro_cd = True
+            self.dro_cd = interpolate.interp1d(dro_cd_data[0], dro_cd_data[1],copy = True, bounds_error = False, fill_value=(0,dro_cd_data[0][-1]))
 
     def get(self,alt,Mach):
         """Returns the drag coefficient and area of the parachute, given the current altitude and Mach Number. 
@@ -162,14 +174,20 @@ class Parachute:
         Returns:
             float, float: Drag coefficient, parachute area (m^2)
         """
-        if Mach < 0 or Mach > self.M_Cd_data[0][-1]:
-            print("Mach Number is {}, out of range!".format(Mach))
+        #if Mach < 0 or Mach > 7:
+        #    print("Mach Number is {}, out of range!".format(Mach))
         if alt<self.main_alt:
-            c_d=self.M_Cd(Mach)
             s=self.main_s
+            if self.variable_main_cd == False:
+                c_d = self.main_cd
+            elif self.variable_main_cd == True:
+                c_d=self.main_cd(Mach)
         else:
-            c_d = self.Dro_Cd(Mach)
             s = self.drogue_s
+            if self.variable_main_cd == False:
+                c_d = self.dro_cd
+            elif self.variable_main_cd == True:
+                c_d = self.dro_cd(Mach)
         return c_d, s
 
 
@@ -263,7 +281,7 @@ class Rocket:
         alt_poll_watch_interval (???) : ???
         alt_poll_watch (???): ???
     """
-    def __init__(self, mass_model, motor, aero, launch_site, h=0.01, variable=True, rtol=1e-7, atol=1e-14, parachute=(0,0,(0,0),(0,0),0,0),alt_poll_interval=1,thrust_vector=np.array([1,0,0]),errors={"gravity":1.0,"pressure":1.0,"density":1.0,"speed_of_sound":1.0}):
+    def __init__(self, mass_model, motor, aero, launch_site, h=0.01, variable=True, rtol=1e-7, atol=1e-14, parachute=(0,0,0,0,0,0),alt_poll_interval=1,thrust_vector=np.array([1,0,0]),errors={"gravity":1.0,"pressure":1.0,"density":1.0,"speed_of_sound":1.0}):
         self.launch_site = launch_site
         self.motor = motor
         self.thrust_vector = np.array(thrust_vector)
@@ -412,7 +430,7 @@ class Rocket:
             CD, ref_area = self.parachute.get(alt,mach)
             F_parachute_i = -0.5 * q * ref_area * CD * v_relative_wind_i / air_speed
             # Append to list of forces
-            F_i = F_i + F_parachute_i
+            F_i += F_parachute_i
 
         else:
             # Aerodynamic forces and moments from the rocket body
@@ -485,8 +503,8 @@ class Rocket:
             )  # Jet damping moment - page 8 of https://apps.dtic.mil/sti/pdfs/AD0642855.pdf - we will assume that the propellant COG is the same as the rocket COG.
 
             # Add to the forces and moments
-            F_b = F_b + F_thrust_b
-            M_b = M_b + M_thrust_b + M_jetdamping_b
+            F_b += F_thrust_b
+            M_b += M_thrust_b + M_jetdamping_b
 
         else:
             if self.burn_out == False:
@@ -502,7 +520,7 @@ class Rocket:
             * pos_i
             / np.linalg.norm(pos_i) ** 3
         )  # F = -GMm/r^2 = μm/r^2 where μ = 3.986004418e14 for Earth
-        F_i = F_i + F_gravity_i  # Add to the forces
+        F_i += F_gravity_i  # Add to the forces
 
         # ACCELERATIONS
         # -------------
@@ -516,7 +534,7 @@ class Rocket:
         # If on the rail:
         if self.on_rail == True:
             xb_i = b2i.apply([1, 0, 0])
-            xb_i = xb_i / np.linalg.norm(
+            xb_i /= np.linalg.norm(
                 xb_i
             )  # Normalise it just in case (but this step should be unnecessary)
             acc_i = (
