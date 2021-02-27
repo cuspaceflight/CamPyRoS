@@ -1,8 +1,15 @@
 # Contributing to CamPyRoS
 Thank you for taking the time to contribute and for checking out these guidelines.
 ## Table of content
+
 [Have a problem?](#have-a-problem)
+
 [Helping out](#helping-out)
+- [What you need to know](#what-do-i-need-to-know-before-i-start)
+- [The contribution process](#the-contribution-process)
+- [Comments and docstrings](#comments-and-docstrings)
+- [Autoformatting with black](#autoformatting-with-black)
+- [Building sphinx documentation](#building-sphinx-documentation)
 
 ## Have a problem?
 If you have a problem you have thre courses of action:
@@ -18,6 +25,7 @@ Although this project didn't have firm conventions from the start we are trying 
 - Try to stick to the [black](https://github.com/psf/black#the-black-code-style) coding style, instructions below for automation
 - We use [Sphinx](https://www.sphinx-doc.org/en/master/) for API documentation so comments must be in a very specific format
 - **When you modify code this usually has a knock on effect. This means when you make a change you should try to make it backwards compatiable or go through the other files and modify them to accomodate your changes. This usually includes modifcation to `example.py`, `statistical.py` (this could be complicated so please contact us to check how we want the changes implimented in it), `stats_example.py`, `example.ipynb`, `stats_example.ipynb` and `main.py` if you have made changes in another file. If your code includes a new functionality you should change the examples to be able to demonstrait that.**
+- We have a [code of conduct](https://github.com/cuspaceflight/CamPyRoS/blob/main/CODE_OF_CONDUCT.md). TLDR - be nice to other people.
 
 ### The contribution process
 
