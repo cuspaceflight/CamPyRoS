@@ -8,5 +8,5 @@ class remote:
         )
         self.f = f
 
-    def __call__(self):
-        self.f
+    def __call__(self, *args):
+        self.f(*args)

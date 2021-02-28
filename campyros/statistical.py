@@ -381,7 +381,7 @@ class StatisticalModel:
             ray.wait(runs)
         else:
             for run in range(1, self.itterations + 1):
-                self.run_itteration(run, save_loc)
+                self.run_itteration(self, run, save_loc)
         return save_loc
 
 
