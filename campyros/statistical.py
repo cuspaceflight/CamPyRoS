@@ -17,16 +17,10 @@ try:
     RAY_AVAILABLE = True
 except:
     RAY_AVAILABLE = False
+    import os, sys
 
-    class Ray:
-        def __init__(self, f):
-            warnings.warn(
-                "Ray was not available so multithread running will not work. Stats will take a long time"
-            )
-            self.f = f
-
-        def __call__(self):
-            self.f
+    sys.path.append(os.path.dirname(__file__))
+    import ray_alt as ray
 
 
 __copyright__ = """
