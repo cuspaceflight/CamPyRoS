@@ -262,7 +262,7 @@ class StatisticalModel:
             * np.random.normal(1, self.launch_site_vars["long"][1]),
             lat=self.launch_site_vars["lat"][0]
             * np.random.normal(1, self.launch_site_vars["lat"][1]),
-            variable_wind=True,
+            variable_wind=bool(self.launch_site_vars["variable_wind"]),
             run_date=self.launch_site_vars["run_date"],
             forcast_plus_time=self.launch_site_vars["run_plus_time"],
             forcast_time=self.launch_site_vars["run_time"],
