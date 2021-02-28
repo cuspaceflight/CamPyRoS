@@ -12,6 +12,7 @@ makes essentially no difference and we don't have error estimates yet anyway
 
 """
 import warnings
+
 try:
     import iris
 except:

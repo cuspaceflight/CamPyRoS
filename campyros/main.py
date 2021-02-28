@@ -113,13 +113,15 @@ warnings.formatwarning = warning_on_one_line
 
 
 class Parachute:
-    def __init__(self,main_s,main_c_d,drogue_s,drogue_c_d,main_alt,attach_distance=0.0):
-        """ 
+    def __init__(
+        self, main_s, main_c_d, drogue_s, drogue_c_d, main_alt, attach_distance=0.0
+    ):
+        """
         Object holding the parachute information
 
         Note
         ----
-        The parachute model does not currently simulate the full rotational dynamics of the rocket. 
+        The parachute model does not currently simulate the full rotational dynamics of the rocket.
         Instead it orientates the rocket such that it is "rear first into the wind" (as intuition would suggest).
         This is due to problems trying to model the parachute exerting torque on the body, possibly because it has to flip
         the rocket over at apogee
@@ -140,17 +142,17 @@ class Parachute:
             main_alt (float): Altitude at which the main parachute deploys (m)
             attach_distance (float, optional): Distance between the rocket nose tip and the parachute attachment point (m). Defaults to 0.0.
         """
-        self.main_s=main_s
-        self.main_c_d=main_c_d
-        self.drogue_s=drogue_s
-        self.drogue_c_d=drogue_c_d
+        self.main_s = main_s
+        self.main_c_d = main_c_d
+        self.drogue_s = drogue_s
+        self.drogue_c_d = drogue_c_d
 
         self.main_alt = main_alt
         self.attach_distance = attach_distance
 
-    def get(self,alt):
-        """Returns the drag coefficient and area of the parachute, given the current altitude. 
-        I.e., it checks if the main or drogue parachute is open, and returns the relevant values. 
+    def get(self, alt):
+        """Returns the drag coefficient and area of the parachute, given the current altitude.
+        I.e., it checks if the main or drogue parachute is open, and returns the relevant values.
 
         Args:
             alt (float): Current altitude (m)
@@ -158,9 +160,9 @@ class Parachute:
         Returns:
             float, float: Drag coefficient, parachute area (m^2)
         """
-        if alt<self.main_alt:
-            c_d=self.main_c_d
-            s=self.main_s
+        if alt < self.main_alt:
+            c_d = self.main_c_d
+            s = self.main_s
         else:
             c_d = self.drogue_c_d
             s = self.drogue_s
@@ -194,7 +196,23 @@ class LaunchSite:
         lat (float): Launch site latitude (deg)
         wind (Wind): Wind object containing wind data.
     """
-    def __init__(self, rail_length, rail_yaw, rail_pitch, alt, longi, lat, variable_wind=True,default_wind=[0,0,0],wind_data_loc="data/wind/gfs",run_date=date.today().strftime("%Y%m%d"),forcast_time="00",forcast_plus_time="000",fast_wind=False):
+
+    def __init__(
+        self,
+        rail_length,
+        rail_yaw,
+        rail_pitch,
+        alt,
+        longi,
+        lat,
+        variable_wind=True,
+        default_wind=[0, 0, 0],
+        wind_data_loc="data/wind/gfs",
+        run_date=date.today().strftime("%Y%m%d"),
+        forcast_time="00",
+        forcast_plus_time="000",
+        fast_wind=False,
+    ):
         self.rail_length = rail_length
         self.rail_yaw = rail_yaw
         self.rail_pitch = rail_pitch
@@ -230,19 +248,19 @@ class Rocket:
         alt_poll_interval (int, optional): ???. Defaults to 1.
         thrust_vector (array, optional): Direction of thrust in body coordinates. Defaults to np.array([1,0,0]).
         errors (dict, optional): Multiplication factors for the gravity, pressure, density and speed of sound. Used in the statistics model. Defaults to {"gravity":1.0,"pressure":1.0,"density":1.0,"speed_of_sound":1.0}.
-    
+
     Attributes:
         mass_model (MassModel): MassModel object containing all the data on mass and moments of inertia.
         motor (Motor): Motor object containing information on the rocket engine.
         aero (AeroData): AeroData object containg data on aerodynamic coefficients and the centre of pressure.
         launch_site (LaunchSite): LaunchSite object contaning launch site and wind information.
-        h (float): Integration time step (if using a fixed time step by setting "variable = False"). 
+        h (float): Integration time step (if using a fixed time step by setting "variable = False").
         variable (bool): If True, a variable time step is use for the integration. If "False" then the input for "h" is used as the time step.
         rtol (float): Relative error tolerance for integration.
         atol (float): Absolute error tolerance for integration.
-        parachute (Parachute): Parachute object, containing parachute data. 
+        parachute (Parachute): Parachute object, containing parachute data.
         alt_poll_interval (int): ???. Defaults to 1.
-        thrust_vector (array): Direction of thrust in body coordinates. 
+        thrust_vector (array): Direction of thrust in body coordinates.
         env_vars (dict): Multiplication factors for the gravity, pressure, density and speed of sound. Used in the statistics model.
         time(array): Time since engine ignition (s).
         pos_i (array): Position in inertial coordinates [x_i, y_i, z_i] (m).
@@ -257,7 +275,22 @@ class Rocket:
         alt_poll_watch_interval (???) : ???
         alt_poll_watch (???): ???
     """
-    def __init__(self, mass_model, motor, aero, launch_site, h=0.01, variable=True, rtol=1e-7, atol=1e-14, parachute=Parachute(0,0,0,0,0,0),alt_poll_interval=1,thrust_vector=np.array([1,0,0]),errors={"gravity":1.0,"pressure":1.0,"density":1.0,"speed_of_sound":1.0}):
+
+    def __init__(
+        self,
+        mass_model,
+        motor,
+        aero,
+        launch_site,
+        h=0.01,
+        variable=True,
+        rtol=1e-7,
+        atol=1e-14,
+        parachute=Parachute(0, 0, 0, 0, 0, 0),
+        alt_poll_interval=1,
+        thrust_vector=np.array([1, 0, 0]),
+        errors={"gravity": 1.0, "pressure": 1.0, "density": 1.0, "speed_of_sound": 1.0},
+    ):
         self.launch_site = launch_site
         self.motor = motor
         self.thrust_vector = np.array(thrust_vector)
@@ -326,7 +359,7 @@ class Rocket:
         self.env_vars = errors
 
     def fdot(self, time, fn):
-        """Returns the rate of change of the rocket's state array, 'fn'. 
+        """Returns the rate of change of the rocket's state array, 'fn'.
 
         Args:
             time (float): Time since ignition (s).
@@ -336,43 +369,49 @@ class Rocket:
             array: Rate of change of fdot, i.e. [vel_i[0], vel_i[1], vel_i[2], acc_i[0], acc_i[1], acc_i[2], wdot_b[0], wdot_b[1], wdot_b[2], xbdot[0], xbdot[1], xbdot[2], ybdot[0], ybdot[1], ybdot[2], zbdot[0], zbdot[1], zbdot[2]]
         """
 
-        #CURRENT STATUS
-        #--------------
-        pos_i = np.array([fn[0],fn[1],fn[2]])       #Position in inertial coordinates
-        vel_i = np.array([fn[3],fn[4],fn[5]])       #Velocity in inertial coordinates
-        w_b = np.array([fn[6],fn[7],fn[8]])         #Angular velocity in body coordinates
-        xb = np.array([fn[9],fn[10],fn[11]])        #Direction of the body x-x axis (in inertial coordinates)
-        yb = np.array([fn[12],fn[13],fn[14]])       #Direction of the body y-y axis (in inertial coordinates)
-        zb = np.array([fn[15],fn[16],fn[17]])       #Direction of the body z-z axis (in inertial coordinates)
-        
-        b2imat = np.zeros([3,3])
-        b2imat[:,0] = xb
-        b2imat[:,1] = yb
-        b2imat[:,2] = zb
-        b2i = Rotation.from_matrix(b2imat)          #Rotation from body to inertial coordinates
+        # CURRENT STATUS
+        # --------------
+        pos_i = np.array([fn[0], fn[1], fn[2]])  # Position in inertial coordinates
+        vel_i = np.array([fn[3], fn[4], fn[5]])  # Velocity in inertial coordinates
+        w_b = np.array([fn[6], fn[7], fn[8]])  # Angular velocity in body coordinates
+        xb = np.array(
+            [fn[9], fn[10], fn[11]]
+        )  # Direction of the body x-x axis (in inertial coordinates)
+        yb = np.array(
+            [fn[12], fn[13], fn[14]]
+        )  # Direction of the body y-y axis (in inertial coordinates)
+        zb = np.array(
+            [fn[15], fn[16], fn[17]]
+        )  # Direction of the body z-z axis (in inertial coordinates)
 
-        w_i = b2i.apply(w_b)                        #Angular velocity in inertial coordinates
-        
-        #KEEP TRACK OF FORCES AND MOMENTS
-        #--------------------------------
-        #A force should be added to either F_b or F_i, but not both. F_b and F_i will be added together at the end (after doing a coordinate transform). The same applies for M_b and M_i.
+        b2imat = np.zeros([3, 3])
+        b2imat[:, 0] = xb
+        b2imat[:, 1] = yb
+        b2imat[:, 2] = zb
+        b2i = Rotation.from_matrix(b2imat)  # Rotation from body to inertial coordinates
+
+        w_i = b2i.apply(w_b)  # Angular velocity in inertial coordinates
+
+        # KEEP TRACK OF FORCES AND MOMENTS
+        # --------------------------------
+        # A force should be added to either F_b or F_i, but not both. F_b and F_i will be added together at the end (after doing a coordinate transform). The same applies for M_b and M_i.
         F_b = np.array([0.0, 0.0, 0.0])
         F_i = np.array([0.0, 0.0, 0.0])
 
         M_b = np.array([0.0, 0.0, 0.0])
         M_i = np.array([0.0, 0.0, 0.0])
 
-        #MASS AND GEOMETRY
-        #-----------------
-        lat, long, alt  = i2lla(pos_i,time)
-        cog             = self.mass_model.cog(time)
-        mass            = self.mass_model.mass(time)
-        ixx             = self.mass_model.ixx(time)
-        iyy             = self.mass_model.iyy(time)
-        izz             = self.mass_model.izz(time)
+        # MASS AND GEOMETRY
+        # -----------------
+        lat, long, alt = i2lla(pos_i, time)
+        cog = self.mass_model.cog(time)
+        mass = self.mass_model.mass(time)
+        ixx = self.mass_model.ixx(time)
+        iyy = self.mass_model.iyy(time)
+        izz = self.mass_model.izz(time)
 
-        #Is this still necessary?:
-        #I keep getting some weird error where if there is any wind the time steps go to ~11s long near the ground and then it goes really far under ground, presumably in less than one whole time step so the simulation can't break
+        # Is this still necessary?:
+        # I keep getting some weird error where if there is any wind the time steps go to ~11s long near the ground and then it goes really far under ground, presumably in less than one whole time step so the simulation can't break
         if alt < -5000:
             alt = -5000
         elif alt > 81020:
@@ -536,14 +575,30 @@ class Rocket:
         ybdot = np.cross(w_i, yb)
         zbdot = np.cross(w_i, zb)
 
-        return np.array([vel_i[0], vel_i[1], vel_i[2], 
-                         acc_i[0], acc_i[1], acc_i[2], 
-                         wdot_b[0],wdot_b[1],wdot_b[2], 
-                         xbdot[0], xbdot[1], xbdot[2], 
-                         ybdot[0], ybdot[1], ybdot[2], 
-                         zbdot[0], zbdot[1], zbdot[2]])
+        return np.array(
+            [
+                vel_i[0],
+                vel_i[1],
+                vel_i[2],
+                acc_i[0],
+                acc_i[1],
+                acc_i[2],
+                wdot_b[0],
+                wdot_b[1],
+                wdot_b[2],
+                xbdot[0],
+                xbdot[1],
+                xbdot[2],
+                ybdot[0],
+                ybdot[1],
+                ybdot[2],
+                zbdot[0],
+                zbdot[1],
+                zbdot[2],
+            ]
+        )
 
-    def run(self, max_time=1000, debug=False, to_json = False):
+    def run(self, max_time=1000, debug=False, to_json=False):
         """Runs the rocket trajectory simulation. Uses the SciPy DOP853 O(h^8) integrator.
 
         Args:
@@ -552,13 +607,13 @@ class Rocket:
             to_json (str, optional): Directory to export a .json file to, containing the results of the simulation. If False, no .json file will be produced. Defaults to False.
 
         Returns:
-            pandas.DataFrame: pandas DataFrame containing the fundamental trajectory results. Most information can be derived from this in post processing.  
-                "time" (array): List of times that all the data corresponds to (s).  
-                "pos_i" (array): List of position vectors in inertial coordinates [x_i, y_i, z_i] (m).  
-                "vel_i" (array): List of velocity vectors in inertial coordinates [x_i, y_i, z_i] (m/s).  
-                "b2imat" (array): List of rotation matrices for going from the body to inertial coordinate system (i.e. a record of rocket orientation).  
-                "w_b" (array): List of angular velocity vectors, in body coordinates [x_b, y_b, z_b] (rad/s).  
-                "events" (array): List of useful events.  
+            pandas.DataFrame: pandas DataFrame containing the fundamental trajectory results. Most information can be derived from this in post processing.
+                "time" (array): List of times that all the data corresponds to (s).
+                "pos_i" (array): List of position vectors in inertial coordinates [x_i, y_i, z_i] (m).
+                "vel_i" (array): List of velocity vectors in inertial coordinates [x_i, y_i, z_i] (m/s).
+                "b2imat" (array): List of rotation matrices for going from the body to inertial coordinate system (i.e. a record of rocket orientation).
+                "w_b" (array): List of angular velocity vectors, in body coordinates [x_b, y_b, z_b] (rad/s).
+                "events" (array): List of useful events.
         """
         if debug == True:
             print("Running simulation")
@@ -752,13 +807,13 @@ def from_json(directory):
         directory (str): .json file directory.
 
     Returns:
-        pandas.DataFrame: pandas DataFrame containing the fundamental trajectory results. Most information can be derived from this in post processing.  
-                "time" (array): List of times that all the data corresponds to (s).  
-                "pos_i" (array): List of position vectors in inertial coordinates [x_i, y_i, z_i] (m).  
-                "vel_i" (array): List of velocity vectors in inertial coordinates [x_i, y_i, z_i] (m/s).  
-                "b2imat" (array): List of rotation matrices for going from the body to inertial coordinate system (i.e. a record of rocket orientation).  
-                "w_b" (array): List of angular velocity vectors, in body coordinates [x_b, y_b, z_b] (rad/s).  
-                "events" (array): List of useful events.  
+        pandas.DataFrame: pandas DataFrame containing the fundamental trajectory results. Most information can be derived from this in post processing.
+                "time" (array): List of times that all the data corresponds to (s).
+                "pos_i" (array): List of position vectors in inertial coordinates [x_i, y_i, z_i] (m).
+                "vel_i" (array): List of velocity vectors in inertial coordinates [x_i, y_i, z_i] (m/s).
+                "b2imat" (array): List of rotation matrices for going from the body to inertial coordinate system (i.e. a record of rocket orientation).
+                "w_b" (array): List of angular velocity vectors, in body coordinates [x_b, y_b, z_b] (rad/s).
+                "events" (array): List of useful events.
     """
     # Import the JSON as a dict first (the in-built Python JSON library works better than panda's does I think)
     with open(directory, "r") as read_file:
