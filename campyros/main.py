@@ -115,7 +115,7 @@ warnings.formatwarning = warning_on_one_line
 
 class Parachute:
     def __init__(
-        self, main_s, drogue_s, main_cd, dro_cd, main_alt, attach_distance=0.0
+        self, main_s, main_c_d, drogue_s, drogue_c_d, main_alt, attach_distance=0.0
     ):
         """
         Object holding the parachute information
@@ -151,29 +151,29 @@ class Parachute:
         self.attach_distance = attach_distance
 
         # get Drogue and Main Cd data, note bound error. Support tuple/list of np array(s)
-        if isinstance(main_cd, float) or isinstance(main_cd, int):
+        if isinstance(main_c_d, float) or isinstance(main_c_d, int):
             self.variable_main_cd = False
-            self.main_cd = main_cd
-        elif len(main_cd) == 2:  # list, tuple, np.array
+            self.main_cd = main_c_d
+        elif len(main_c_d) == 2:  # list, tuple, np.array
             self.variable_main_cd = True
             self.main_cd = interpolate.interp1d(
-                main_cd[0],
-                main_cd[1],
+                main_c_d[0],
+                main_c_d[1],
                 copy=True,
                 bounds_error=False,
-                fill_value=(0, main_cd[0][-1]),
+                fill_value=(0, main_c_d[0][-1]),
             )
-        if isinstance(dro_cd, float) or isinstance(dro_cd, int):
+        if isinstance(drogue_c_d, float) or isinstance(drogue_c_d, int):
             self.variable_dro_cd = False
-            self.dro_cd = dro_cd
-        elif len(dro_cd) == 2:  # list, tuple, np.array
+            self.dro_cd = drogue_c_d
+        elif len(drogue_c_d) == 2:  # list, tuple, np.array
             self.variable_dro_cd = True
             self.dro_cd = interpolate.interp1d(
-                dro_cd[0],
-                dro_cd[1],
+                drogue_c_d[0],
+                drogue_c_d[1],
                 copy=True,
                 bounds_error=False,
-                fill_value=(0, dro_cd[0][-1]),
+                fill_value=(0, drogue_c_d[0][-1]),
             )
 
     def get(self, alt, mach):
