@@ -7,6 +7,7 @@ sys.path.append(
     )
 )
 import campyros as pyro
+from campyros import statistical as stats
 import csv
 import time
 import numpy as np
@@ -187,7 +188,7 @@ class ExampleTest(unittest.TestCase):
         run_min_pos = min(
             [(l[0] ** 2 + l[1] ** 2 + l[2] ** 2) ** 0.5 for l in run.pos_i.to_list()]
         )
-        self.assertAlmostEqual(min_pos/100, run_min_pos/100, places=0)
+        self.assertAlmostEqual(min_pos / 100, run_min_pos / 100, places=0)
 
     def test_rail(self):
         self.assertAlmostEqual(
@@ -198,6 +199,16 @@ class ExampleTest(unittest.TestCase):
         self.assertAlmostEqual(
             test_output.time[parachute_ind], run.time[parachute_ind_run], places=0
         )
+
+    def test_stats(self):
+        stats_model = stats.StatisticalModel("campyros/tests/test_stats.json")
+        ran = stats_model.run_model(test_mode=True, num_cpus=1)
+        print(ran)
+        if ran == "results/stats_testcase":
+            ran = True
+        else:
+            ran = False
+        self.assertEqual(True, ran, msg="Statistical model run failed, no further information automatically available")
 
 
 if __name__ == "__main__":

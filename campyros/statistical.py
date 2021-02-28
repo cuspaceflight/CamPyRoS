@@ -114,7 +114,7 @@ class StatisticalModel:
         self.wind_base = Wind(
             self.launch_site_vars["long"][0],
             self.launch_site_vars["lat"][0],
-            variable=self.launch_site_vars,
+            variable=self.launch_site_vars["variable_wind"],
             run_date=self.launch_site_vars["run_date"],
             forcast_time=self.launch_site_vars["run_time"],
             forcast_plus_time=self.launch_site_vars["run_plus_time"],
@@ -359,9 +359,11 @@ class StatisticalModel:
             ray.init(num_cpus=num_cpus)
         else:
             ray.init(local_mode=test_mode)
+
+        runs = []
         for run in range(1, self.itterations + 1):
-            self.run_itteration.remote(self, run, save_loc, debug=debug)
-        input("Press enter when complete otherwise it pretends to have finished")
+            runs.append(self.run_itteration.remote(self, run, save_loc, debug=debug))
+        ray.wait(runs)
         return save_loc
 
 
