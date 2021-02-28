@@ -190,11 +190,13 @@ class ExampleTest(unittest.TestCase):
         self.assertAlmostEqual(min_pos, run_min_pos, places=0)
 
     def test_rail(self):
-        self.assertAlmostEqual(test_output.time[rail_ind], run.time[rail_ind_run])
+        self.assertAlmostEqual(
+            test_output.time[rail_ind], run.time[rail_ind_run], places=0
+        )
 
     def test_parachute(self):
         self.assertAlmostEqual(
-            test_output.time[parachute_ind], run.time[parachute_ind_run]
+            test_output.time[parachute_ind], run.time[parachute_ind_run], places=0
         )
 
 
