@@ -164,13 +164,14 @@ class Parachute:
             self.variable_dro_cd = True
             self.dro_cd = interpolate.interp1d(dro_cd_data[0], dro_cd_data[1],copy = True, bounds_error = False, fill_value=(0,dro_cd_data[0][-1]))
 
-    def get(self,alt,Mach):
+    def get(self,alt,mach):
         """Returns the drag coefficient and area of the parachute, given the current altitude and Mach Number. 
         I.e., it checks if the main or drogue parachute is open, and returns the relevant values. 
 
         Args:
             alt (float): Current altitude (m)
-
+            mach (float): Mach number
+            
         Returns:
             float, float: Drag coefficient, parachute area (m^2)
         """
@@ -181,13 +182,13 @@ class Parachute:
             if self.variable_main_cd == False:
                 c_d = self.main_cd
             elif self.variable_main_cd == True:
-                c_d=self.main_cd(Mach)
+                c_d=self.main_cd(mach)
         else:
             s = self.drogue_s
             if self.variable_main_cd == False:
                 c_d = self.dro_cd
             elif self.variable_main_cd == True:
-                c_d = self.dro_cd(Mach)
+                c_d = self.dro_cd(mach)
         return c_d, s
 
 
@@ -251,7 +252,7 @@ class Rocket:
         rtol (float, optional): Relative error tolerance for integration. Defaults to 1e-7.
         atol (float, optional): Absolute error tolerance for integration. Defaults to 1e-14.
         parachute (Parachute, optional): Parachute object, containing parachute data. Defaults to Parachute(0,0,0,0,0,0).
-        alt_poll_interval (int, optional): ???. Defaults to 1.
+        alt_poll_interval (int, optional): How often to check for parachute opening. Defaults to 1.
         thrust_vector (array, optional): Direction of thrust in body coordinates. Defaults to np.array([1,0,0]).
         errors (dict, optional): Multiplication factors for the gravity, pressure, density and speed of sound. Used in the statistics model. Defaults to {"gravity":1.0,"pressure":1.0,"density":1.0,"speed_of_sound":1.0}.
     
@@ -277,11 +278,11 @@ class Rocket:
         alt (float): Rocket altitude (m).
         on_rail (bool): True if the rocket is still on the rail, False if the rocket is off the rail.
         burn_out (bool): False if engine is still firing, True if the engine has finished firing.
-        alt_record(???) : ???.
-        alt_poll_watch_interval (???) : ???
-        alt_poll_watch (???): ???
+        alt_record(float) : "Current" altitude of the rocket used to check for parahute opening.
+        alt_poll_watch_interval (float) : How often to check if the parachute needs to be openes (s).
+        alt_poll_watch (float): Last polled time.
     """
-    def __init__(self, mass_model, motor, aero, launch_site, h=0.01, variable=True, rtol=1e-7, atol=1e-14, parachute=(0,0,0,0,0,0),alt_poll_interval=1,thrust_vector=np.array([1,0,0]),errors={"gravity":1.0,"pressure":1.0,"density":1.0,"speed_of_sound":1.0}):
+    def __init__(self, mass_model, motor, aero, launch_site, h=0.01, variable=True, rtol=1e-7, atol=1e-14, parachute=Parachute(0,0,0,0,0),alt_poll_interval=1,thrust_vector=np.array([1,0,0]),errors={"gravity":1.0,"pressure":1.0,"density":1.0,"speed_of_sound":1.0}):
         self.launch_site = launch_site
         self.motor = motor
         self.thrust_vector = np.array(thrust_vector)
@@ -380,11 +381,11 @@ class Rocket:
         #KEEP TRACK OF FORCES AND MOMENTS
         #--------------------------------
         #A force should be added to either F_b or F_i, but not both. F_b and F_i will be added together at the end (after doing a coordinate transform). The same applies for M_b and M_i.
-        F_b = np.array([0.0, 0.0, 0.0])
-        F_i = np.array([0.0, 0.0, 0.0])
+        f_b = np.array([0.0, 0.0, 0.0])
+        f_i = np.array([0.0, 0.0, 0.0])
 
-        M_b = np.array([0.0, 0.0, 0.0])
-        M_i = np.array([0.0, 0.0, 0.0])
+        f_b = np.array([0.0, 0.0, 0.0])
+        f_i = np.array([0.0, 0.0, 0.0])
 
         #MASS AND GEOMETRY
         #-----------------
@@ -427,10 +428,10 @@ class Rocket:
 
         if self.parachute_deployed == True:
             # Parachute forces
-            CD, ref_area = self.parachute.get(alt,mach)
-            F_parachute_i = -0.5 * q * ref_area * CD * v_relative_wind_i / air_speed
+            cd, ref_area = self.parachute.get(alt,mach)
+            f_parachute_i = -0.5 * q * ref_area * cd * v_relative_wind_i / air_speed
             # Append to list of forces
-            F_i += F_parachute_i
+            f_i += F_parachute_i
 
         else:
             # Aerodynamic forces and moments from the rocket body
@@ -440,13 +441,13 @@ class Rocket:
 
             CA = self.aero.CA(mach, abs(alpha))
             CN = self.aero.CN(mach, abs(alpha))
-            FA_b = (
+            fa_b = (
                 CA
                 * q
                 * self.aero.ref_area
                 * np.array([-np.sign(v_relative_wind_b[0]), 0, 0])
             )
-            FN_b = (
+            fn_b = (
                 CN
                 * q
                 * self.aero.ref_area
@@ -454,11 +455,11 @@ class Rocket:
                     [1, 0, 0], np.cross([1, 0, 0], v_relative_wind_b / air_speed)
                 )
             )
-            F_aero_b = FA_b + FN_b
-            M_aero_b = np.cross(r_cop_cog_b, F_aero_b)
+            f_aero_b = fa_b + fn_b
+            m_aero_b = np.cross(r_cop_cog_b, F_aero_b)
 
             # Aerodynamic damping moment: M = C * ρ * ω^2
-            M_aerodamping_b = np.array(
+            m_aerodamping_b = np.array(
                 [
                     -np.sign(w_b[0])
                     * ambient_density
@@ -476,8 +477,8 @@ class Rocket:
             )
 
             # Add to the forces and moments
-            F_b = F_b + F_aero_b
-            M_b = M_b + M_aero_b + M_aerodamping_b
+            f_b = f_b + f_aero_b
+            m_b = m_b + f_aero_b + m_aerodamping_b
 
         # MOTOR
         # -----
@@ -492,19 +493,19 @@ class Rocket:
                 self.mass_model.mass, time, dx=1
             )  # Propellant mass flow rate. Not sure what I should use for 'dx' here.
 
-            F_thrust_b = (
+            f_thrust_b = (
                 thrust * self.thrust_vector / np.linalg.norm(self.thrust_vector)
             )
-            M_thrust_b = np.cross(r_engine_cog_b, F_thrust_b)
-            M_jetdamping_b = (
+            f_thrust_b = np.cross(r_engine_cog_b, f_thrust_b)
+            f_jetdamping_b = (
                 mdot
                 * (self.mass_model.cog(time) - self.motor.pos) ** 2
                 * np.array([0, w_b[1], w_b[2]])
             )  # Jet damping moment - page 8 of https://apps.dtic.mil/sti/pdfs/AD0642855.pdf - we will assume that the propellant COG is the same as the rocket COG.
 
             # Add to the forces and moments
-            F_b += F_thrust_b
-            M_b += M_thrust_b + M_jetdamping_b
+            f_b += f_thrust_b
+            m_b += m_thrust_b + m_jetdamping_b
 
         else:
             if self.burn_out == False:
@@ -513,23 +514,23 @@ class Rocket:
 
         # GRAVITY
         # -------
-        F_gravity_i = (
+        f_gravity_i = (
             -self.env_vars["gravity"]
             * 3.986004418e14
             * mass
             * pos_i
             / np.linalg.norm(pos_i) ** 3
         )  # F = -GMm/r^2 = μm/r^2 where μ = 3.986004418e14 for Earth
-        F_i += F_gravity_i  # Add to the forces
+        f_i += f_gravity_i  # Add to the forces
 
         # ACCELERATIONS
         # -------------
         # Net force and moment in inertial coordinates
-        F_i_total = F_i + b2i.apply(F_b)
-        M_b_total = M_b + b2i.inv().apply(M_i)
+        f_i_total = f_i + b2i.apply(f_b)
+        f_b_total = m_b + b2i.inv().apply(m_i)
 
         # Linear acceleration from F = ma
-        acc_i = F_i_total / mass
+        acc_i = f_i_total / mass
 
         # If on the rail:
         if self.on_rail == True:
@@ -548,9 +549,9 @@ class Rocket:
             # Rotational acceleration, from Euler's equations
             wdot_b = np.array(
                 [
-                    (M_b_total[0] + (iyy - izz) * w_b[1] * w_b[2]) / ixx,
-                    (M_b_total[1] + (izz - ixx) * w_b[2] * w_b[0]) / iyy,
-                    (M_b_total[2] + (ixx - iyy) * w_b[0] * w_b[1]) / izz,
+                    (m_b_total[0] + (iyy - izz) * w_b[1] * w_b[2]) / ixx,
+                    (m_b_total[1] + (izz - ixx) * w_b[2] * w_b[0]) / iyy,
+                    (m_b_total[2] + (ixx - iyy) * w_b[0] * w_b[1]) / izz,
                 ]
             )
 
