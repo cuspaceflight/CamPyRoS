@@ -7,4 +7,3 @@ gas_dynamics
 pandas
 numexpr
 MetPy
-ray

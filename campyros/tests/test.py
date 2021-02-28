@@ -210,7 +210,11 @@ class ExampleTest(unittest.TestCase):
             ran = True
         else:
             ran = False
-        self.assertEqual(True, ran, msg="Statistical model run failed, no further information automatically available")
+        self.assertEqual(
+            True,
+            ran,
+            msg="Statistical model run failed, no further information automatically available",
+        )
 
 
 if __name__ == "__main__":

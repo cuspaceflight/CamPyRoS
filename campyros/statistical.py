@@ -1,4 +1,4 @@
-import ray, random, os, copy, json
+import random, os, copy, json, warnings
 import numpy as np
 import pandas as pd
 from .main import *
@@ -10,6 +10,16 @@ from .motor import *
 from .plot import *
 from datetime import datetime
 from datetime import date
+
+try:
+    import ray
+
+    RAY_AVAILABLE = True
+except:
+    RAY_AVAILABLE = False
+    warnings.warn(
+        "Ray was not available so multithread running will not work. Stats will take a long time"
+    )
 
 __copyright__ = """
 
@@ -355,15 +365,21 @@ class StatisticalModel:
         if not os.path.exists(save_loc):
             os.makedirs(save_loc)
 
-        if num_cpus != False:
-            ray.init(num_cpus=num_cpus)
-        else:
-            ray.init(local_mode=test_mode)
+        if RAY_AVAILABLE == True:
+            if num_cpus != False:
+                ray.init(num_cpus=num_cpus)
+            else:
+                ray.init(local_mode=test_mode)
 
-        runs = []
-        for run in range(1, self.itterations + 1):
-            runs.append(self.run_itteration.remote(self, run, save_loc, debug=debug))
-        ray.wait(runs)
+            runs = []
+            for run in range(1, self.itterations + 1):
+                runs.append(
+                    self.run_itteration.remote(self, run, save_loc, debug=debug)
+                )
+            ray.wait(runs)
+        else:
+            for run in range(1, self.itterations + 1):
+                self.run_itteration(run, save_loc, debug=debug)
         return save_loc
 
 
