@@ -13,8 +13,6 @@ import time
 import numpy as np
 import pandas as pd
 
-os.system("pip install --upgrade pip")
-
 __copyright__ = """
 
     Copyright 2021 Jago Strong-Wright & Daniel Gibbons
