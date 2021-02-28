@@ -1,6 +1,6 @@
 {
-    "name":"stats_example",
-    "itterations":1000,
+    "name":"stats_testcase",
+    "itterations":1,
     "launch_site":{
         "rail_length":[10,0.01],
         "rail_yaw":[0,0.03],
@@ -12,9 +12,9 @@
         "run_date":"20210206",
         "run_time":"00",
         "run_plus_time":"000",
-        "variable_wind":1
+        "variable_wind":0
     },
-    "aero_file":"data/Martlet4RasAeroII.CSV",
+    "aero_file":"campyros/tests/testaero.csv",
     "aero":{
         "COP":0.05,
         "CN":0.05,
@@ -38,7 +38,7 @@
         "density":0.05,
         "speed_of_sound":0.05
     },
-    "motor_file":"novus_sim_6.1/motor_out.csv",
+    "motor_file":"campyros/tests/testmotor.csv",
     "motor_pos":6.529,
     "thrust_error":{
         "magnitude":0.03,

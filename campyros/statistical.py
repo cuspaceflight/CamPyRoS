@@ -1,4 +1,4 @@
-import ray, random, os, copy, json
+import random, os, copy, json, warnings
 import numpy as np
 import pandas as pd
 from .main import *
@@ -10,6 +10,18 @@ from .motor import *
 from .plot import *
 from datetime import datetime
 from datetime import date
+
+try:
+    import ray
+
+    RAY_AVAILABLE = True
+except:
+    RAY_AVAILABLE = False
+    import os, sys
+
+    sys.path.append(os.path.dirname(__file__))
+    import ray_alt as ray
+
 
 __copyright__ = """
 
@@ -114,7 +126,7 @@ class StatisticalModel:
         self.wind_base = Wind(
             self.launch_site_vars["long"][0],
             self.launch_site_vars["lat"][0],
-            variable=self.launch_site_vars,
+            variable=bool(self.launch_site_vars["variable_wind"]),
             run_date=self.launch_site_vars["run_date"],
             forcast_time=self.launch_site_vars["run_time"],
             forcast_plus_time=self.launch_site_vars["run_plus_time"],
@@ -250,7 +262,7 @@ class StatisticalModel:
             * np.random.normal(1, self.launch_site_vars["long"][1]),
             lat=self.launch_site_vars["lat"][0]
             * np.random.normal(1, self.launch_site_vars["lat"][1]),
-            variable_wind=True,
+            variable_wind=bool(self.launch_site_vars["variable_wind"]),
             run_date=self.launch_site_vars["run_date"],
             forcast_plus_time=self.launch_site_vars["run_plus_time"],
             forcast_time=self.launch_site_vars["run_time"],
@@ -355,13 +367,21 @@ class StatisticalModel:
         if not os.path.exists(save_loc):
             os.makedirs(save_loc)
 
-        if num_cpus != False:
-            ray.init(num_cpus=num_cpus)
+        if RAY_AVAILABLE == True:
+            if num_cpus != False:
+                ray.init(num_cpus=num_cpus)
+            else:
+                ray.init(local_mode=test_mode)
+
+            runs = []
+            for run in range(1, self.itterations + 1):
+                runs.append(
+                    self.run_itteration.remote(self, run, save_loc, debug=debug)
+                )
+            ray.wait(runs)
         else:
-            ray.init(local_mode=test_mode)
-        for run in range(1, self.itterations + 1):
-            self.run_itteration.remote(self, run, save_loc, debug=debug)
-        input("Press enter when complete otherwise it pretends to have finished")
+            for run in range(1, self.itterations + 1):
+                self.run_itteration(self, run, save_loc)
         return save_loc
 
 
