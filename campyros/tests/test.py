@@ -33,7 +33,7 @@ __copyright__ = """
 
 # Setup test case
 """Import motor data to use for the mass model"""
-motor_csv = pd.read_csv(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))+"/tests/testmotor.csv")
+motor_csv = pd.read_csv("campyros/tests/testmotor.csv")
 time_array = motor_csv["Time"]
 smass_array = motor_csv["Solid Fuel Mass (kg)"]
 S_DEN = motor_csv["Solid Fuel Density (kg/m^3)"][0]
@@ -66,7 +66,7 @@ C_DAMP_ROLL = 0
 
 # Import drag coefficients from RASAero II
 aero_data = pyro.AeroData.from_rasaero(
-    os.path.dirname(os.path.dirname(os.path.abspath(__file__)))+"/tests/testaero.csv", REF_AREA, C_DAMP_PITCH, C_DAMP_ROLL
+    "campyros/tests/testaero.csv", REF_AREA, C_DAMP_PITCH, C_DAMP_ROLL
 )
 # aero_data.show_plot()   #Show plots of how the program interpreted the data, so you can visually check if it's correct
 
@@ -89,7 +89,7 @@ mass_model.add_solidfuel(
 )
 
 """Create the other objects needed to initialise the Rocket object"""
-pulsar = pyro.Motor.from_novus(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))+"/tests/testmotor.csv", pos=ROCKET_L)
+pulsar = pyro.Motor.from_novus("campyros/tests/testmotor.csv", pos=ROCKET_L)
 
 """
 launch_site = pyro.LaunchSite(rail_length=10, 
@@ -138,7 +138,7 @@ martlet4 = pyro.Rocket(
 
 run = martlet4.run(debug=False)
 
-test_output = pyro.from_json(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))+"/tests/test.json")
+test_output = pyro.from_json("campyros/tests/test.json")
 run_time = test_output.time.max()
 min_pos = min(
     [(l[0] ** 2 + l[1] ** 2 + l[2] ** 2) ** 0.5 for l in test_output.pos_i.to_list()]
