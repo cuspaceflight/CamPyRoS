@@ -126,7 +126,7 @@ class StatisticalModel:
         self.wind_base = Wind(
             self.launch_site_vars["long"][0],
             self.launch_site_vars["lat"][0],
-            variable=self.launch_site_vars["variable_wind"],
+            variable=bool(self.launch_site_vars["variable_wind"]),
             run_date=self.launch_site_vars["run_date"],
             forcast_time=self.launch_site_vars["run_time"],
             forcast_plus_time=self.launch_site_vars["run_plus_time"],
