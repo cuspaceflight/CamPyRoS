@@ -61,6 +61,7 @@ Although this project didn't have firm conventions from the start we are trying 
 - Create a pull request from your branch to the main branch of `https://github.com/cuspaceflight/CamPyRoS` with a clear title, explanation of what your code does and any maths/physics that are not obvious that you have implimented and details of the tests you ran and their results (example plots etc. would be nice especially if they are different before and after your change)
 
 6. Review
+- There is now an automatic test case that runs a shortened version of the example file. This is to check that your changes do not break the core functionality and so if you change something core (e.g. how aeros work) then the test case will fail. Please check the reason that your test failed and if it is because one of the tests actually fails (rather than the test not being able to run) then contact me and we will look at if the test needs changing.
 - We will have a look at the pull request as soon as we can and go through it, possibly testing the code ourselves
 - We are likely to suggest changes to style or funcitonality (please don't be offended, we have spent so much of our time working on it we don't want anything to break or be wrong)
 - Once this is done we will pull it into the main branch 
