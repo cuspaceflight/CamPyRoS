@@ -187,7 +187,7 @@ class ExampleTest(unittest.TestCase):
         run_min_pos = min(
             [(l[0] ** 2 + l[1] ** 2 + l[2] ** 2) ** 0.5 for l in run.pos_i.to_list()]
         )
-        self.assertAlmostEqual(min_pos, run_min_pos, places=0)
+        self.assertAlmostEqual(min_pos/100, run_min_pos/100, places=0)
 
     def test_rail(self):
         self.assertAlmostEqual(
