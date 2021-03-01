@@ -87,18 +87,18 @@ launch_site = pyro.LaunchSite(
     run_date="20210216",
 )  # Use this version if you don't want to use the real wind (e.g. to test something else)
 
-parachute_Data = pd.read_csv('data/Sample_Parachute_Cd.CSV')
-mach_array = parachute_Data['Mach_Number'].to_numpy()
-main_cd_array = parachute_Data['Main_Cd'].to_numpy()
-dro_cd_array = parachute_Data['Drogue_Cd'].to_numpy()
+parachute_Data = pd.read_csv("data/Sample_Parachute_Cd.CSV")
+mach_array = parachute_Data["Mach_Number"].to_numpy()
+main_cd_array = parachute_Data["Main_Cd"].to_numpy()
+dro_cd_array = parachute_Data["Drogue_Cd"].to_numpy()
 
 parachute = pyro.Parachute(
     main_s=13.9,
     drogue_s=1.13,
-    main_c_d=(mach_array,main_cd_array),
-    drogue_c_d=(mach_array,dro_cd_array),
+    main_c_d=(mach_array, main_cd_array),
+    drogue_c_d=(mach_array, dro_cd_array),
     main_alt=1000,
-    attach_distance=0
+    attach_distance=0,
 )
 """
 parachute = pyro.Parachute(

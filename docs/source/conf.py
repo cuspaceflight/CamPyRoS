@@ -13,22 +13,23 @@
 import os
 import sys
 import sphinx_rtd_theme
+
 sys.path.insert(0, os.path.split(os.path.abspath(".."))[0])
 
 # -- Project information -----------------------------------------------------
 
-project = 'CamPyRoS'
-copyright = '2020, Jago Strong-Wright and Daniel Gibbons'
-author = 'Jago Strong-Wright and Daniel Gibbons'
+project = "CamPyRoS"
+copyright = "2020, Jago Strong-Wright and Daniel Gibbons"
+author = "Jago Strong-Wright and Daniel Gibbons"
 
 # The full version, including alpha/beta/rc tags
-release = '1.0.0'
+release = "1.0.0"
 
 
 # -- General configuration ---------------------------------------------------
 
 # Add any paths that contain templates here, relative to this directory.
-templates_path = ['_templates']
+templates_path = ["_templates"]
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
@@ -39,18 +40,20 @@ extensions = [
     "sphinx_rtd_theme",
     "sphinx.ext.autodoc",
     "sphinx.ext.napoleon",
-    "rst2pdf.pdfbuilder"
+    "rst2pdf.pdfbuilder",
 ]
 
-#html_theme = "sphinx_rtd_theme"
+# html_theme = "sphinx_rtd_theme"
 html_theme = "pydata_sphinx_theme"
-#html_logo = "../../img/logo.svg"
+# html_logo = "../../img/logo.svg"
 html_favicon = "../../img/favicon.ico"
-html_static_path = ['_static']
+html_static_path = ["_static"]
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
 
 
-pdf_documents = [('index', u'rst2pdf', u'CamPyRoS', u'Jago Strong-Wright & Daniel Gibbons'),]
+pdf_documents = [
+    ("index", u"rst2pdf", u"CamPyRoS", u"Jago Strong-Wright & Daniel Gibbons"),
+]
