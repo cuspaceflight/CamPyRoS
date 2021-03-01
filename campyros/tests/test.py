@@ -137,7 +137,7 @@ martlet4 = pyro.Rocket(
     parachute=parachute,
 )
 
-run = martlet4.run(debug=False)
+run = martlet4.run(debug=True)
 
 test_output = pyro.from_json("campyros/tests/test.json")
 run_time = test_output.time.max()

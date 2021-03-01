@@ -480,7 +480,7 @@ class Rocket:
             cd, ref_area = self.parachute.get(alt, mach)
             f_parachute_i = -0.5 * q * ref_area * cd * v_relative_wind_i / air_speed
             # Append to list of forces
-            f_i += F_parachute_i
+            f_i += f_parachute_i
 
         else:
             # Aerodynamic forces and moments from the rocket body
