@@ -42,8 +42,8 @@ extensions = [
     "sphinx.ext.napoleon",
 ]
 
-# html_theme = "sphinx_rtd_theme"
-html_theme = "pydata_sphinx_theme"
+html_theme = "sphinx_rtd_theme"
+#html_theme = "pydata_sphinx_theme"
 # html_logo = "../../img/logo.svg"
 html_favicon = "../../img/favicon.ico"
 html_static_path = ["_static"]
