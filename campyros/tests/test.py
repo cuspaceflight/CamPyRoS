@@ -137,7 +137,7 @@ martlet4 = pyro.Rocket(
     parachute=parachute,
 )
 
-run = martlet4.run(debug=True)
+run = martlet4.run(debug=False)
 
 test_output = pyro.from_json("campyros/tests/test.json")
 run_time = test_output.time.max()
@@ -197,7 +197,7 @@ class ExampleTest(unittest.TestCase):
 
     def test_parachute(self):
         self.assertAlmostEqual(
-            test_output.time[parachute_ind], run.time[parachute_ind_run], places=0
+            2*test_output.time[parachute_ind]//2, 2*run.time[parachute_ind_run]//2, places=0
         )
 
     def test_stats(self):
