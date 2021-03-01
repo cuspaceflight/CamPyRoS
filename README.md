@@ -8,7 +8,7 @@ CamPyRoS (Cambridge Python Rocketry Simulator) is a Python package which provide
 - Use of live wind data
 - Variable mass and moments of inertia models
 
-For a fuller documatation see the docs [here](https://cuspaceflight.github.io/CamPyRoS-Docs/)
+For a fuller documatation see the docs [here](https://campyros.readthedocs.io/)
 
 ## Getting started
 Currently not all dependancies are supported by the same install methods so the easiest install doesn't contain the full functionality. To install the core library:
