@@ -6,3 +6,4 @@ thermo
 gas_dynamics
 pandas
 numexpr
+requests
