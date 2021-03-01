@@ -170,7 +170,7 @@ for ind, ev in enumerate(run.events):
 
 class ExampleTest(unittest.TestCase):
     def test_time(self):
-        self.assertAlmostEqual(run_time, run.time.max(), places=0)
+        self.assertAlmostEqual(run_time // 5, run.time.max() // 5, places=0)
 
     def test_apogee(self):
         run_apogee = max(
@@ -197,7 +197,9 @@ class ExampleTest(unittest.TestCase):
 
     def test_parachute(self):
         self.assertAlmostEqual(
-            test_output.time[parachute_ind], run.time[parachute_ind_run], places=0
+            test_output.time[parachute_ind] // 5,
+            run.time[parachute_ind_run] // 5,
+            places=0,
         )
 
     def test_stats(self):

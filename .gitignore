@@ -26,3 +26,4 @@ output.json
 *.grib
 *.NC
 *.anl
+data/pyro.json
