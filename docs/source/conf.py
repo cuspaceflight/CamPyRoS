@@ -40,7 +40,6 @@ extensions = [
     "sphinx_rtd_theme",
     "sphinx.ext.autodoc",
     "sphinx.ext.napoleon",
-    "rst2pdf.pdfbuilder",
 ]
 
 # html_theme = "sphinx_rtd_theme"
@@ -52,8 +51,3 @@ html_static_path = ["_static"]
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
-
-
-pdf_documents = [
-    ("index", u"rst2pdf", u"CamPyRoS", u"Jago Strong-Wright & Daniel Gibbons"),
-]
