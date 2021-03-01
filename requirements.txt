@@ -6,4 +6,3 @@ thermo
 gas_dynamics
 pandas
 numexpr
-MetPy

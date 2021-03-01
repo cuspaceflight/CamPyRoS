@@ -31,8 +31,6 @@ import os
 import numpy as np
 import requests
 import numexpr as ne
-import metpy.calc
-from metpy.units import units
 import pandas as pd
 
 from datetime import date
@@ -400,18 +398,13 @@ class Wind:
                                 .data
                             )
                             alt = (
-                                10
-                                * metpy.calc.geopotential_to_height(
-                                    data[row_geo]
-                                    .extract(
-                                        iris.Constraint(
-                                            latitude=lat, longitude=long, pressure=pres
-                                        )
+                                data[row_geo]
+                                .extract(
+                                    iris.Constraint(
+                                        latitude=lat, longitude=long, pressure=pres
                                     )
-                                    .data
-                                    * units.m ** 2
-                                    / units.s ** 2
-                                ).magnitude
+                                )
+                                .data
                             )
                             row = {
                                 "lat": lat,

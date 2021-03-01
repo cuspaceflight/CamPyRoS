@@ -31,12 +31,10 @@ import os
 import sys
 import json
 import requests
-import metpy.calc
 import os.path
 import time
 import numpy as np
 import pandas as pd
-from metpy.units import units
 
 import scipy.interpolate as interpolate
 import scipy.misc
