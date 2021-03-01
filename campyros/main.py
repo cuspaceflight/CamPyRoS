@@ -74,6 +74,9 @@ __copyright__ = """
     GNU General Public License for more details.
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+    Modifcations:
+    - Richard Zhang: Mach varying parachute drag coefficients
 """
 
 # print("""<name tbc>  Copyright (C) 2021  Jago Strong-Wright & Daniel Gibbons

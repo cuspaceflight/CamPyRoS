@@ -170,7 +170,7 @@ for ind, ev in enumerate(run.events):
 
 class ExampleTest(unittest.TestCase):
     def test_time(self):
-        self.assertAlmostEqual(run_time, run.time.max(), places=0)
+        self.assertAlmostEqual(2*run_time//2, 2*run.time.max()//2, places=0)
 
     def test_apogee(self):
         run_apogee = max(
