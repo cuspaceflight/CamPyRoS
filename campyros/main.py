@@ -433,7 +433,7 @@ class Rocket:
         v_relative_wind_i = direction_l2i(
             (
                 i2airspeed(pos_i, vel_i, self.launch_site, time)
-                - self.launch_site.wind.get_wind(lat, long, alt)
+                - self.launch_site.wind.get_wind(lat, long, alt,self.time)
             ),
             self.launch_site,
             time,
@@ -676,7 +676,7 @@ class Rocket:
             else:
                 lat, long, alt = i2lla(self.pos_i, self.time)
                 wind_inertial = vel_l2i(
-                    self.launch_site.wind.get_wind(lat, long, alt),
+                    self.launch_site.wind.get_wind(lat, long, alt, self.time),
                     self.launch_site,
                     self.time,
                 )
